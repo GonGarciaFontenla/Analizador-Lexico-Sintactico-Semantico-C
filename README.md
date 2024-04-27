@@ -8,7 +8,7 @@ Repositorio designado para los trabajos prácticos de la asignatura "Sintáxis y
 ### Integrantes del grupo
 | Legajo  | Apellido | Nombre | Correo electrónico institucional |
 | ------- | -------- | ------ | -------------------------------- |
-| 0000000 | Apellido | Nombre | ejemplo@frba.utn.edu.ar          |
+| 213.735-5 | Garcia Fontenla | Gonzalo | ggarciafontenla@frba.utn.edu.ar          |
 | 0000000 | Apellido | Nombre | ejemplo@frba.utn.edu.ar          |
 | 0000000 | Apellido | Nombre | ejemplo@frba.utn.edu.ar          |
 | 0000000 | Apellido | Nombre | ejemplo@frba.utn.edu.ar          |
