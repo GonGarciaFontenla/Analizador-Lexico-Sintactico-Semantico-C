@@ -8,8 +8,8 @@ Repositorio designado para los trabajos prácticos de la asignatura "Sintáxis y
 ### Integrantes del grupo
 | Legajo  | Apellido | Nombre | Correo electrónico institucional |
 | ------- | -------- | ------ | -------------------------------- |
-| 213.613-2 | Contreras | Leonel | lecontreras@frba.utn.edu.ar          |
-| 202.603-0 | Aguirre | Martín | maaguirre@frba.utn.edu.ar          |
+| 0000000 | Apellido | Nombre | ejemplo@frba.utn.edu.ar          |
+| 0000000 | Apellido | Nombre | ejemplo@frba.utn.edu.ar          |
 | 0000000 | Apellido | Nombre | ejemplo@frba.utn.edu.ar          |
 | 0000000 | Apellido | Nombre | ejemplo@frba.utn.edu.ar          |
 | 0000000 | Apellido | Nombre | ejemplo@frba.utn.edu.ar          |
