@@ -11,6 +11,6 @@ Repositorio designado para los trabajos prácticos de la asignatura "Sintáxis y
 | 213.735-5 | Garcia Fontenla | Gonzalo | ggarciafontenla@frba.utn.edu.ar          |
 | 202.603-0 | Aguirre Ruiz | Martín Federico | maaguirre@frba.utn.edu.ar          |
 | 141.404-5 | Kociman | Ivan Jose | ikociman@frba.utn.edu.ar          |
-| 0000000 | Apellido | Nombre | ejemplo@frba.utn.edu.ar          |
+| 213.702-1 | Ferreyra | Tomás Ignacio | toferreyra@frba.utn.edu.ar          |
 | 0000000 | Apellido | Nombre | ejemplo@frba.utn.edu.ar          |
 | 0000000 | Apellido | Nombre | ejemplo@frba.utn.edu.ar          |
