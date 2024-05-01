@@ -13,4 +13,4 @@ Repositorio designado para los trabajos prácticos de la asignatura "Sintáxis y
 | 141.404-5 | Kociman | Ivan Jose | ikociman@frba.utn.edu.ar          |
 | 213.702-1 | Ferreyra | Tomás Ignacio | toferreyra@frba.utn.edu.ar          |
 | 178.108-0 | Massaini | Maria Victoria | mmassaini@frba.utn.edu.ar          |
-| 0000000 | Apellido | Nombre | ejemplo@frba.utn.edu.ar          |
+| 213.613-2 | Contreras | Leonel | lecontreras@frba.utn.edu.ar          |
