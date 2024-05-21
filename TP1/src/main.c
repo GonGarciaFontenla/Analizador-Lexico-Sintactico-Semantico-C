@@ -110,21 +110,16 @@ void lexer(FILE* input, FILE* output) {
         }
 }
 
-int main(int argc, char* argv[]) {
+int main(char* argv[]) {
 
-    if(argc < 2) {
-        printf("Debe pasarse un nombre de archivo válido como parámetro.\n");
-        return EXIT_FAILURE;
-    }
-
-    FILE* inputFile = fopen(argv[1], "r");
+    FILE* inputFile = fopen("../bin/entrada.txt", "r");
     if(!inputFile) 
     {
         printf("Error al intentar abrir el archivo %s.\n", argv[1]);
         return EXIT_FAILURE;
     }
     
-    FILE* outputFile = fopen("output.txt", "w");
+    FILE* outputFile = fopen("../bin/output.txt", "w");
     if(!outputFile)
     {
         printf("¡Error al intentar cargar el archivo!");
@@ -137,4 +132,3 @@ int main(int argc, char* argv[]) {
 
     return EXIT_SUCCESS;
 }
- 
