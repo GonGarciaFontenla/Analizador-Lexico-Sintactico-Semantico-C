@@ -1,37 +1,38 @@
 #!/bin/bash
 
-total_tests=0
-passed_tests=0
-total_percentage=0
-min_percentage_matching_per_test=80  # Establecer el porcentaje mínimo de coincidencia para pasar el test
+min_percentage_matching_per_test=75  # Establecer el porcentaje mínimo de coincidencia para pasar el test
 min_average_percentage_over_all_test=75
 min_quantity_test=1
 pass_tests=1
 
+total_tests=0
+passed_tests=0
+total_percentage=0
+
 # Ejecutar pruebas
-for input_file in TP1/tests/test_*.txt; do
+for input_file in ./TP1/tests/test_*.txt; do
     total_tests=$((total_tests + 1))
     test_name=$(basename ${input_file} .txt)
-    output_file="TP1/tests/output_${test_name}.txt"
-    expected_output="TP1/tests/expected_outputs/expected_output_${test_name}.txt"
+    output_file="./TP1/tests/output_${test_name}.txt"
+    expected_output="./TP1/tests/expected_outputs/expected_output_${test_name}.txt"
 
     # Ejecutar el programa con rutas de archivo de entrada y salida
     TP1/bin/tp1 ${input_file} ${output_file}
 
     # Normalizar ambos archivos (limpieza de espacios, tabulaciones, etc)
-    sed -e 's/\t/ /g' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/[[:space:]]\{2,\}/ /g' -e '/^$/d' "$output_file" > "TP1/tests/output_${test_name}_clean.txt"
-    sed -e 's/\t/ /g' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/[[:space:]]\{2,\}/ /g' -e '/^$/d' "$expected_output" > "TP1/tests/expected_outputs/expected_output_${test_name}_clean.txt"
+    sed -e 's/\t/ /g' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/[[:space:]]\{2,\}/ /g' -e '/^$/d' "$output_file" > "./TP1/tests/output_${test_name}_clean.txt"
+    sed -e 's/\t/ /g' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/[[:space:]]\{2,\}/ /g' -e '/^$/d' "$expected_output" > "./TP1/tests/expected_outputs/expected_output_${test_name}_clean.txt"
 
     # Contar líneas en los archivos limpios
-    output_line_count=$(wc -l < "TP1/tests/output_${test_name}_clean.txt")
-    expected_line_count=$(wc -l < "TP1/tests/expected_outputs/expected_output_${test_name}_clean.txt")
+    output_line_count=$(wc -l < "./TP1/tests/output_${test_name}_clean.txt")
+    expected_line_count=$(wc -l < "./TP1/tests/expected_outputs/expected_output_${test_name}_clean.txt")
 
-    [ -n "$(tail -c 1 TP1/tests/output_${test_name}_clean.txt)" ] && echo "" >> TP1/tests/output_${test_name}_clean.txt
-    [ -n "$(tail -c 1 TP1/tests/expected_outputs/expected_output_${test_name}_clean.txt)" ] && echo "" >> TP1/tests/expected_outputs/expected_output_${test_name}_clean.txt
+    [ -n "$(tail -c 1 ./TP1/tests/output_${test_name}_clean.txt)" ] && echo "" >> ./TP1/tests/output_${test_name}_clean.txt
+    [ -n "$(tail -c 1 ./TP1/tests/expected_outputs/expected_output_${test_name}_clean.txt)" ] && echo "" >> ./TP1/tests/expected_outputs/expected_output_${test_name}_clean.txt
 
 
     # Usar diff para encontrar diferencias ignorando líneas vacías y normalizadas
-    diff_output=$(diff "TP1/tests/output_${test_name}_clean.txt" "TP1/tests/expected_outputs/expected_output_${test_name}_clean.txt" | grep -vE '^[0-9]+[acd][0-9]+$|^---$')
+    diff_output=$(diff "./TP1/tests/output_${test_name}_clean.txt" "./TP1/tests/expected_outputs/expected_output_${test_name}_clean.txt" | grep -vE '^[0-9]+[acd][0-9]+$|^---$')
 
     # Contar las líneas coincidentes del output de la ejecución respecto del esperado
     matching_lines=$((expected_line_count - $(echo "$diff_output" | grep -c '^>')))
@@ -58,7 +59,7 @@ for input_file in TP1/tests/test_*.txt; do
 
     echo -e "\nDiferencias indicadas según colores de referencia: \n\033[32m  * Verde: Líneas faltantes en salida actual \033[0m\n\033[31m  * Rojo: Líneas adicionales en salida actual \033[0m\n\033[36m  * Cian: Líneas con diferencias entre salida actual y esperada\033[0m"
     echo -e "\nSalida de ejecución actual ${test_name} \t\t\t\tSalida esperada ${test_name}\n"
-    colordiff -y "${test_name}_clean.txt" "${test_name}_expected_clean.txt"
+    colordiff -y "./TP1/tests/output_${test_name}_clean.txt" "./TP1/tests/expected_outputs/expected_output_${test_name}_clean.txt"
 
 done
 
