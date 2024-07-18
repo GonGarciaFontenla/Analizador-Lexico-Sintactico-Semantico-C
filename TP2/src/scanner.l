@@ -1,59 +1,72 @@
-
-/* Inicio de la sección de definiciones. Aquí: */
-    /* 1. Cualquier texto sangrado o encerrado entre '%{' y '%}' (estos últimos dos sin sangrar en líneas ocupadas únicamente por ellos) se copia íntegramente al archivo de salida del analizador léxico (scanner) generado (*.lex.yy.c) */
-        /* De esas formas podemos poner declaraciones y definiciones de C y directivas del preprocesador */
-    /* 2. Los comentarios (sólo hay de múltiples líneas) sin sangría también se copian tal cual al archivo de salida del analizador léxico (scanner) generado (*.lex.yy.c) */
-
 %{
-
 #include <stdio.h>
-
+#include <stdlib.h>
+#define DEBUG
 %}
 
-    /* La siguiente línea define explícitamente a yytext como un puntero a un caracter ( char* yytext; ). Ésta es la opción por defecto si no se pone nada. */
+SUFIJO_ENTERO ([uU]?[lL]{0,2}|[lL]{0,2}[uU]?)?
+SUFIJO_REAL ([eE][+-]?[0-9]+)?[fFlL]?
+DIGITO_DECIMAL [0-9]
+DIGITO_OCTAL [0-7]
+DIGITO_HEXA [0-9a-fA-F]
+ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
+
 %pointer
-    /* Con la siguiente opción la función de análisis int yylex(void); se comporta como si en la sección de usuario existiera la función int yywrap(void) return 1; la cual devuelve verdadero (no-cero), haciendo que una vez que la función de análisis int yylex(void) reciba una indicación de EOF desde YY_INPUT, asuma que no hay nada más para analizar de yyin y finalice (haciendo un return 0;) */
 %option noyywrap
 
-    /* Condiciones de arranque inclusivas */
-/* %s */
-    /* Condiciones de arranque exclusivas */
-/* %x */
-
-    /* Declaraciones con cada nombre y su definición; se utilizan para simplificar las reglas */
-/* digito [0-9] */
-
-/* Fin de la sección de definiciones */
-
-/* Inicio de la sección de reglas. Aquí: */
-    /* 1. Cualquier texto sangrado o encerrado entre '%{' y '%}' (estos últimos dos sin sangrar en líneas ocupadas únicamente por ellos) se copia íntegramente al archivo de salida del analizador léxico (scanner) generado (*.lex.yy.c) */
-        /* Esto podría utilizarse para declarar variables que son locales a la rutina de análisis léxico y (después de las declaraciones) al código que debe ejecutarse siempre que se entra a la rutina de análisis léxico */
-    /* 2. NO pueden hacerse comentarios sin sangría, ya que estos no se copian literalmente al archivo de salida del analizador léxico (scanner) generado (*.lex.yy.c) */
 %%
 
-[1-9][0-9]* { printf("\nEncontre una constante entera decimal: %s\n", yytext); }
-0[0-7]* { printf("\nEncontre una constante entera octal: %s\n", yytext); }
-0[xX][0-9a-fA-F]+ { printf("\nEncontre una constante entera hexadecimal: %s\n", yytext); }
-[_a-zA-Z]([_a-zA-Z]|[0-9])* { printf("\nEncontre un identificador: %s\n", yytext); }
+{DIGITO_DECIMAL}+{SUFIJO_ENTERO}\b { printf("\nEncontre una constante entera decimal: %s\n", yytext); }
+0{DIGITO_OCTAL}+{SUFIJO_ENTERO}\b { printf("\nEncontre una constante entera octal: %s\n", yytext); }
+0[xX]{DIGITO_HEXA}+{SUFIJO_ENTERO}\b { printf("\nEncontre una constante entera hexadecimal: %s\n", yytext); }
 
-    /* Reglas por defecto de Flex: */
-        /* <*>.|\n { ECHO; } */
-            /* (ECHO; escribe yytext en la salida del escáner: FILE* yyout (variable global a la cual por defecto se le asigna stdout)) */
-        /* <<EOF>> { yyterminate(); } */
-            /* (yyterminate(); hace que la función yylex finalice retornando un 0, indicando un fin-de-entrada (EOF)) */
+[0-9]+\.[0-9]*{SUFIJO_REAL}\b { printf("\nEncontre una constante real: %s\n", yytext); }
+\.[0-9]+{SUFIJO_REAL}\b { printf("\nEncontre una constante real: %s\n", yytext); }
+[0-9]+{SUFIJO_REAL} { printf("\nEncontre una constante real: %s\n", yytext); }
+
+[_a-zA-Z][_a-zA-Z0-9]* { printf("\nEncontre un identificador: %s\n", yytext); }
+
+'[^\\\']' { printf("\nEncontre un caracter simple: %s\n", yytext); }
+
+'\\{ESCAPE_SIMPLE}' { printf("\nEncontre una secuencia de escape simple: %s\n", yytext); }
+'\\{DIGITO_OCTAL}{1,3}' { printf("\nEncontre una secuencia de escape octal: %s\n", yytext); }
+'\\x{DIGITO_HEXA}+' { printf("\nEncontre una secuencia de escape hexadecimal: %s\n", yytext); }
+
+\"([^\\\"\n]|\\{ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXA}+)*\" { printf("\nEncontre un literal cadena: %s\n", yytext); }
+
+int|float|double|char|void|short|long|unsigned|signed {printf("\nEncontre una palabra reservada: %s\n", yytext);}
+
+if|else|while|for|do|switch|case|default|break|continue|return|goto { printf("\nEncontre una palabra reservada: %s\n", yytext); }
+
+sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union { printf("\nEncontre una palabra reservada: %s\n", yytext); }
+
+\+\+|\-\-|\+|\-|\*|\/|\% { printf("\nEncontre un operador aritmético: %s\n", yytext); }
+
+\&\&|\|\||\! { printf("\nEncontre un operador lógico: %s\n", yytext); }
+
+\=\=|\!\=|\<\=|\>\=|\<|\> { printf("\nEncontre un operador de comparación: %s\n", yytext); }
+
+\=|\+\=|\-\=|\*\=|\/\=|\%\= { printf("\nEncontre un operador de asignación: %s\n", yytext); }
+
+[\(\)\[\]\{\}\,\;\:\.\?\-\>] { printf("\nEncontre un caracter de puntuación: %s\n", yytext); }
 
 %%
-/* Fin de la sección de reglas */ 
 
-/* Inicio de la sección de código de usuario, la cual: */
-	/* 1. Se utiliza para rutinas de complemento que llaman al analizador léxico o son llamadas por este; la presencia de esta sección es opcional */
-    /* 2. Toda esta sección simplemente se copia íntegramente al archivo de salida del analizador léxico (scanner) generado (*.lex.yy.c) */
+int main(int argc, char *argv[]) {
+    if (argc > 1) {
+        yyin = fopen(argv[1], "r");
+        if (!yyin) {
+            printf("Error abriendo el archivo de entrada");
+            return EXIT_FAILURE;
+        }
+    } else {
+        yyin = stdin;
+    }
 
-int main(void)
-{
     yylex();
 
-    return 0;
-}
+    if (yyin != stdin) 
+        fclose(yyin);
 
-/* Fin de la sección de código de usuario */
+    return EXIT_SUCCESS;
+}
