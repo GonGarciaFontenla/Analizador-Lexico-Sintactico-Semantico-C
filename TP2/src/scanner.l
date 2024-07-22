@@ -1,11 +1,16 @@
 %{
 
+#include <stdio.h>
 #include "utils.h"
 
 //-------------------------------IDENTIFICADORES-------------------------------//
 
 Identifier identificadores[1000];
 int conteo_identificadores = 0;
+
+//-------------------------------LITERAL CADENA-------------------------------//
+StringLiteral literales[1000];
+int conteo_literales = 0;
 
 //-----------------------------------------------------------------------------------------//
 
@@ -44,7 +49,7 @@ sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union { pr
 '\\x{DIGITO_HEXA}+' { printf("\nEncontré una secuencia de escape hexadecimal: %s\n", yytext); }
 
 
-\"([^\\\"\n]|\\{ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXA}+)*\" { printf("\nEncontré un literal cadena: %s\n", yytext); }   
+\"([^\\\"\n]|\\{ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXA}+)*\" { agregar_literal(yytext); }   
 
 
 [_a-zA-Z][_a-zA-Z0-9]* { agregar_identificador(yytext); }
@@ -80,7 +85,8 @@ int main(int argc, char *argv[]) {
     if (yyin != stdin) 
         fclose(yyin);
 
-    imprimir_identificadores(); 
+    imprimir_identificadores();
+    imprimir_literales();  
 
     return EXIT_SUCCESS;
 }

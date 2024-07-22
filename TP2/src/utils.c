@@ -1,5 +1,7 @@
 #include "utils.h"
 
+//-----------------------------------IDENTIFICADORES-----------------------------------//
+
 // Función para añadir un identificador al arreglo o incrementar su conteo si ya existe
 void agregar_identificador(const char *name) 
 {
@@ -39,3 +41,49 @@ void imprimir_identificadores()
         printf(" %s: %d\n", identificadores[i].identificador, identificadores[i].contador);
     }
 }
+
+//------------------------------------------------------------------------------------//
+
+//-----------------------------------LITERAL CADENA-----------------------------------//
+
+// Función para añadir un literal cadena al arreglo
+void agregar_literal(const char *literal) 
+{
+    // Añade el literal al final del arreglo
+    literales[conteo_literales].literal = strdup(literal);
+    literales[conteo_literales].longitud = strlen(literal) - 2; // Restar 2 para eliminar las comillas dobles
+    conteo_literales++;
+}
+
+// Función de comparación para ordenar literales por longitud y luego por orden de aparición
+int comparar_literales(const void *a, const void *b) 
+{
+    StringLiteral *litA = (StringLiteral *)a;
+    StringLiteral *litB = (StringLiteral *)b;
+    
+    if (litA->longitud != litB->longitud) {
+        return litA->longitud - litB->longitud;
+    } else {
+        return 0; // Mantiene el orden de aparición si tienen la misma longitud
+    }
+}
+
+// Función para imprimir los literales cadena y sus longitudes ordenados
+void imprimir_literales() 
+{
+    if (conteo_literales == 0) {
+        printf("\n* Listado de literales cadena encontrados:\n -\n");
+        return;
+    }
+    // Ordena el arreglo de literales usando la función de comparación
+    qsort(literales, conteo_literales, sizeof(StringLiteral), comparar_literales);
+    // Imprime el encabezado del listado
+    printf("\n* Listado de literales cadena encontrados: \n");
+    // Recorre el arreglo de literales e imprime cada uno junto con su longitud
+    for (int i = 0; i < conteo_literales; ++i) 
+    {
+        printf(" %s: longitud %d\n", literales[i].literal, literales[i].longitud);
+    }
+}
+
+//------------------------------------------------------------------------------------//
