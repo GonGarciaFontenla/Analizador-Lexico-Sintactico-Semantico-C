@@ -4,13 +4,14 @@
 #include "utils.h"
 
 //-------------------------------IDENTIFICADORES-------------------------------//
-
-Identifier identificadores[1000];
+Identifier *identificadores = NULL;
 int conteo_identificadores = 0;
+int capacidad_identificadores = 0; 
 
 //-------------------------------LITERAL CADENA-------------------------------//
-StringLiteral literales[1000];
+StringLiteral *literales = NULL;
 int conteo_literales = 0;
+int capacidad_literales = 0;
 
 //-----------------------------------------------------------------------------------------//
 
@@ -86,7 +87,10 @@ int main(int argc, char *argv[]) {
         fclose(yyin);
 
     imprimir_identificadores();
+    liberar_identificadores();
+
     imprimir_literales();  
+    liberar_literales(); 
 
     return EXIT_SUCCESS;
 }

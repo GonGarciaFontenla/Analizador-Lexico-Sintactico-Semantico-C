@@ -16,6 +16,18 @@ void agregar_identificador(const char *name)
         }
     }
 
+    // Si no hay suficiente espacio, redimensiona el arreglo
+    if (conteo_identificadores == capacidad_identificadores) 
+    {
+        capacidad_identificadores = (capacidad_identificadores == 0) ? 1 : capacidad_identificadores * 2;
+        identificadores = realloc(identificadores, capacidad_identificadores * sizeof(Identifier));
+        if (identificadores == NULL) 
+        {
+            fprintf(stderr, "Error de memoria al redimensionar el arreglo de identificadores\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    
     // Si no encuentra el identificador, lo añade al final del arreglo
     identificadores[conteo_identificadores].identificador = strdup(name);
     identificadores[conteo_identificadores].contador = 1;
@@ -42,6 +54,19 @@ void imprimir_identificadores()
     }
 }
 
+// Función para liberar la memoria
+void liberar_identificadores() 
+{
+    for (int i = 0; i < conteo_identificadores; ++i) 
+    {
+        free(identificadores[i].identificador);
+    }
+    free(identificadores);
+    identificadores = NULL;
+    conteo_identificadores = 0;
+    capacidad_identificadores = 0;
+}
+
 //------------------------------------------------------------------------------------//
 
 //-----------------------------------LITERAL CADENA-----------------------------------//
@@ -49,6 +74,16 @@ void imprimir_identificadores()
 // Función para añadir un literal cadena al arreglo
 void agregar_literal(const char *literal) 
 {
+    if (conteo_literales == capacidad_literales) 
+    {
+        capacidad_literales = (capacidad_literales == 0) ? 1 : capacidad_literales * 2;
+        literales = realloc(literales, capacidad_literales * sizeof(StringLiteral));
+        if (literales == NULL) 
+        {
+            fprintf(stderr, "Error de memoria al redimensionar el arreglo de literales\n");
+            exit(EXIT_FAILURE);
+        }
+    }
     // Añade el literal al final del arreglo
     literales[conteo_literales].literal = strdup(literal);
     literales[conteo_literales].longitud = strlen(literal) - 2; // Restar 2 para eliminar las comillas dobles
