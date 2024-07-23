@@ -123,7 +123,7 @@ void imprimir_literales()
 
 //------------------------------------------------------------------------------------//
 
-void agregar_keyword(const char *keyword, typeKeyWord tipo); {
+void agregar_keyword(const char *keyword, typeKeyWord tipo) {
     t_key_word *temporal = realloc(keyWords, (cantidad_keywords + 1)* sizeof(t_key_word));
     if(!temporal) {
         printf("¡Error al agrandar el vector!");
@@ -132,22 +132,22 @@ void agregar_keyword(const char *keyword, typeKeyWord tipo); {
 
     keyWords = temporal; // el puntero keyWords apunta a temporal
 
-    keyWords[cantidad_keywords].keyword = strdup(palabra);
+    keyWords[cantidad_keywords].keyword = strdup(keyword);
     keyWords[cantidad_keywords].type = tipo;
     keyWords[cantidad_keywords].line = linea;
     keyWords[cantidad_keywords].column = columna;
-    
+ 
     cantidad_keywords ++;
 }
 
 void imprimir_keywords() {
     if(!cantidad_keywords) {
-        printf("\n* Listado de palabras reservadas vacío: \n");
+        printf("\n* Listado de palabras reservadas encontradas: \n-");
         return;
     }
 
-    qsort(keyWords, cantidad_keywords + 1, sizeof(t_key_word), comparar_keywords_por_palabra); // Primero ordeno por palabra reservada alfabeticamente
-    qsort(keyWords, cantidad_keywords + 1, sizeof(t_key_word), comparar_keywords_por_tipo); // Luego, una vez ordenado alfabeticamente, ordeno por tipo de reservada para facilitar la búsqueda
+    qsort(keyWords, cantidad_keywords, sizeof(t_key_word), comparar_keywords_por_palabra); // Primero ordeno por palabra reservada alfabeticamente
+    qsort(keyWords, cantidad_keywords, sizeof(t_key_word), comparar_keywords_por_tipo); // Luego, una vez ordenado alfabeticamente, ordeno por tipo de reservada para facilitar la búsqueda
 
     printf("\n* Listado de palabras reservadas (tipos de dato):\n");
     for (int i = 0; i < cantidad_keywords; i++) {

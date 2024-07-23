@@ -20,7 +20,7 @@ int capacidad_literales = 0;
 t_key_word *keyWords = NULL;
 int linea = 1;
 int columna = 1;
-int cantidad_keywords = 0;
+int cantidad_keywords = 1;
 
 //----------------------------------------------------------------------------//
 %}
@@ -37,44 +37,47 @@ ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
 
 %%
 
-[1-9]{DIGITO_DECIMAL}*{SUFIJO_ENTERO} { printf("\nEncontré una constante entera decimal: %s\n", yytext); }
-0{DIGITO_OCTAL}*{SUFIJO_ENTERO} { printf("\nEncontré una constante entera octal: %s\n", yytext); }
-0[xX]{DIGITO_HEXA}+{SUFIJO_ENTERO} { printf("\nEncontré una constante entera hexadecimal: %s\n", yytext); }
+[1-9]{DIGITO_DECIMAL}*{SUFIJO_ENTERO} { printf("\nEncontré una constante entera decimal: %s\n", yytext); columna += yyleng;}
+0{DIGITO_OCTAL}*{SUFIJO_ENTERO} { printf("\nEncontré una constante entera octal: %s\n", yytext); columna += yyleng;}
+0[xX]{DIGITO_HEXA}+{SUFIJO_ENTERO} { printf("\nEncontré una constante entera hexadecimal: %s\n", yytext); columna += yyleng;}
 
 
-[0-9]+\.[0-9]*{SUFIJO_REAL} { printf("\nEncontré una constante real: %s\n", yytext); }
-\.[0-9]+{SUFIJO_REAL} { printf("\nEncontré una constante real: %s\n", yytext); }
-[0-9]+{SUFIJO_REAL} { printf("\nEncontré una constante real: %s\n", yytext); }
+[0-9]+\.[0-9]*{SUFIJO_REAL} { printf("\nEncontré una constante real: %s\n", yytext); columna += yyleng;}
+\.[0-9]+{SUFIJO_REAL} { printf("\nEncontré una constante real: %s\n", yytext); columna += yyleng;}
+[0-9]+{SUFIJO_REAL} { printf("\nEncontré una constante real: %s\n", yytext); columna += yyleng;}
 
 
-int|float|double|char|void|short|long|unsigned|signed {agregar_keyword(yytext, TIPO_DATO); }
-if|else|while|for|do|switch|case|default|break|continue|return|goto { agregar_keyword(yytext, TIPO_CONTROL); }
-sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union { agregar_keyword(yytext, OTROS); }
+int|float|double|char|void|short|long|unsigned|signed {agregar_keyword(yytext, TIPO_DATO); columna += yyleng;}
+if|else|while|for|do|switch|case|default|break|continue|return|goto { agregar_keyword(yytext, TIPO_CONTROL); columna += yyleng;}
+sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union { agregar_keyword(yytext, OTROS); columna += yyleng;}
 
 
-'[^\\\']' { printf("\nEncontré un caracter simple: %s\n", yytext); }
-'\\{ESCAPE_SIMPLE}' { printf("\nEncontré una secuencia de escape simple: %s\n", yytext); }
-'\\{DIGITO_OCTAL}{1,3}' { printf("\nEncontré una secuencia de escape octal: %s\n", yytext); }
-'\\x{DIGITO_HEXA}+' { printf("\nEncontré una secuencia de escape hexadecimal: %s\n", yytext); }
+'[^\\\']' { printf("\nEncontré un caracter simple: %s\n", yytext); columna += yyleng;}
+'\\{ESCAPE_SIMPLE}' { printf("\nEncontré una secuencia de escape simple: %s\n", yytext); columna += yyleng;}
+'\\{DIGITO_OCTAL}{1,3}' { printf("\nEncontré una secuencia de escape octal: %s\n", yytext); columna += yyleng;}
+'\\x{DIGITO_HEXA}+' { printf("\nEncontré una secuencia de escape hexadecimal: %s\n", yytext); columna += yyleng;}
 
 
-\"([^\\\"\n]|\\{ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXA}+)*\" { agregar_literal(yytext); }   
+\"([^\\\"\n]|\\{ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXA}+)*\" { agregar_literal(yytext); columna += yyleng;}   
 
 
-[_a-zA-Z][_a-zA-Z0-9]* { agregar_identificador(yytext); }
+[_a-zA-Z][_a-zA-Z0-9]* { agregar_identificador(yytext); columna += yyleng;}
 
 
-\+\+|\-\-|\+|\-|\*|\/|\% { printf("\nEncontré un operador aritmético: %s\n", yytext); }
-\&\&|\|\||\! { printf("\nEncontré un operador lógico: %s\n", yytext); }
-\=\=|\!\=|\<\=|\>\=|\<|\> { printf("\nEncontré un operador de comparación: %s\n", yytext); }
-\=|\+\=|\-\=|\*\=|\/\=|\%\= { printf("\nEncontré un operador de asignación: %s\n", yytext); }
-[\(\)\[\]\{\}\,\;\:\.\?\-\>] { printf("\nEncontré un carácter de puntuación: %s\n", yytext); }
+\+\+|\-\-|\+|\-|\*|\/|\% { printf("\nEncontré un operador aritmético: %s\n", yytext); columna += yyleng;}
+\&\&|\|\||\! { printf("\nEncontré un operador lógico: %s\n", yytext); columna += yyleng;}
+\=\=|\!\=|\<\=|\>\=|\<|\> { printf("\nEncontré un operador de comparación: %s\n", yytext); columna += yyleng;}
+\=|\+\=|\-\=|\*\=|\/\=|\%\= { printf("\nEncontré un operador de asignación: %s\n", yytext); columna += yyleng;}
+[\(\)\[\]\{\}\,\;\:\.\?\-\>] { printf("\nEncontré un carácter de puntuación: %s\n", yytext); columna += yyleng;}
 
 
-[ \t\n] ; // Ignorar espacios en blanco
+[ \t]+ { columna += yyleng; }
 
 
-. { printf("\nCaracter no reconocido: %s\n", yytext); }
+\n { linea++; columna = 1;}
+
+
+. { printf("\nCaracter no reconocido: %s\n", yytext); columna += yyleng;}
 
 %%
 
@@ -98,7 +101,7 @@ int main(int argc, char *argv[]) {
     liberar_identificadores();
 
     imprimir_literales();  
-    liberar_literales(); 
+    //liberar_literales(); 
 
     imprimir_keywords();
     liberar_keywords();
