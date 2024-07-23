@@ -123,6 +123,9 @@ void imprimir_literales()
 
 //------------------------------------------------------------------------------------//
 
+
+//--------------------------------PALABRAS RESERVADAS--------------------------------//
+
 void agregar_keyword(const char *keyword, typeKeyWord tipo) {
     t_key_word *temporal = realloc(keyWords, (cantidad_keywords + 1)* sizeof(t_key_word));
     if(!temporal) {
@@ -193,3 +196,5 @@ void liberar_keywords() {
         keyWords = NULL;
     }   
 }
+
+//------------------------------------------------------------------------------------//

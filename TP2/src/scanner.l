@@ -20,7 +20,7 @@ int capacidad_literales = 0;
 t_key_word *keyWords = NULL;
 int linea = 1;
 int columna = 1;
-int cantidad_keywords = 1;
+int cantidad_keywords = 0;
 
 //----------------------------------------------------------------------------//
 %}
