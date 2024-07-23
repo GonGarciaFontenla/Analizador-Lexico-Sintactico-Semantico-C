@@ -121,6 +121,18 @@ void imprimir_literales()
     }
 }
 
+void liberar_literales() 
+{
+    for (int i = 0; i < conteo_literales; ++i) 
+    {
+        free(literales[i].literal);
+    }
+    free(literales);
+    literales = NULL;
+    conteo_literales = 0;
+    capacidad_literales = 0;
+}
+
 //------------------------------------------------------------------------------------//
 
 

@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
     liberar_identificadores();
 
     imprimir_literales();  
-    //liberar_literales(); 
+    liberar_literales(); 
 
     imprimir_keywords();
     liberar_keywords();
