@@ -3,18 +3,26 @@
 #include <stdio.h>
 #include "utils.h"
 
-//-------------------------------IDENTIFICADORES-------------------------------//
+//-------------------------------IDENTIFICADORES------------------------------//
+
 Identifier *identificadores = NULL;
 int conteo_identificadores = 0;
 int capacidad_identificadores = 0; 
 
 //-------------------------------LITERAL CADENA-------------------------------//
+
 StringLiteral *literales = NULL;
 int conteo_literales = 0;
 int capacidad_literales = 0;
 
-//-----------------------------------------------------------------------------------------//
+//-----------------------------PALABRAS RESERVADAS----------------------------//
 
+t_key_word *keyWords = NULL;
+int linea = 1;
+int columna = 1;
+int cantidad_keywords = 0;
+
+//----------------------------------------------------------------------------//
 %}
 
 SUFIJO_ENTERO ([uU]?[lL]{0,2}|[lL]{0,2}[uU]?)?
@@ -39,9 +47,9 @@ ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
 [0-9]+{SUFIJO_REAL} { printf("\nEncontré una constante real: %s\n", yytext); }
 
 
-int|float|double|char|void|short|long|unsigned|signed { printf("\nEncontré una palabra reservada: %s\n", yytext); }
-if|else|while|for|do|switch|case|default|break|continue|return|goto { printf("\nEncontré una palabra reservada: %s\n", yytext); }
-sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union { printf("\nEncontré una palabra reservada: %s\n", yytext); }
+int|float|double|char|void|short|long|unsigned|signed {agregar_keyword(yytext, TIPO_DATO); }
+if|else|while|for|do|switch|case|default|break|continue|return|goto { agregar_keyword(yytext, TIPO_CONTROL); }
+sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union { agregar_keyword(yytext, OTROS); }
 
 
 '[^\\\']' { printf("\nEncontré un caracter simple: %s\n", yytext); }
@@ -91,6 +99,9 @@ int main(int argc, char *argv[]) {
 
     imprimir_literales();  
     liberar_literales(); 
+
+    imprimir_keywords();
+    liberar_keywords();
 
     return EXIT_SUCCESS;
 }

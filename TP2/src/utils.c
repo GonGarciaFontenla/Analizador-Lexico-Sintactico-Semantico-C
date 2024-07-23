@@ -122,3 +122,74 @@ void imprimir_literales()
 }
 
 //------------------------------------------------------------------------------------//
+
+void agregar_keyword(const char *keyword, typeKeyWord tipo); {
+    t_key_word *temporal = realloc(keyWords, (cantidad_keywords + 1)* sizeof(t_key_word));
+    if(!temporal) {
+        printf("¡Error al agrandar el vector!");
+        return;
+    }
+
+    keyWords = temporal; // el puntero keyWords apunta a temporal
+
+    keyWords[cantidad_keywords].keyword = strdup(palabra);
+    keyWords[cantidad_keywords].type = tipo;
+    keyWords[cantidad_keywords].line = linea;
+    keyWords[cantidad_keywords].column = columna;
+    
+    cantidad_keywords ++;
+}
+
+void imprimir_keywords() {
+    if(!cantidad_keywords) {
+        printf("\n* Listado de palabras reservadas vacío: \n");
+        return;
+    }
+
+    qsort(keyWords, cantidad_keywords + 1, sizeof(t_key_word), comparar_keywords_por_palabra); // Primero ordeno por palabra reservada alfabeticamente
+    qsort(keyWords, cantidad_keywords + 1, sizeof(t_key_word), comparar_keywords_por_tipo); // Luego, una vez ordenado alfabeticamente, ordeno por tipo de reservada para facilitar la búsqueda
+
+    printf("\n* Listado de palabras reservadas (tipos de dato):\n");
+    for (int i = 0; i < cantidad_keywords; i++) {
+        if (keyWords[i].type == TIPO_DATO) {
+            printf("%s: linea %d, columna %d\n", keyWords[i].keyword, keyWords[i].line, keyWords[i].column);
+        }
+    }
+
+    printf("\n* Listado de palabras reservadas (estructuras de control):\n");
+    for (int i = 0; i < cantidad_keywords; i++) {
+        if (keyWords[i].type == TIPO_CONTROL) {
+            printf("%s: linea %d, columna %d\n", keyWords[i].keyword, keyWords[i].line, keyWords[i].column);
+        }
+    }
+
+    printf("\n* Listado de palabras reservadas (otros):\n");
+    for (int i = 0; i < cantidad_keywords; i++) {
+        if (keyWords[i].type == OTROS) {
+            printf("%s: linea %d, columna %d\n", keyWords[i].keyword, keyWords[i].line, keyWords[i].column);
+        }
+    }
+    
+}
+
+int comparar_keywords_por_tipo(const void* primero, const void* segundo) {
+    const t_key_word* a = (const t_key_word*)primero; //Recasteos
+    const t_key_word* b = (const t_key_word*)segundo;
+    return a->type - b->type;
+}
+
+int comparar_keywords_por_palabra(const void* primero, const void* segundo) {
+    const t_key_word* a = (const t_key_word*)primero;
+    const t_key_word* b = (const t_key_word*)segundo;
+    return strcmp(a->keyword, b->keyword);
+}
+
+void liberar_keywords() {
+    if(keyWords) {
+        for(int i = 0; i < cantidad_keywords; i++) {
+            free(keyWords[i].keyword);
+        }
+        free(keyWords);
+        keyWords = NULL;
+    }   
+}
