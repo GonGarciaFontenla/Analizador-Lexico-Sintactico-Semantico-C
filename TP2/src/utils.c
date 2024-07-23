@@ -153,26 +153,43 @@ void imprimir_keywords() {
     qsort(keyWords, cantidad_keywords, sizeof(t_key_word), comparar_keywords_por_tipo); // Luego, una vez ordenado alfabeticamente, ordeno por tipo de reservada para facilitar la búsqueda
 
     printf("\n* Listado de palabras reservadas (tipos de dato):\n");
+    int found = 0;
     for (int i = 0; i < cantidad_keywords; i++) {
         if (keyWords[i].type == TIPO_DATO) {
             printf("%s: linea %d, columna %d\n", keyWords[i].keyword, keyWords[i].line, keyWords[i].column);
+            found = 1;
         }
     }
+    if (!found) 
+        {
+            printf("-\n");
+        }
 
     printf("\n* Listado de palabras reservadas (estructuras de control):\n");
+    found = 0;
     for (int i = 0; i < cantidad_keywords; i++) {
         if (keyWords[i].type == TIPO_CONTROL) {
             printf("%s: linea %d, columna %d\n", keyWords[i].keyword, keyWords[i].line, keyWords[i].column);
+            found = 1;
         }
+    }
+    if (!found) 
+    {
+        printf("-\n");
     }
 
     printf("\n* Listado de palabras reservadas (otros):\n");
+    found = 0;
     for (int i = 0; i < cantidad_keywords; i++) {
         if (keyWords[i].type == OTROS) {
             printf("%s: linea %d, columna %d\n", keyWords[i].keyword, keyWords[i].line, keyWords[i].column);
+            found = 1; 
         }
     }
-    
+    if (!found) 
+    {
+        printf("-\n");
+    }
 }
 
 int comparar_keywords_por_tipo(const void* primero, const void* segundo) {
