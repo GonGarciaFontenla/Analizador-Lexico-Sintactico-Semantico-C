@@ -161,9 +161,6 @@ void imprimir_keywords() {
         return;
     }
 
-    qsort(keyWords, cantidad_keywords, sizeof(t_key_word), comparar_keywords_por_palabra); // Primero ordeno por palabra reservada alfabeticamente
-    qsort(keyWords, cantidad_keywords, sizeof(t_key_word), comparar_keywords_por_tipo); // Luego, una vez ordenado alfabeticamente, ordeno por tipo de reservada para facilitar la búsqueda
-
     printf("\n* Listado de palabras reservadas (tipos de dato):\n");
     int found = 0;
     for (int i = 0; i < cantidad_keywords; i++) {
@@ -202,18 +199,6 @@ void imprimir_keywords() {
     {
         printf("-\n");
     }
-}
-
-int comparar_keywords_por_tipo(const void* primero, const void* segundo) {
-    const t_key_word* a = (const t_key_word*)primero; //Recasteos
-    const t_key_word* b = (const t_key_word*)segundo;
-    return a->type - b->type;
-}
-
-int comparar_keywords_por_palabra(const void* primero, const void* segundo) {
-    const t_key_word* a = (const t_key_word*)primero;
-    const t_key_word* b = (const t_key_word*)segundo;
-    return strcmp(a->keyword, b->keyword);
 }
 
 void liberar_keywords() {
