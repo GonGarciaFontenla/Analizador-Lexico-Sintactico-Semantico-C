@@ -213,11 +213,14 @@ void liberar_keywords() {
 
 //------------------------------------------------------------------------------------//
 
+
 //-------------------------------OPERADORES Y PUNTUACION-----------------------------//
 
-void agregar_operador(const char op)
+
+void agregar_operador(const char *op)
 {
-    for(int i = 0, i < conteo_operadores, i++)
+    // Verifica si ya existe el operador en el arreglo
+    for(int i = 0; i < conteo_operadores; i++)
     {
         if(strcmp(operadores[i].operador, op) == 0)
         {
@@ -226,21 +229,24 @@ void agregar_operador(const char op)
         }
     }
 
-    if (conteo_operadores == capacidad_operadores) 
+    // Agranda el arreglo
+    if(conteo_operadores == capacidad_operadores)
     {
         capacidad_operadores = (capacidad_operadores == 0) ? 1 : capacidad_operadores * 2;
         operadores = realloc(operadores, capacidad_operadores * sizeof(Operator));
-        if (operadores == NULL) 
+        if(operadores == NULL)
         {
             fprintf(stderr, "Error de memoria al redimensionar el arreglo de operadores\n");
             exit(EXIT_FAILURE);
         }
     }
-    
+
+    // Agrega el nuevo operador al final, no hace falta reordenar
     operadores[conteo_operadores].operador = strdup(op);
     operadores[conteo_operadores].apariciones = 1;
-    conteo_identificadores++;
+    conteo_operadores++;
 }
+
 
 void imprimir_operadores()
 {
@@ -253,7 +259,7 @@ void imprimir_operadores()
 
 void liberar_operadores()
 {
-    for (int i = 0; i < conteo_operadores; ++i) 
+    for (int i = 0; i < conteo_operadores; ++i)
     {
         free(operadores[i].operador);
     }
