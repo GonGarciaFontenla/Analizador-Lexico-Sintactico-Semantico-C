@@ -68,8 +68,7 @@ void liberar_literales();
 void agregar_keyword(const char *keyword, typeKeyWord tipo);
 void liberar_keywords();
 void imprimir_keywords();
-int comparar_keywords_por_tipo(const void* primero, const void* segundo);
-int comparar_keywords_por_palabra(const void* primero, const void* segundo);
+
 
 // Operadores y Puntuacion //
 void agregar_operador(const char op);
