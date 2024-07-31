@@ -71,7 +71,7 @@ sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union { ag
 [_a-zA-Z][_a-zA-Z0-9]* { agregar_identificador(yytext); columna += yyleng;}
 
 
-{OPERADORES}    { agregar_operadror(yytext); columna += yyleng;}
+{OPERADORES} { agregar_operador(yytext); columna += yyleng;}
 
 
 [ \t]+ { columna += yyleng; }

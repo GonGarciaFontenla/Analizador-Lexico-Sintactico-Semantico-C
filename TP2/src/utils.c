@@ -250,7 +250,7 @@ void agregar_operador(const char *op)
 
 void imprimir_operadores()
 {
-    printf("\n* Listado de operadores/caracteres de puntuación:\n");
+    printf("\n* Listado de operadores/caracteres de puntuacion:\n");
     for(int i = 0; i < conteo_operadores; i++)
     {
         if(operadores[i].apariciones == 1)

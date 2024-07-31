@@ -71,7 +71,7 @@ void imprimir_keywords();
 
 
 // Operadores y Puntuacion //
-void agregar_operador(const char op);
+void agregar_operador(const char *op);
 void imprimir_operadores();
 void liberar_operadores();
 
