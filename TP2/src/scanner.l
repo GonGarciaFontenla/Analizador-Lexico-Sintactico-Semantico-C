@@ -22,7 +22,12 @@ int linea = 1;
 int columna = 1;
 int cantidad_keywords = 0;
 
-//----------------------------------------------------------------------------//
+//--------------------------OPERADORES Y PUNTUACION---------------------------//
+
+Operator *operadores = NULL;
+int conteo_operadores = 0;
+int capacidad_operadores = 0;
+
 %}
 
 SUFIJO_ENTERO ([uU]?[lL]{0,2}|[lL]{0,2}[uU]?)?
@@ -31,6 +36,8 @@ DIGITO_DECIMAL [0-9]
 DIGITO_OCTAL [0-7]
 DIGITO_HEXA [0-9a-fA-F]
 ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
+OPERADORES \[|\]|\{|\}|\(|\)|\*|,|:|;|=|\.|#|&|\+|-|~|!|\/|%|<|>|\^|\?|(\.\.\.)|(->)|(\+\+)|(--)|(<<)|(>>)|(<=)|(>=)|(==)|(!=)|(&&)|(\|\|)|(\*=)|(\/=)|(%=)|(\+=)|(-=)|(<<=)|(>>=)|(&=)|(\^=)|(\|=)|(##)
+
 
 %pointer
 %option noyywrap
@@ -64,11 +71,7 @@ sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union { ag
 [_a-zA-Z][_a-zA-Z0-9]* { agregar_identificador(yytext); columna += yyleng;}
 
 
-\+\+|\-\-|\+|\-|\*|\/|\% { printf("\nEncontré un operador aritmético: %s\n", yytext); columna += yyleng;}
-\&\&|\|\||\! { printf("\nEncontré un operador lógico: %s\n", yytext); columna += yyleng;}
-\=\=|\!\=|\<\=|\>\=|\<|\> { printf("\nEncontré un operador de comparación: %s\n", yytext); columna += yyleng;}
-\=|\+\=|\-\=|\*\=|\/\=|\%\= { printf("\nEncontré un operador de asignación: %s\n", yytext); columna += yyleng;}
-[\(\)\[\]\{\}\,\;\:\.\?\-\>] { printf("\nEncontré un carácter de puntuación: %s\n", yytext); columna += yyleng;}
+{OPERADORES}    { agregar_operadror(yytext); columna += yyleng;}
 
 
 [ \t]+ { columna += yyleng; }
@@ -105,6 +108,11 @@ int main(int argc, char *argv[]) {
 
     imprimir_keywords();
     liberar_keywords();
+
+
+
+    imprimir_operadores();
+    liberar_operadores();
 
     return EXIT_SUCCESS;
 }

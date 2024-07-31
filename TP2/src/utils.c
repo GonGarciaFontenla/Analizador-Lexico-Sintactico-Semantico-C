@@ -50,7 +50,7 @@ void imprimir_identificadores()
     // Recorre el arreglo de identificadores e imprime cada uno junto con su conteo
     for (int i = 0; i < conteo_identificadores; ++i) 
     {
-        printf(" %s: %d\n", identificadores[i].identificador, identificadores[i].contador);
+        printf("%s: %d\n", identificadores[i].identificador, identificadores[i].contador);
     }
 }
 
@@ -117,7 +117,7 @@ void imprimir_literales()
     // Recorre el arreglo de literales e imprime cada uno junto con su longitud
     for (int i = 0; i < conteo_literales; ++i) 
     {
-        printf(" %s: longitud %d\n", literales[i].literal, literales[i].longitud);
+        printf("%s: longitud %d\n", literales[i].literal, literales[i].longitud);
     }
 }
 
@@ -227,3 +227,53 @@ void liberar_keywords() {
 }
 
 //------------------------------------------------------------------------------------//
+
+//-------------------------------OPERADORES Y PUNTUACION-----------------------------//
+
+void agregar_operador(const char op)
+{
+    for(int i = 0, i < conteo_operadores, i++)
+    {
+        if(strcmp(operadores[i].operador, op) == 0)
+        {
+            operadores[i].apariciones++;
+            return;
+        }
+    }
+
+    if (conteo_operadores == capacidad_operadores) 
+    {
+        capacidad_operadores = (capacidad_operadores == 0) ? 1 : capacidad_operadores * 2;
+        operadores = realloc(operadores, capacidad_operadores * sizeof(Operator));
+        if (operadores == NULL) 
+        {
+            fprintf(stderr, "Error de memoria al redimensionar el arreglo de operadores\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    operadores[conteo_operadores].operador = strdup(op);
+    operadores[conteo_operadores].apariciones = 1;
+    conteo_identificadores++;
+}
+
+void imprimir_operadores()
+{
+    printf("\n* Listado de operadores/caracteres de puntuación:\n");
+    for(int i = 0; i < conteo_operadores; i++)
+    {
+        printf("%s: aparece %d veces\n", operadores[i].operador, operadores[i].apariciones);
+    }
+}
+
+void liberar_operadores()
+{
+    for (int i = 0; i < conteo_operadores; ++i) 
+    {
+        free(operadores[i].operador);
+    }
+    free(operadores);
+    operadores = NULL;
+    conteo_operadores = 0;
+    capacidad_operadores = 0;
+}

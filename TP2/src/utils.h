@@ -30,6 +30,11 @@ typedef struct {
     typeKeyWord type;
 } t_key_word;
 
+typedef struct {
+    char* operador;
+    int apariciones;
+} Operator;
+
 extern Identifier *identificadores;
 extern int conteo_identificadores;  
 extern int capacidad_identificadores;
@@ -42,6 +47,10 @@ extern t_key_word *keyWords;
 extern int linea;
 extern int columna;
 extern int cantidad_keywords;
+
+extern Operator *operadores;
+extern int conteo_operadores;  
+extern int capacidad_operadores;
 
 // Identificadores //
 int comparar_identificadores(const void *a, const void *b);
@@ -61,5 +70,10 @@ void liberar_keywords();
 void imprimir_keywords();
 int comparar_keywords_por_tipo(const void* primero, const void* segundo);
 int comparar_keywords_por_palabra(const void* primero, const void* segundo);
+
+// Operadores y Puntuacion //
+void agregar_operador(const char op);
+void imprimir_operadores();
+void liberar_operadores();
 
 #endif
