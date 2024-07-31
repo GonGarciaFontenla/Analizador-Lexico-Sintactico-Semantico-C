@@ -253,7 +253,15 @@ void imprimir_operadores()
     printf("\n* Listado de operadores/caracteres de puntuación:\n");
     for(int i = 0; i < conteo_operadores; i++)
     {
-        printf("%s: aparece %d veces\n", operadores[i].operador, operadores[i].apariciones);
+        if(operadores[i].apariciones == 1)
+        {
+            printf("%s: aparece %d vez\n", operadores[i].operador, operadores[i].apariciones);
+        }
+        else 
+        {
+            printf("%s: aparece %d veces\n", operadores[i].operador, operadores[i].apariciones);
+        }
+        
     }
 }
 
