@@ -379,6 +379,56 @@ void liberar_octal()
 }
 //------------------------------------------------------------------------------------//
 
+//--------------------------CONSTANTES ENTERAS (HEXADECIMALES)------------------------//
+
+// Función para añadir constante al arreglo
+void agregar_hexa(const char* valor_hexa, int valor_decimal) 
+{
+    // Si no hay suficiente espacio, redimensiona el arreglo
+    if (conteo_hexa == capacidad_hexa) 
+    {
+        capacidad_hexa = (capacidad_hexa == 0) ? 1 : capacidad_hexa * 2;
+        constHexa = realloc(constHexa, capacidad_hexa * sizeof(Hexadecimal));
+        if (constHexa == NULL) 
+        {
+            fprintf(stderr, "Error de memoria al redimensionar el arreglo de constantes\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    // Añade el nuevo elemento al final del arreglo
+    constHexa[conteo_hexa].valor_hexa = strdup(valor_hexa); 
+    constHexa[conteo_hexa].valor_decimal = valor_decimal;
+    conteo_hexa++;
+}
+
+void imprimir_hexa() 
+{
+    // Imprime el encabezado del listado
+    printf("\n* Listado de constantes entera hexadecimales: \n");
+    // Recorre el arreglo de constantes e imprime cada uno junto con su valor
+   for (int i = 0; i < conteo_hexa; ++i) 
+    {
+        printf("%s: valor entero decimal %d\n", constHexa[i].valor_hexa, constHexa[i].valor_decimal);
+    }
+}
+
+// Función para liberar la memoria
+void liberar_hexa() 
+{
+    for (int i = 0; i < conteo_hexa; ++i) 
+    {
+        free(constHexa[i].valor_hexa);
+    }
+
+    free(constHexa);
+    constHexa = NULL;
+    conteo_hexa = 0;
+    capacidad_hexa = 0;
+}
+
+//------------------------------------------------------------------------------------//
+
 //------------------------------------NO RECONOCIDAS----------------------------------//
 
 void agregar_no_reconocida(const char *noToken) {

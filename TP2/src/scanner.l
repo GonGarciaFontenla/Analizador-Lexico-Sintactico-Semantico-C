@@ -41,6 +41,11 @@ Octal *constOctal = NULL;
 int conteo_octal = 0;
 int capacidad_octal = 0;
 
+//--------------------------CONSTANTES (HEXADECIMAL)---------------------------//
+Hexadecimal *constHexa = NULL;
+int conteo_hexa = 0;
+int capacidad_hexa = 0;
+
 //----------------------------NO RECONOCIDAS---------------------------------//
 No_Reconocidas *no_reconocidas = NULL;
 int cantidad_no_rec = 0;
@@ -66,7 +71,7 @@ OPERADORES \[|\]|\{|\}|\(|\)|\*|,|:|;|=|\.|#|&|\+|-|~|!|\/|%|<|>|\^|\?|(\.\.\.)|
 
 [1-9]{DIGITO_DECIMAL}*{SUFIJO_ENTERO} { int valor = atoi (yytext); agregar_constante(valor); columna += yyleng;}
 0{DIGITO_OCTAL}*{SUFIJO_ENTERO} { int valor_decimal = strtol(yytext, NULL, 8); agregar_octal(yytext, valor_decimal); columna += yyleng;}
-0[xX]{DIGITO_HEXA}+{SUFIJO_ENTERO} { printf("\nEncontré una constante entera hexadecimal: %s\n", yytext); columna += yyleng;}
+0[xX]{DIGITO_HEXA}+{SUFIJO_ENTERO} { int valor_decimal = strtol(yytext, NULL, 16); agregar_hexa(yytext, valor_decimal); columna += yyleng;}
 
 
 [0-9]+\.[0-9]*{SUFIJO_REAL} { printf("\nEncontré una constante real: %s\n", yytext); columna += yyleng;}
@@ -153,6 +158,8 @@ int main(int argc, char *argv[]) {
     imprimir_octal(); 
     liberar_octal(); 
 
+    imprimir_hexa(); 
+    liberar_hexa(); 
 
     imprimir_no_reconocidas();
     liberar_no_reconocidas();

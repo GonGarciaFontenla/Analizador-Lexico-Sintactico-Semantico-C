@@ -45,6 +45,11 @@ typedef struct {
 } Octal;
 
 typedef struct {
+    char* valor_hexa; 
+    int valor_decimal; 
+} Hexadecimal;
+
+typedef struct {
     char* noToken;
     int linea;
     int columna;
@@ -75,6 +80,10 @@ extern int capacidad_constantes;
 extern Octal *constOctal;
 extern int conteo_octal;
 extern int capacidad_octal;
+
+extern Hexadecimal *constHexa;
+extern int conteo_hexa;
+extern int capacidad_hexa;
 
 extern No_Reconocidas *no_reconocidas;
 extern int cantidad_no_rec;
@@ -113,6 +122,11 @@ void liberar_constante();
 void agregar_octal(const char* valor_octal, int valor_decimal); 
 void imprimir_octal(); 
 void liberar_octal(); 
+
+// Constantes hexadecimales //
+void agregar_hexa(const char* valor_hexa, int valor_decimal); 
+void imprimir_hexa(); 
+void liberar_hexa(); 
 
 // No Reconocidas //
 void agregar_no_reconocida(const char*);
