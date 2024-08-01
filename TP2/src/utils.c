@@ -48,10 +48,17 @@ void imprimir_identificadores()
     qsort(identificadores, conteo_identificadores, sizeof(Identifier), comparar_identificadores);
     // Imprime el encabezado del listado
     printf("\n* Listado de identificadores encontrados: \n");
-    // Recorre el arreglo de identificadores e imprime cada uno junto con su conteo
-    for (int i = 0; i < conteo_identificadores; ++i) 
+
+    if(conteo_identificadores == 0)
     {
-        printf("%s: %d\n", identificadores[i].identificador, identificadores[i].contador);
+        printf(" -\n");
+    }else
+    {
+        // Recorre el arreglo de identificadores e imprime cada uno junto con su conteo
+        for (int i = 0; i < conteo_identificadores; ++i) 
+        {
+            printf("%s: %d\n", identificadores[i].identificador, identificadores[i].contador);
+        }
     }
 }
 
@@ -158,7 +165,7 @@ void agregar_keyword(const char *keyword, typeKeyWord tipo) {
 
 void imprimir_keywords() {
     if(!cantidad_keywords) {
-        printf("\n* Listado de palabras reservadas encontradas: \n-");
+        printf("\n* Listado de palabras reservadas encontradas: \n -\n");
         return;
     }
 
@@ -214,7 +221,6 @@ void liberar_keywords() {
 
 //------------------------------------------------------------------------------------//
 
-
 //-------------------------------OPERADORES Y PUNTUACION-----------------------------//
 
 void agregar_operador(const char *op)
@@ -251,17 +257,23 @@ void agregar_operador(const char *op)
 void imprimir_operadores()
 {
     printf("\n* Listado de operadores/caracteres de puntuacion:\n");
-    for(int i = 0; i < conteo_operadores; i++)
+
+    if (conteo_operadores == 0) 
     {
-        if(operadores[i].apariciones == 1)
+        printf(" -\n");
+    }else
+    {
+        for(int i = 0; i < conteo_operadores; i++)
         {
-            printf("%s: aparece %d vez\n", operadores[i].operador, operadores[i].apariciones);
-        }
-        else 
-        {
-            printf("%s: aparece %d veces\n", operadores[i].operador, operadores[i].apariciones);
-        }
-        
+            if(operadores[i].apariciones == 1)
+            {
+                printf("%s: aparece %d vez\n", operadores[i].operador, operadores[i].apariciones);
+            }
+            else 
+            {
+                printf("%s: aparece %d veces\n", operadores[i].operador, operadores[i].apariciones);
+            }
+        }  
     }
 }
 
@@ -314,10 +326,17 @@ void imprimir_constante()
 {
     // Imprime el encabezado del listado
     printf("\n* Listado de constantes enteras decimales: \n");
-    // Recorre el arreglo de constantes e imprime cada uno junto con su valor
-   for (int i = 0; i < conteo_constantes; ++i) 
+
+    if (conteo_constantes == 0)
     {
-        printf("%d: valor %d\n", constantes[i].valor, constantes[i].valor);
+        printf(" -\n");
+    }else
+    {
+        // Recorre el arreglo de constantes e imprime cada uno junto con su valor
+        for (int i = 0; i < conteo_constantes; ++i) 
+        {
+            printf("%d: valor %d\n", constantes[i].valor, constantes[i].valor);
+        }
     }
 }
 
@@ -357,10 +376,17 @@ void imprimir_octal()
 {
     // Imprime el encabezado del listado
     printf("\n* Listado de constantes entera octales: \n");
-    // Recorre el arreglo de constantes e imprime cada uno junto con su valor
-   for (int i = 0; i < conteo_octal; ++i) 
+
+    if (conteo_octal == 0)
     {
-        printf("%s: valor entero decimal %d\n", constOctal[i].valor_octal, constOctal[i].valor_decimal);
+        printf(" -\n"); 
+    }else
+    {
+        // Recorre el arreglo de constantes e imprime cada uno junto con su valor
+        for (int i = 0; i < conteo_octal; ++i) 
+        {
+            printf("%s: valor entero decimal %d\n", constOctal[i].valor_octal, constOctal[i].valor_decimal);
+        }
     }
 }
 
@@ -406,10 +432,17 @@ void imprimir_hexa()
 {
     // Imprime el encabezado del listado
     printf("\n* Listado de constantes entera hexadecimales: \n");
-    // Recorre el arreglo de constantes e imprime cada uno junto con su valor
-   for (int i = 0; i < conteo_hexa; ++i) 
+
+    if (conteo_hexa == 0)
     {
-        printf("%s: valor entero decimal %d\n", constHexa[i].valor_hexa, constHexa[i].valor_decimal);
+        printf(" -\n"); 
+    }else
+    {
+        // Recorre el arreglo de constantes e imprime cada uno junto con su valor
+        for (int i = 0; i < conteo_hexa; ++i) 
+        {
+            printf("%s: valor entero decimal %d\n", constHexa[i].valor_hexa, constHexa[i].valor_decimal);
+        }
     }
 }
 
@@ -449,7 +482,7 @@ void agregar_no_reconocida(const char *noToken) {
 
 void imprimir_no_reconocidas() {
     if(!cantidad_no_rec) {
-        printf("\n* Listado de palabras reservadas encontradas: \n-");
+        printf("\n* Listado de cadenas no reconocidas: \n -\n");
         return;
     }
 
