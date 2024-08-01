@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include "utils.h"
 
+#define LINEA_INICIAL 1
+#define COLUMNA_INICIAL 1
+
 //-------------------------------IDENTIFICADORES------------------------------//
 
 Identifier *identificadores = NULL;
@@ -18,8 +21,8 @@ int capacidad_literales = 0;
 //-----------------------------PALABRAS RESERVADAS----------------------------//
 
 t_key_word *keyWords = NULL;
-int linea = 1;
-int columna = 1;
+int linea = LINEA_INICIAL;
+int columna = COLUMNA_INICIAL;
 int cantidad_keywords = 0;
 
 //--------------------------OPERADORES Y PUNTUACION---------------------------//
@@ -32,6 +35,12 @@ int capacidad_operadores = 0;
 Constantes *constantes = NULL;
 int conteo_constantes = 0;
 int capacidad_constantes = 0;
+
+//----------------------------NO RECONOCIDAS---------------------------------//
+No_Reconocidas *no_reconocidas = NULL;
+int cantidad_no_rec = 0;
+
+//---------------------------------------------------------------------------//
 
 %}
 
@@ -46,6 +55,7 @@ OPERADORES \[|\]|\{|\}|\(|\)|\*|,|:|;|=|\.|#|&|\+|-|~|!|\/|%|<|>|\^|\?|(\.\.\.)|
 
 %pointer
 %option noyywrap
+%x tokenNoReconocido
 
 %%
 
@@ -85,7 +95,21 @@ sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union { ag
 \n { linea++; columna = 1;}
 
 
-. { printf("\nCaracter no reconocido: %s\n", yytext); columna += yyleng;}
+[^ \t\n] { yyless(0); columna += yyleng; BEGIN(tokenNoReconocido); }
+<tokenNoReconocido>{
+    <<EOF>> {
+        BEGIN(INITIAL);
+    }
+    " "|\t|\n {
+        yyless(0);
+        BEGIN(INITIAL);
+    }
+    [^ \t\n]+ {
+        agregar_no_reconocida(yytext);
+        columna += yyleng;
+        BEGIN(INITIAL);
+    }
+}
 
 %%
 
@@ -121,6 +145,8 @@ int main(int argc, char *argv[]) {
     sumatoriaConstantes();
     liberar_constante();
 
+    imprimir_no_reconocidas();
+    liberar_no_reconocidas();
 
     return EXIT_SUCCESS;
 }

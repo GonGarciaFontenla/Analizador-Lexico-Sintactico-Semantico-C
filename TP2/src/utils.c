@@ -331,3 +331,47 @@ void liberar_constante()
 }
 //------------------------------------------------------------------------------------//
 
+void agregar_no_reconocida(const char *noToken) {
+    No_Reconocidas *temporal = realloc(no_reconocidas, (cantidad_no_rec + 1)* sizeof(No_Reconocidas));
+    if(!temporal) {
+        printf("¡Error al agrandar el vector!");
+        return;
+    }
+
+    no_reconocidas = temporal; // el puntero keyWords apunta a temporal
+
+    no_reconocidas[cantidad_no_rec].noToken = strdup(noToken);
+    no_reconocidas[cantidad_no_rec].linea = linea;
+    no_reconocidas[cantidad_no_rec].columna = columna;
+ 
+    cantidad_no_rec ++;
+}
+
+void imprimir_no_reconocidas() {
+    if(!cantidad_no_rec) {
+        printf("\n* Listado de palabras reservadas encontradas: \n-");
+        return;
+    }
+
+    int found = 0;
+    printf("\n* Listado de cadenas no reconocidas: \n");
+    for(int i = 0; i < cantidad_no_rec; i++) {
+        printf("%s: linea %i, columna %i", no_reconocidas[i].noToken, no_reconocidas[i].linea, no_reconocidas[i].columna);
+        found = 1;
+    }
+
+    if(!found) {
+        printf("-\n");
+        return;
+    }
+}
+
+void liberar_no_reconocidas() {
+    if(no_reconocidas) {
+        for(int i = 0; i < cantidad_no_rec; i++) {
+            free(no_reconocidas[i].noToken);
+        }
+        free(no_reconocidas);
+        no_reconocidas = NULL;
+    }
+}

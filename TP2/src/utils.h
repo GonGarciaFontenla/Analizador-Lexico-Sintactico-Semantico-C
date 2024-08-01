@@ -39,6 +39,14 @@ typedef struct {
     int valor; 
 } Constantes;
 
+typedef struct {
+    char* noToken;
+    int linea;
+    int columna;
+} No_Reconocidas;
+
+extern int linea;
+extern int columna;
 
 extern Identifier *identificadores;
 extern int conteo_identificadores;  
@@ -49,8 +57,6 @@ extern int conteo_literales;
 extern int capacidad_literales;
 
 extern t_key_word *keyWords;
-extern int linea;
-extern int columna;
 extern int cantidad_keywords;
 
 extern Operator *operadores;
@@ -60,6 +66,10 @@ extern int capacidad_operadores;
 extern Constantes *constantes;
 extern int conteo_constantes;
 extern int capacidad_constantes;
+
+extern No_Reconocidas *no_reconocidas;
+extern int cantidad_no_rec;
+
 
 // Identificadores //
 int comparar_identificadores(const void *a, const void *b);
@@ -89,5 +99,10 @@ void agregar_constante(int constante);
 void imprimir_constante();
 void sumatoriaConstantes();
 void liberar_constante(); 
+
+// No Reconocidas //
+void agregar_no_reconocida(const char*);
+void imprimir_no_reconocidas();
+void liberar_no_reconocidas();
 
 #endif
