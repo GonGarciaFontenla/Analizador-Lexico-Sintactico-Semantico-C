@@ -40,6 +40,11 @@ typedef struct {
 } Constantes;
 
 typedef struct {
+    char* valor_octal; 
+    int valor_decimal; 
+} Octal;
+
+typedef struct {
     char* noToken;
     int linea;
     int columna;
@@ -66,6 +71,10 @@ extern int capacidad_operadores;
 extern Constantes *constantes;
 extern int conteo_constantes;
 extern int capacidad_constantes;
+
+extern Octal *constOctal;
+extern int conteo_octal;
+extern int capacidad_octal;
 
 extern No_Reconocidas *no_reconocidas;
 extern int cantidad_no_rec;
@@ -99,6 +108,11 @@ void agregar_constante(int constante);
 void imprimir_constante();
 void sumatoriaConstantes();
 void liberar_constante(); 
+
+// Constantes octales //
+void agregar_octal(const char* valor_octal, int valor_decimal); 
+void imprimir_octal(); 
+void liberar_octal(); 
 
 // No Reconocidas //
 void agregar_no_reconocida(const char*);

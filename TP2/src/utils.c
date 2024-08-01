@@ -331,6 +331,56 @@ void liberar_constante()
 }
 //------------------------------------------------------------------------------------//
 
+//----------------------------CONSTANTES ENTERAS (OCTALES)--------------------------//
+// Función para añadir constante al arreglo
+void agregar_octal(const char* valor_octal, int valor_decimal) 
+{
+    // Si no hay suficiente espacio, redimensiona el arreglo
+    if (conteo_octal == capacidad_octal) 
+    {
+        capacidad_octal = (capacidad_octal == 0) ? 1 : capacidad_octal * 2;
+        constOctal = realloc(constOctal, capacidad_octal * sizeof(Octal));
+        if (constOctal == NULL) 
+        {
+            fprintf(stderr, "Error de memoria al redimensionar el arreglo de constantes\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    // Añade el nuevo elemento al final del arreglo
+    constOctal[conteo_octal].valor_octal = strdup(valor_octal); 
+    constOctal[conteo_octal].valor_decimal = valor_decimal;
+    conteo_octal++;
+}
+
+void imprimir_octal() 
+{
+    // Imprime el encabezado del listado
+    printf("\n* Listado de constantes entera octales: \n");
+    // Recorre el arreglo de constantes e imprime cada uno junto con su valor
+   for (int i = 0; i < conteo_octal; ++i) 
+    {
+        printf("%s: valor entero decimal %d\n", constOctal[i].valor_octal, constOctal[i].valor_decimal);
+    }
+}
+
+// Función para liberar la memoria
+void liberar_octal() 
+{
+    for (int i = 0; i < conteo_octal; ++i) 
+    {
+        free(constOctal[i].valor_octal);
+    }
+
+    free(constOctal);
+    constOctal = NULL;
+    conteo_octal = 0;
+    capacidad_octal = 0;
+}
+//------------------------------------------------------------------------------------//
+
+//------------------------------------NO RECONOCIDAS----------------------------------//
+
 void agregar_no_reconocida(const char *noToken) {
     No_Reconocidas *temporal = realloc(no_reconocidas, (cantidad_no_rec + 1)* sizeof(No_Reconocidas));
     if(!temporal) {
@@ -356,7 +406,7 @@ void imprimir_no_reconocidas() {
     int found = 0;
     printf("\n* Listado de cadenas no reconocidas: \n");
     for(int i = 0; i < cantidad_no_rec; i++) {
-        printf("%s: linea %i, columna %i", no_reconocidas[i].noToken, no_reconocidas[i].linea, no_reconocidas[i].columna);
+        printf("%s: linea %i, columna %i \n", no_reconocidas[i].noToken, no_reconocidas[i].linea, no_reconocidas[i].columna);
         found = 1;
     }
 
@@ -375,3 +425,5 @@ void liberar_no_reconocidas() {
         no_reconocidas = NULL;
     }
 }
+
+//-----------------------------------------------------------------------------------//
