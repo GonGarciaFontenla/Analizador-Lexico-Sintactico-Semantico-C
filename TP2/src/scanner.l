@@ -28,6 +28,10 @@ Operator *operadores = NULL;
 int conteo_operadores = 0;
 int capacidad_operadores = 0;
 
+Constantes *constantes = NULL;
+int conteo_constantes = 0;
+int capacidad_constantes = 0;
+
 %}
 
 SUFIJO_ENTERO ([uU]?[lL]{0,2}|[lL]{0,2}[uU]?)?
