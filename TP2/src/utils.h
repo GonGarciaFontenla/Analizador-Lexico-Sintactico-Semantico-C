@@ -36,8 +36,7 @@ typedef struct {
 } Operator;
 
 typedef struct {
-    char *constantes; 
-    int contador;     
+    int valor; 
 } Constantes;
 
 
@@ -59,7 +58,7 @@ extern int conteo_operadores;
 extern int capacidad_operadores;
 
 extern Constantes *constantes;
-extern int conteo_constantes;  
+extern int conteo_constantes;
 extern int capacidad_constantes;
 
 // Identificadores //
@@ -84,5 +83,11 @@ void imprimir_keywords();
 void agregar_operador(const char *op);
 void imprimir_operadores();
 void liberar_operadores();
+
+// Constantes decimales //
+void agregar_constante(int constante);
+void imprimir_constante();
+void sumatoriaConstantes();
+void liberar_constante(); 
 
 #endif

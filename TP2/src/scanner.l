@@ -28,6 +28,7 @@ Operator *operadores = NULL;
 int conteo_operadores = 0;
 int capacidad_operadores = 0;
 
+//--------------------------CONSTANTES (DECIMALES)---------------------------//
 Constantes *constantes = NULL;
 int conteo_constantes = 0;
 int capacidad_constantes = 0;
@@ -48,7 +49,7 @@ OPERADORES \[|\]|\{|\}|\(|\)|\*|,|:|;|=|\.|#|&|\+|-|~|!|\/|%|<|>|\^|\?|(\.\.\.)|
 
 %%
 
-[1-9]{DIGITO_DECIMAL}*{SUFIJO_ENTERO} { printf("\nEncontré una constante entera decimal: %s\n", yytext); columna += yyleng;}
+[1-9]{DIGITO_DECIMAL}*{SUFIJO_ENTERO} { int valor = atoi (yytext); agregar_constante(valor); columna += yyleng;}
 0{DIGITO_OCTAL}*{SUFIJO_ENTERO} { printf("\nEncontré una constante entera octal: %s\n", yytext); columna += yyleng;}
 0[xX]{DIGITO_HEXA}+{SUFIJO_ENTERO} { printf("\nEncontré una constante entera hexadecimal: %s\n", yytext); columna += yyleng;}
 
@@ -113,10 +114,13 @@ int main(int argc, char *argv[]) {
     imprimir_keywords();
     liberar_keywords();
 
-
-
     imprimir_operadores();
     liberar_operadores();
+
+    imprimir_constante();
+    sumatoriaConstantes();
+    liberar_constante();
+
 
     return EXIT_SUCCESS;
 }
