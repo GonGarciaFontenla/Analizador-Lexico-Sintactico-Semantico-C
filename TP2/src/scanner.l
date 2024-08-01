@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 #include "utils.h"
+#define LINEA_INICIAL
+#define COLUMNA_INICIAL
 
 //-------------------------------IDENTIFICADORES------------------------------//
 
@@ -18,8 +20,8 @@ int capacidad_literales = 0;
 //-----------------------------PALABRAS RESERVADAS----------------------------//
 
 t_key_word *keyWords = NULL;
-int linea = 1;
-int columna = 1;
+int linea = LINEA_INICIAL;
+int columna = COLUMNA_INICIAL;
 int cantidad_keywords = 0;
 
 //--------------------------OPERADORES Y PUNTUACION---------------------------//
@@ -27,6 +29,11 @@ int cantidad_keywords = 0;
 Operator *operadores = NULL;
 int conteo_operadores = 0;
 int capacidad_operadores = 0;
+
+//--------------------------CONSTANTES (DECIMALES)---------------------------//
+Constantes *constantes = NULL;
+int conteo_constantes = 0;
+int capacidad_constantes = 0;
 
 %}
 
@@ -41,10 +48,11 @@ OPERADORES \[|\]|\{|\}|\(|\)|\*|,|:|;|=|\.|#|&|\+|-|~|!|\/|%|<|>|\^|\?|(\.\.\.)|
 
 %pointer
 %option noyywrap
+%x tokenNoReconocido
 
 %%
 
-[1-9]{DIGITO_DECIMAL}*{SUFIJO_ENTERO} { printf("\nEncontré una constante entera decimal: %s\n", yytext); columna += yyleng;}
+[1-9]{DIGITO_DECIMAL}*{SUFIJO_ENTERO} { agregar_constante(yytext); columna += yyleng;}
 0{DIGITO_OCTAL}*{SUFIJO_ENTERO} { printf("\nEncontré una constante entera octal: %s\n", yytext); columna += yyleng;}
 0[xX]{DIGITO_HEXA}+{SUFIJO_ENTERO} { printf("\nEncontré una constante entera hexadecimal: %s\n", yytext); columna += yyleng;}
 
@@ -80,7 +88,23 @@ sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union { ag
 \n { linea++; columna = 1;}
 
 
-. { printf("\nCaracter no reconocido: %s\n", yytext); columna += yyleng;}
+[^ \t\n] { ; columna += yyleng; BEGIN(tokenNoReconocido); }
+<tokenNoReconocido>{
+    <<EOF>> {
+        fprintf(stderr, "\n");
+        BEGIN(INITIAL);
+    }
+    " "|\t|\n {
+        yyless(0);
+        fprintf(stderr, "\n");
+        BEGIN(INITIAL);
+    }
+    [^ \t\n]+ {
+        columna += yyleng;
+        fprintf(stderr, "%s\n", yytext);
+        BEGIN(INITIAL);
+    }
+}
 
 %%
 
@@ -109,10 +133,12 @@ int main(int argc, char *argv[]) {
     imprimir_keywords();
     liberar_keywords();
 
-
-
     imprimir_operadores();
     liberar_operadores();
+
+    imprimir_constante();
+    sumatoriaConstantes();
+    liberar_constante();
 
     return EXIT_SUCCESS;
 }

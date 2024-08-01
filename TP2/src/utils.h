@@ -35,6 +35,11 @@ typedef struct {
     int apariciones;
 } Operator;
 
+typedef struct {
+    char *constantes;
+    int valor; 
+} Constantes;
+
 extern Identifier *identificadores;
 extern int conteo_identificadores;  
 extern int capacidad_identificadores;
@@ -51,6 +56,10 @@ extern int cantidad_keywords;
 extern Operator *operadores;
 extern int conteo_operadores;  
 extern int capacidad_operadores;
+
+extern Constantes *constantes;
+extern int conteo_constantes;
+extern int capacidad_constantes;
 
 // Identificadores //
 int comparar_identificadores(const void *a, const void *b);
@@ -74,5 +83,11 @@ void imprimir_keywords();
 void agregar_operador(const char *op);
 void imprimir_operadores();
 void liberar_operadores();
+
+// Constantes decimales //
+void agregar_constante(const char *constante);
+void imprimir_constante();
+void sumatoriaConstantes();
+void liberar_constante(); 
 
 #endif

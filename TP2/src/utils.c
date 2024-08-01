@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <string.h>
 
 //-----------------------------------IDENTIFICADORES-----------------------------------//
 
@@ -216,7 +217,6 @@ void liberar_keywords() {
 
 //-------------------------------OPERADORES Y PUNTUACION-----------------------------//
 
-
 void agregar_operador(const char *op)
 {
     // Verifica si ya existe el operador en el arreglo
@@ -276,3 +276,62 @@ void liberar_operadores()
     conteo_operadores = 0;
     capacidad_operadores = 0;
 }
+
+//------------------------------------------------------------------------------------//
+
+//----------------------------CONSTANTES ENTERAS (DECIMALES)--------------------------//
+// Función para añadir constante al arreglo
+void agregar_constante(const char *constante) 
+{
+    // Si no hay suficiente espacio, redimensiona el arreglo
+    if (conteo_constantes == capacidad_constantes) 
+    {
+        capacidad_constantes = (capacidad_constantes == 0) ? 1 : capacidad_constantes * 2;
+        constantes = realloc(constantes, capacidad_constantes * sizeof(Constantes));
+        if (constantes == NULL) 
+        {
+            fprintf(stderr, "Error de memoria al redimensionar el arreglo de constantes\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    // Añade el nuevo elemento al final del arreglo
+    constantes[conteo_constantes].constantes = strdup(constante);
+    conteo_constantes++;
+}
+
+void sumatoriaConstantes()
+{
+    int suma = 0;
+    for (int i = 0; i < conteo_constantes; ++i) 
+    {
+        suma += constantes[i].valor;
+    }
+    printf("Total acumulado de sumar todas las constantes decimales:: %d\n", suma);
+}
+
+void imprimir_constante() 
+{
+    // Imprime el encabezado del listado
+    printf("\n* Listado de constantes enteras decimales: \n");
+    // Recorre el arreglo de constantes e imprime cada uno junto con su valor
+   for (int i = 0; i < conteo_constantes; ++i) 
+    {
+        printf("%s: valor %s\n", constantes[i].constantes, constantes[i].constantes);
+    }
+}
+
+// Función para liberar la memoria
+void liberar_constante() 
+{
+    for (int i = 0; i < conteo_constantes; ++i) 
+    {
+        free(constantes[i].constantes);
+    }
+    free(constantes);
+    constantes = NULL;
+    conteo_constantes = 0;
+    capacidad_constantes = 0;
+}
+//------------------------------------------------------------------------------------//
+
