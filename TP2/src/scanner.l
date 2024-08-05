@@ -79,9 +79,9 @@ OPERADORES \[|\]|\{|\}|\(|\)|\*|,|:|;|=|\.|#|&|\+|-|~|!|\/|%|<|>|\^|\?|(\.\.\.)|
 0[xX]{DIGITO_HEXA}+{SUFIJO_ENTERO} { int valor_decimal = strtol(yytext, NULL, 16); agregar_hexa(yytext, valor_decimal); columna += yyleng;}
 
 
-[0-9]+\.[0-9]*{SUFIJO_REAL} { float valor = atof(yytext); agregar_constante_real(valor); columna += yyleng;}
-\.[0-9]+{SUFIJO_REAL} { printf("\nEncontré una constante real: %s\n", yytext); columna += yyleng;}
-[0-9]+{SUFIJO_REAL} { printf("\nEncontré una constante real: %s\n", yytext); columna += yyleng;}
+[0-9]+\.[0-9]*{SUFIJO_REAL} { float valor = atof(yytext); agregar_constante_real(valor); columna += yyleng; }
+\.[0-9]+{SUFIJO_REAL} { float valor = atof(yytext); agregar_constante_real(valor); columna += yyleng; }
+[0-9]+{SUFIJO_REAL} { float valor = atof(yytext); agregar_constante_real(valor); columna += yyleng; }
 
 
 int|float|double|char|void|short|long|unsigned|signed {agregar_keyword(yytext, TIPO_DATO); columna += yyleng;}

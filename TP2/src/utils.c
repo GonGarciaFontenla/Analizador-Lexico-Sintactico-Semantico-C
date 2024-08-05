@@ -2,7 +2,6 @@
 #include <string.h>
 
 //-----------------------------------IDENTIFICADORES-----------------------------------//
-
 // Función para añadir un identificador al arreglo o incrementar su conteo si ya existe
 void agregar_identificador(const char *name) 
 {
@@ -73,6 +72,16 @@ void liberar_identificadores()
     identificadores = NULL;
     conteo_identificadores = 0;
     capacidad_identificadores = 0;
+}
+
+void liberar_arreglo(void** arreglo, int conteo, int capacidad) 
+{
+    for (int i = 0; i < longitud; ++i) 
+    {
+        free(arreglo[i]);
+    }
+    free(arreglo);
+    arreglo = NULL;
 }
 
 //------------------------------------------------------------------------------------//
@@ -252,7 +261,6 @@ void agregar_operador(const char *op)
     operadores[conteo_operadores].apariciones = 1;
     conteo_operadores++;
 }
-
 
 void imprimir_operadores()
 {
@@ -564,5 +572,11 @@ void liberar_no_reconocidas() {
         no_reconocidas = NULL;
     }
 }
+
+//-----------------------------------------------------------------------------------//
+
+//------------------------------------ AUXILIARES ----------------------------------//
+
+
 
 //-----------------------------------------------------------------------------------//

@@ -50,10 +50,6 @@ typedef struct {
     int valor_decimal; 
 } Hexadecimal;
 
-// typedef struct{
-//     float* valor_real;
-// } ConstanteReal;
-
 typedef struct {
     char* noToken;
     int linea;
