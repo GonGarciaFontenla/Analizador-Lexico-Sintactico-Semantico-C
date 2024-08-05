@@ -350,6 +350,62 @@ void liberar_constante()
 }
 //------------------------------------------------------------------------------------//
 
+//----------------------------CONSTANTES REALES--------------------------//
+
+void agregar_constante_real(float constante_real) 
+{
+    // Si no hay suficiente espacio, redimensiona el arreglo
+    if (conteo_const_real == capacidad_const_real) 
+    {
+        capacidad_const_real = (capacidad_const_real == 0) ? 1 : capacidad_const_real * 2;
+        const_real = realloc(const_real, capacidad_const_real * sizeof(float));
+        if (const_real == NULL) 
+        {
+            fprintf(stderr, "Error de memoria al redimensionar el arreglo de constantes reales\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    // Añade el nuevo elemento al final del arreglo
+    const_real[conteo_const_real] = constante_real;
+    conteo_const_real++;
+}
+
+
+void imprimir_real() 
+{
+    // Imprime el encabezado del listado
+    printf("\n* Listado de constantes reales: \n");
+
+    if (conteo_const_real == 0)
+    {
+        printf(" -\n");
+    }else
+    {
+        float parte_entera;
+        float parte_mantisa;
+        // Recorre el arreglo de constantes e imprime cada uno junto con su valor
+        for (int i = 0; i < conteo_const_real; ++i) 
+        {
+            parte_entera = (int)const_real[i];
+            parte_mantisa = modff(const_real[i], NULL);
+        
+            printf("%.1f: parte entera %.6f, mantisa %.6f \n", const_real[i], parte_entera, parte_mantisa);
+        }
+    }
+}
+
+void liberar_real() 
+{
+    free(const_real);
+    const_real = NULL;
+    conteo_const_real = 0;
+    capacidad_const_real = 0;
+}
+
+
+//------------------------------------------------------------------------------------//
+
 //----------------------------CONSTANTES ENTERAS (OCTALES)--------------------------//
 // Función para añadir constante al arreglo
 void agregar_octal(const char* valor_octal, int valor_decimal) 

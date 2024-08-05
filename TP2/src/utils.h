@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 // Funciones y estructuras ...
 
@@ -37,7 +38,7 @@ typedef struct {
 
 typedef struct {
     int valor; 
-} Constantes;
+} Constantes; 
 
 typedef struct {
     char* valor_octal; 
@@ -48,6 +49,10 @@ typedef struct {
     char* valor_hexa; 
     int valor_decimal; 
 } Hexadecimal;
+
+// typedef struct{
+//     float* valor_real;
+// } ConstanteReal;
 
 typedef struct {
     char* noToken;
@@ -84,6 +89,10 @@ extern int capacidad_octal;
 extern Hexadecimal *constHexa;
 extern int conteo_hexa;
 extern int capacidad_hexa;
+
+extern float *const_real;
+extern int conteo_const_real;
+extern int capacidad_const_real;
 
 extern No_Reconocidas *no_reconocidas;
 extern int cantidad_no_rec;
@@ -127,6 +136,11 @@ void liberar_octal();
 void agregar_hexa(const char* valor_hexa, int valor_decimal); 
 void imprimir_hexa(); 
 void liberar_hexa(); 
+
+// Constantes reales //
+void agregar_constante_real(float constante_real);
+void imprimir_real();
+void liberar_real(); 
 
 // No Reconocidas //
 void agregar_no_reconocida(const char*);

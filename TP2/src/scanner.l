@@ -46,6 +46,11 @@ Hexadecimal *constHexa = NULL;
 int conteo_hexa = 0;
 int capacidad_hexa = 0;
 
+//--------------------------CONSTANTES (REALES)---------------------------//
+float* const_real = NULL;
+int conteo_const_real = 0;
+int capacidad_const_real = 0;
+
 //----------------------------NO RECONOCIDAS---------------------------------//
 No_Reconocidas *no_reconocidas = NULL;
 int cantidad_no_rec = 0;
@@ -74,7 +79,7 @@ OPERADORES \[|\]|\{|\}|\(|\)|\*|,|:|;|=|\.|#|&|\+|-|~|!|\/|%|<|>|\^|\?|(\.\.\.)|
 0[xX]{DIGITO_HEXA}+{SUFIJO_ENTERO} { int valor_decimal = strtol(yytext, NULL, 16); agregar_hexa(yytext, valor_decimal); columna += yyleng;}
 
 
-[0-9]+\.[0-9]*{SUFIJO_REAL} { printf("\nEncontré una constante real: %s\n", yytext); columna += yyleng;}
+[0-9]+\.[0-9]*{SUFIJO_REAL} { float valor = atof(yytext); agregar_constante_real(valor); columna += yyleng;}
 \.[0-9]+{SUFIJO_REAL} { printf("\nEncontré una constante real: %s\n", yytext); columna += yyleng;}
 [0-9]+{SUFIJO_REAL} { printf("\nEncontré una constante real: %s\n", yytext); columna += yyleng;}
 
@@ -160,6 +165,9 @@ int main(int argc, char *argv[]) {
 
     imprimir_hexa(); 
     liberar_hexa(); 
+
+    imprimir_real();
+    liberar_real(); 
 
     imprimir_no_reconocidas();
     liberar_no_reconocidas();
