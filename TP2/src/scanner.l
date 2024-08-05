@@ -153,21 +153,21 @@ int main(int argc, char *argv[]) {
     imprimir_keywords();
     liberar_keywords();
 
-    imprimir_operadores();
-    liberar_operadores();
-
     imprimir_constante();
     sumatoriaConstantes();
     liberar_constante();
 
-    imprimir_octal(); 
-    liberar_octal(); 
-
     imprimir_hexa(); 
     liberar_hexa(); 
 
+    imprimir_octal(); 
+    liberar_octal(); 
+
     imprimir_real();
     liberar_real(); 
+    
+    imprimir_operadores();
+    liberar_operadores();
 
     imprimir_no_reconocidas();
     liberar_no_reconocidas();

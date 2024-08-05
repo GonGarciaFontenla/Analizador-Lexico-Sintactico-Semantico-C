@@ -74,15 +74,6 @@ void liberar_identificadores()
     capacidad_identificadores = 0;
 }
 
-void liberar_arreglo(void** arreglo, int conteo, int capacidad) 
-{
-    for (int i = 0; i < longitud; ++i) 
-    {
-        free(arreglo[i]);
-    }
-    free(arreglo);
-    arreglo = NULL;
-}
 
 //------------------------------------------------------------------------------------//
 
@@ -395,9 +386,7 @@ void imprimir_real()
         // Recorre el arreglo de constantes e imprime cada uno junto con su valor
         for (int i = 0; i < conteo_const_real; ++i) 
         {
-            parte_entera = (int)const_real[i];
-            parte_mantisa = modff(const_real[i], NULL);
-        
+            parte_mantisa = modff(const_real[i], &parte_entera);
             printf("%.1f: parte entera %.6f, mantisa %.6f \n", const_real[i], parte_entera, parte_mantisa);
         }
     }
