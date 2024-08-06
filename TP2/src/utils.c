@@ -564,8 +564,56 @@ void liberar_no_reconocidas() {
 
 //-----------------------------------------------------------------------------------//
 
-//------------------------------------ AUXILIARES ----------------------------------//
 
+//--------------------------------CONSTANTES (CARACTER)------------------------------//
+void agregar_caracter(const char *caract) 
+{
+    int orden_actual = contador_orden++;
 
+    if (conteo_caracter == capacidad_caracter) 
+    {
+        capacidad_caracter = (capacidad_caracter == 0) ? 1 : capacidad_caracter * 2;
+        caracteres = realloc(caracteres, capacidad_caracter * sizeof(Caracter));
+        if (caracteres == NULL) 
+        {
+            fprintf(stderr, "Error de memoria al redimensionar el arreglo de constantes caracteres\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    // Si no encuentra el identificador, lo añade al final del arreglo
+    caracteres[conteo_caracter].caracter = strdup(caract);
+    caracteres[conteo_caracter].cont = contador_orden;
+    conteo_caracter++;
+}
+
+void imprimir_caracter() 
+{
+    // Imprime el encabezado del listado
+    printf("\n* Listado de constantes caracter enumerados: \n");
+
+    if (conteo_caracter == 0)
+    {
+        printf(" -\n"); 
+    }else
+    {
+        for (int i = 0; i < conteo_caracter; ++i) 
+        {
+            printf("%d) %s \n", caracteres[i].cont, caracteres[i].caracter);
+        }
+    }
+}
+
+void liberar_caracter() 
+{
+    for (int i = 0; i < conteo_caracter; ++i) 
+    {
+        free(caracteres[i].caracter);
+    }
+    free(caracteres);
+    caracteres = NULL;
+    conteo_caracter = 0;
+    capacidad_caracter = 0;
+}
 
 //-----------------------------------------------------------------------------------//

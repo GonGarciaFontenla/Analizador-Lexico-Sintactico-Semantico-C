@@ -32,30 +32,42 @@ int conteo_operadores = 0;
 int capacidad_operadores = 0;
 
 //--------------------------CONSTANTES (DECIMALES)---------------------------//
+
 Constantes *constantes = NULL;
 int conteo_constantes = 0;
 int capacidad_constantes = 0;
 
-//--------------------------CONSTANTES (OCTALES)---------------------------//
+//---------------------------CONSTANTES (OCTALES)----------------------------//
+
 Octal *constOctal = NULL;
 int conteo_octal = 0;
 int capacidad_octal = 0;
 
-//--------------------------CONSTANTES (HEXADECIMAL)---------------------------//
+//----------------- --------CONSTANTES (HEXADECIMAL)-------------------------//
+
 Hexadecimal *constHexa = NULL;
 int conteo_hexa = 0;
 int capacidad_hexa = 0;
 
-//--------------------------CONSTANTES (REALES)---------------------------//
+//---------------------------CONSTANTES (REALES)----------------------------//
+
 float* const_real = NULL;
 int conteo_const_real = 0;
 int capacidad_const_real = 0;
 
-//----------------------------NO RECONOCIDAS---------------------------------//
+//---------------------------CONSTANTES (CARACTER)--------------------------//
+
+Caracter *caracteres = NULL;
+int conteo_caracter = 0;
+int capacidad_caracter = 0; 
+int contador_orden = 0; 
+
+//----------------------------NO RECONOCIDAS--------------------------------//
+
 No_Reconocidas *no_reconocidas = NULL;
 int cantidad_no_rec = 0;
 
-//---------------------------------------------------------------------------//
+//--------------------------------------------------------------------------//
 
 %}
 
@@ -74,7 +86,7 @@ OPERADORES \[|\]|\{|\}|\(|\)|\*|,|:|;|=|\.|#|&|\+|-|~|!|\/|%|<|>|\^|\?|(\.\.\.)|
 
 %%
 
-[1-9]{DIGITO_DECIMAL}*{SUFIJO_ENTERO} { int valor = atoi (yytext); agregar_constante(valor); columna += yyleng;}
+[1-9]{DIGITO_DECIMAL}*{SUFIJO_ENTERO} { int valor = atoi(yytext); agregar_constante(valor); columna += yyleng;}
 0{DIGITO_OCTAL}*{SUFIJO_ENTERO} { int valor_decimal = strtol(yytext, NULL, 8); agregar_octal(yytext, valor_decimal); columna += yyleng;}
 0[xX]{DIGITO_HEXA}+{SUFIJO_ENTERO} { int valor_decimal = strtol(yytext, NULL, 16); agregar_hexa(yytext, valor_decimal); columna += yyleng;}
 
@@ -84,15 +96,15 @@ OPERADORES \[|\]|\{|\}|\(|\)|\*|,|:|;|=|\.|#|&|\+|-|~|!|\/|%|<|>|\^|\?|(\.\.\.)|
 [0-9]+{SUFIJO_REAL} { float valor = atof(yytext); agregar_constante_real(valor); columna += yyleng; }
 
 
-int|float|double|char|void|short|long|unsigned|signed {agregar_keyword(yytext, TIPO_DATO); columna += yyleng;}
+int|float|double|char|void|short|long|unsigned|signed { agregar_keyword(yytext, TIPO_DATO); columna += yyleng;}
 if|else|while|for|do|switch|case|default|break|continue|return|goto { agregar_keyword(yytext, TIPO_CONTROL); columna += yyleng;}
 sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union { agregar_keyword(yytext, OTROS); columna += yyleng;}
 
 
-'[^\\\']' { printf("\nEncontré un caracter simple: %s\n", yytext); columna += yyleng;}
-'\\{ESCAPE_SIMPLE}' { printf("\nEncontré una secuencia de escape simple: %s\n", yytext); columna += yyleng;}
-'\\{DIGITO_OCTAL}{1,3}' { printf("\nEncontré una secuencia de escape octal: %s\n", yytext); columna += yyleng;}
-'\\x{DIGITO_HEXA}+' { printf("\nEncontré una secuencia de escape hexadecimal: %s\n", yytext); columna += yyleng;}
+'[^\\\']' { agregar_caracter(yytext); columna += yyleng;}
+'\\{ESCAPE_SIMPLE}' { agregar_caracter(yytext); columna += yyleng;}
+'\\{DIGITO_OCTAL}{1,3}' { agregar_caracter(yytext); columna += yyleng;}
+'\\x{DIGITO_HEXA}+' { agregar_caracter(yytext); columna += yyleng;}
 
 
 \"([^\\\"\n]|\\{ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXA}+)*\" { agregar_literal(yytext); columna += yyleng;}   
@@ -168,6 +180,9 @@ int main(int argc, char *argv[]) {
     
     imprimir_operadores();
     liberar_operadores();
+
+    imprimir_caracter();
+    liberar_caracter(); 
 
     imprimir_no_reconocidas();
     liberar_no_reconocidas();

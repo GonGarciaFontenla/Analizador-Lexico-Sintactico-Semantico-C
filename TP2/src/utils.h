@@ -51,10 +51,16 @@ typedef struct {
 } Hexadecimal;
 
 typedef struct {
+    char *caracter;
+    int cont;
+} Caracter;
+
+typedef struct {
     char* noToken;
     int linea;
     int columna;
 } No_Reconocidas;
+
 
 extern int linea;
 extern int columna;
@@ -89,6 +95,11 @@ extern int capacidad_hexa;
 extern float *const_real;
 extern int conteo_const_real;
 extern int capacidad_const_real;
+
+extern Caracter *caracteres;
+extern int conteo_caracter;
+extern int capacidad_caracter; 
+extern int contador_orden;
 
 extern No_Reconocidas *no_reconocidas;
 extern int cantidad_no_rec;
@@ -137,6 +148,11 @@ void liberar_hexa();
 void agregar_constante_real(float constante_real);
 void imprimir_real();
 void liberar_real(); 
+
+// Constantes caracter //
+void agregar_caracter(const char *caract);
+void imprimir_caracter();
+void liberar_caracter(); 
 
 // No Reconocidas //
 void agregar_no_reconocida(const char*);
