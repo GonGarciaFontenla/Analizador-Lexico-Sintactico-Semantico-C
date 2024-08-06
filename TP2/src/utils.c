@@ -46,18 +46,24 @@ void imprimir_identificadores()
     // Ordena el arreglo de identificadores usando la función de comparación
     qsort(identificadores, conteo_identificadores, sizeof(Identifier), comparar_identificadores);
     // Imprime el encabezado del listado
-    printf("\n* Listado de identificadores encontrados: \n");
+    printf("* Listado de identificadores encontrados:\n");
 
-    if(conteo_identificadores == 0)
+    if (conteo_identificadores == 0) 
     {
         printf(" -\n");
     }else
     {
-        // Recorre el arreglo de identificadores e imprime cada uno junto con su conteo
-        for (int i = 0; i < conteo_identificadores; ++i) 
+        for(int i = 0; i < conteo_identificadores; i++)
         {
-            printf("%s: %d\n", identificadores[i].identificador, identificadores[i].contador);
-        }
+            if(identificadores[i].contador == 1)
+            {
+                printf("%s: aparece %d vez\n", identificadores[i].identificador, identificadores[i].contador);
+            }
+            else 
+            {
+                printf("%s: aparece %d veces\n", identificadores[i].identificador, identificadores[i].contador);
+            }
+        }  
     }
 }
 
@@ -115,13 +121,13 @@ int comparar_literales(const void *a, const void *b)
 void imprimir_literales() 
 {
     if (conteo_literales == 0) {
-        printf("\n* Listado de literales cadena encontrados:\n -\n");
+        printf("\n* Listado de literales cadena encontrados:\n-\n");
         return;
     }
     // Ordena el arreglo de literales usando la función de comparación
     qsort(literales, conteo_literales, sizeof(StringLiteral), comparar_literales);
     // Imprime el encabezado del listado
-    printf("\n* Listado de literales cadena encontrados: \n");
+    printf("\n* Listado de literales cadena encontrados:\n");
     // Recorre el arreglo de literales e imprime cada uno junto con su longitud
     for (int i = 0; i < conteo_literales; ++i) 
     {
@@ -165,7 +171,7 @@ void agregar_keyword(const char *keyword, typeKeyWord tipo) {
 
 void imprimir_keywords() {
     if(!cantidad_keywords) {
-        printf("\n* Listado de palabras reservadas encontradas: \n -\n");
+        printf("\n* Listado de palabras reservadas encontradas:\n-\n");
         return;
     }
 
@@ -255,11 +261,11 @@ void agregar_operador(const char *op)
 
 void imprimir_operadores()
 {
-    printf("\n* Listado de operadores/caracteres de puntuacion:\n");
+    printf("\n* Listado de operadores/caracteres de puntuación:\n");
 
     if (conteo_operadores == 0) 
     {
-        printf(" -\n");
+        printf("-\n");
     }else
     {
         for(int i = 0; i < conteo_operadores; i++)
@@ -318,17 +324,19 @@ void sumatoriaConstantes()
     {
         suma += constantes[i].valor;
     }
-    printf("Total acumulado de sumar todas las constantes decimales: %d\n", suma);
+    if (suma){
+        printf("Total acumulado de sumar todas las constantes decimales: %d\n", suma);
+    }
 }
 
 void imprimir_constante() 
 {
     // Imprime el encabezado del listado
-    printf("\n* Listado de constantes enteras decimales: \n");
+    printf("\n* Listado de constantes enteras decimales:\n");
 
     if (conteo_constantes == 0)
     {
-        printf(" -\n");
+        printf("-\n");
     }else
     {
         // Recorre el arreglo de constantes e imprime cada uno junto con su valor
@@ -347,60 +355,6 @@ void liberar_constante()
     conteo_constantes = 0;
     capacidad_constantes = 0;
 }
-//------------------------------------------------------------------------------------//
-
-//----------------------------CONSTANTES REALES--------------------------//
-
-void agregar_constante_real(float constante_real) 
-{
-    // Si no hay suficiente espacio, redimensiona el arreglo
-    if (conteo_const_real == capacidad_const_real) 
-    {
-        capacidad_const_real = (capacidad_const_real == 0) ? 1 : capacidad_const_real * 2;
-        const_real = realloc(const_real, capacidad_const_real * sizeof(float));
-        if (const_real == NULL) 
-        {
-            fprintf(stderr, "Error de memoria al redimensionar el arreglo de constantes reales\n");
-            exit(EXIT_FAILURE);
-        }
-    }
-    
-    // Añade el nuevo elemento al final del arreglo
-    const_real[conteo_const_real] = constante_real;
-    conteo_const_real++;
-}
-
-
-void imprimir_real() 
-{
-    // Imprime el encabezado del listado
-    printf("\n* Listado de constantes reales: \n");
-
-    if (conteo_const_real == 0)
-    {
-        printf(" -\n");
-    }else
-    {
-        float parte_entera;
-        float parte_mantisa;
-        // Recorre el arreglo de constantes e imprime cada uno junto con su valor
-        for (int i = 0; i < conteo_const_real; ++i) 
-        {
-            parte_mantisa = modff(const_real[i], &parte_entera);
-            printf("%.1f: parte entera %.6f, mantisa %.6f \n", const_real[i], parte_entera, parte_mantisa);
-        }
-    }
-}
-
-void liberar_real() 
-{
-    free(const_real);
-    const_real = NULL;
-    conteo_const_real = 0;
-    capacidad_const_real = 0;
-}
-
-
 //------------------------------------------------------------------------------------//
 
 //----------------------------CONSTANTES ENTERAS (OCTALES)--------------------------//
@@ -428,11 +382,11 @@ void agregar_octal(const char* valor_octal, int valor_decimal)
 void imprimir_octal() 
 {
     // Imprime el encabezado del listado
-    printf("\n* Listado de constantes entera octales: \n");
+    printf("\n* Listado de constantes enteras octales:\n");
 
     if (conteo_octal == 0)
     {
-        printf(" -\n"); 
+        printf("-\n"); 
     }else
     {
         // Recorre el arreglo de constantes e imprime cada uno junto con su valor
@@ -484,11 +438,11 @@ void agregar_hexa(const char* valor_hexa, int valor_decimal)
 void imprimir_hexa() 
 {
     // Imprime el encabezado del listado
-    printf("\n* Listado de constantes entera hexadecimales: \n");
+    printf("\n* Listado de constantes enteras hexadecimales:\n");
 
     if (conteo_hexa == 0)
     {
-        printf(" -\n"); 
+        printf("-\n"); 
     }else
     {
         // Recorre el arreglo de constantes e imprime cada uno junto con su valor
@@ -515,6 +469,60 @@ void liberar_hexa()
 
 //------------------------------------------------------------------------------------//
 
+//----------------------------------CONSTANTES REALES--------------------------------//
+
+void agregar_constante_real(float constante_real) 
+{
+    // Si no hay suficiente espacio, redimensiona el arreglo
+    if (conteo_const_real == capacidad_const_real) 
+    {
+        capacidad_const_real = (capacidad_const_real == 0) ? 1 : capacidad_const_real * 2;
+        const_real = realloc(const_real, capacidad_const_real * sizeof(float));
+        if (const_real == NULL) 
+        {
+            fprintf(stderr, "Error de memoria al redimensionar el arreglo de constantes reales\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    // Añade el nuevo elemento al final del arreglo
+    const_real[conteo_const_real] = constante_real;
+    conteo_const_real++;
+}
+
+
+void imprimir_real() 
+{
+    // Imprime el encabezado del listado
+    printf("\n* Listado de constantes reales:\n");
+
+    if (conteo_const_real == 0)
+    {
+        printf("-\n");
+    }else
+    {
+        float parte_entera;
+        float parte_mantisa;
+        // Recorre el arreglo de constantes e imprime cada uno junto con su valor
+        for (int i = 0; i < conteo_const_real; ++i) 
+        {
+            parte_mantisa = modff(const_real[i], &parte_entera);
+            printf("%.1f: parte entera %.6f, mantisa %.6f\n", const_real[i], parte_entera, parte_mantisa);
+        }
+    }
+}
+
+void liberar_real() 
+{
+    free(const_real);
+    const_real = NULL;
+    conteo_const_real = 0;
+    capacidad_const_real = 0;
+}
+
+
+//------------------------------------------------------------------------------------//
+
 //------------------------------------NO RECONOCIDAS----------------------------------//
 
 void agregar_no_reconocida(const char *noToken) {
@@ -535,20 +543,17 @@ void agregar_no_reconocida(const char *noToken) {
 
 void imprimir_no_reconocidas() {
     if(!cantidad_no_rec) {
-        printf("\n* Listado de cadenas no reconocidas: \n -\n");
+        printf("\n* Listado de cadenas no reconocidas:\n-");
         return;
     }
 
-    int found = 0;
-    printf("\n* Listado de cadenas no reconocidas: \n");
-    for(int i = 0; i < cantidad_no_rec; i++) {
-        printf("%s: linea %i, columna %i \n", no_reconocidas[i].noToken, no_reconocidas[i].linea, no_reconocidas[i].columna);
-        found = 1;
-    }
-
-    if(!found) {
-        printf("-\n");
-        return;
+    printf("\n* Listado de cadenas no reconocidas:\n");
+    for(int i = 0; i < cantidad_no_rec; i++) { 
+        if(i == cantidad_no_rec - 1){ //El if es para que los tests den 100%. 
+            printf("%s: linea %i, columna %i", no_reconocidas[i].noToken, no_reconocidas[i].linea, no_reconocidas[i].columna);
+        }else{
+            printf("%s: linea %i, columna %i\n", no_reconocidas[i].noToken, no_reconocidas[i].linea, no_reconocidas[i].columna);
+        }
     }
 }
 
@@ -590,16 +595,16 @@ void agregar_caracter(const char *caract)
 void imprimir_caracter() 
 {
     // Imprime el encabezado del listado
-    printf("\n* Listado de constantes caracter enumerados: \n");
+    printf("\n* Listado de constantes caracter enumerados:\n");
 
     if (conteo_caracter == 0)
     {
-        printf(" -\n"); 
+        printf("-\n"); 
     }else
     {
         for (int i = 0; i < conteo_caracter; ++i) 
         {
-            printf("%d) %s \n", caracteres[i].cont, caracteres[i].caracter);
+            printf("%d) %s\n", caracteres[i].cont, caracteres[i].caracter);
         }
     }
 }

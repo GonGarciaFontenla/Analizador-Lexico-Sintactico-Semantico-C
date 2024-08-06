@@ -178,11 +178,11 @@ int main(int argc, char *argv[]) {
     imprimir_real();
     liberar_real(); 
     
-    imprimir_operadores();
-    liberar_operadores();
-
     imprimir_caracter();
     liberar_caracter(); 
+
+    imprimir_operadores();
+    liberar_operadores();
 
     imprimir_no_reconocidas();
     liberar_no_reconocidas();
