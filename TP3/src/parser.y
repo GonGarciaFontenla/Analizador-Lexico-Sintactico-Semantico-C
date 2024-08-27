@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <general.h>
 
 extern int yylex(void);
 
@@ -11,144 +12,145 @@ void menu(void);
 
 %}
 
-%error-verbose
+%define parse.error verbose
 
 %locations
 
 %union {
-        char* string_type;
-        int int_type;
-        double double_type;
+    char* string_type;
+    int int_type;
+    double double_type;
 }
 
 %token <string_type> IDENTIFICADOR
 %token <int_type> CONSTANTE
 %token <string_type> LITERAL_CADENA
 %token CHAR INT FLOAT DOUBLE
-%token '=' '+=' '-=' '*=' '/='
-%token '?' ':'
-%token '+' '-' '*' '/' '&&' '||' '==' '!=' '<' '>' '<=' '>='
-%token '(' ')' '[' ']' '++' '--' '&' '!' SIZEOF
+%token "=" "+=" "-=" "*=" "/="
+%token "?" ":"
+%token "+" "-" "*" "/" "&&" "||" "==" "!=" "<" ">" "<=" ">="
+%token "(" ")" "[" "]" "++" "--" "&" "!" SIZEOF
 
 %type <int_type> expresion expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expMultiplicativa expUnaria expPostfijo listaArgumentos nombreTipo
 
 %start expresion
 
-%right '=' '+=' '-=' '*=' '/='
-%right '?' ':'
-%left '||'
-%left '&&'
-%left '==' '!='  
-%left '<' '>' '>=' '<='  
-%left '+' '-'  
-%left '*' '/' '%'
-%right '++' '--' '!' '&'
-%nonassoc '[' ']'
-%nonassoc '(' ')' 
-%nonassoc IDENTIFICADOR CONSTANTE LITERAL_CADENA '(' expresion ')'
+%right "=" "+=" "-=" "*=" "/="
+%right "?" ":"
+%left "||"
+%left "&&"
+%left "==" "!="  
+%left "<" ">" ">=" "<="  
+%left "+" "-"  
+%left "*" "/" "%"
+%right "!" "&"
+%nonassoc "[" "]"
+%nonassoc "(" ")" 
+%nonassoc IDENTIFICADOR CONSTANTE LITERAL_CADENA "(" expresion ")"
 %nonassoc CHAR INT FLOAT DOUBLE
+
 
 %%
 
 expresion
-        :expAsignacion
-        ;
+    :expAsignacion
+    ;
 
 expAsignacion
-        :expCondicional
-        |expUnaria operAsignacion expAsignacion
-        ;
+    :expCondicional
+    |expUnaria operAsignacion expAsignacion
+    ;
 
 operAsignacion
-        :'='
-        | '+='
-        | '-='
-        | '*='
-        | '/='
-        ;
+    :"="
+    | "+="
+    | "-="
+    | "*="
+    | "/="
+    ;
 
 expCondicional
-        :expOr
-        | expOr '?' expresion ':' expCondicional
-        ;
+    :expOr
+    | expOr "?" expresion ":" expCondicional
+    ;
 
 expOr
-        :expAnd
-        | expOr '||' expAnd
-        ;
+    :expAnd
+    | expOr "||" expAnd
+    ;
 
 expAnd
-        :expIgualdad
-        | expAnd '&&' expIgualdad
-        ;
+    :expIgualdad
+    | expAnd "&&" expIgualdad
+    ;
 
 expIgualdad
-        :expRelacional
-        | expIgualdad '==' expRelacional
-        | expIgualdad '!=' expRelacional
-        ;
+    :expRelacional
+    | expIgualdad "==" expRelacional
+    | expIgualdad "!=" expRelacional
+    ;
 
 expRelacional
-        :expAditiva
-        | expRelacional '<' expAditiva
-        | expRelacional '>' expAditiva
-        | expRelacional '<=' expAditiva
-        | expRelacional '>=' expAditiva
-        ;
+    :expAditiva
+    | expRelacional "<" expAditiva
+    | expRelacional ">" expAditiva
+    | expRelacional "<=" expAditiva
+    | expRelacional ">=" expAditiva
+    ;
 
 expAditiva
-        :expMultiplicativa
-        | expAditiva '+' expMultiplicativa
-        | expAditiva '-' expMultiplicativa
-        ;
+    :expMultiplicativa
+    | expAditiva "+" expMultiplicativa
+    | expAditiva "-" expMultiplicativa
+    ;
 
 expMultiplicativa
-        :expUnaria
-        | expMultiplicativa '*' expUnaria
-        | expMultiplicativa '/' expUnaria
-        ;
+    :expUnaria
+    | expMultiplicativa "*" expUnaria
+    | expMultiplicativa "/" expUnaria
+    ;
 
 expUnaria
-        :expPostfijo
-        | '++' expUnaria
-        | '--' expUnaria
-        | expUnaria '++'
-        | expUnaria '--'
-        | operUnario expUnaria
-        | SIZEOF '(' nombreTipo ')'
-        ;
+    :expPostfijo
+    | "++" expUnaria
+    | "--" expUnaria
+    | expUnaria "++"
+    | expUnaria "--"
+    | operUnario expUnaria
+    | SIZEOF "(" nombreTipo ")"
+    ;
 
 operUnario
-        :'&'
-        | '*'
-        | '-'
-        | '!'
-        ;
+    :"&"
+    | "*"
+    | "-"
+    | "!"
+    ;
 
 expPostfijo
-        :expPrimaria
-        | expPostfijo '[' expresion ']'
-        | expPostfijo '(' listaArgumentos ')'
-        ;
+    :expPrimaria
+    | expPostfijo "[" expresion "]"
+    | expPostfijo "(" listaArgumentos ")"
+    ;
 
 listaArgumentos
-        :expAsignac
-        | listaArgumentos ',' expAsignac
-        ;
+    :expAsignacion
+    | listaArgumentos "," expAsignac
+    ;
 
 expPrimaria
-        :IDENTIFICADOR
-        | CONSTANTE
-        | LITERAL_CADENA
-        | '(' expresion ')'
-        ;
+    :IDENTIFICADOR
+    | CONSTANTE
+    | LITERAL_CADENA
+    | "(" expresion ")"
+    ;
 
 nombreTipo
-        :CHAR
-        | INT
-        | FLOAT
-        | DOUBLE
-        ;
+    :CHAR
+    | INT
+    | FLOAT
+    | DOUBLE
+    ;
 
 %%
 

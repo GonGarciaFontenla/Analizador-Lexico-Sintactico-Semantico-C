@@ -62,7 +62,7 @@ sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union {}
 
 [^ \t\n] {}
 <tokenNoReconocido>{
-    <<EOF>> {
+/*    <<EOF>> {
         BEGIN(INITIAL);
     }
     " "|\t|\n {
@@ -73,7 +73,7 @@ sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union {}
         agregar_no_reconocida(yytext);
         columna += yyleng;
         BEGIN(INITIAL);
-    }
+    } */
 }
 
 %%
