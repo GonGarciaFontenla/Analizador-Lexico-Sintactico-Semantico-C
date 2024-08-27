@@ -24,77 +24,115 @@ OPERADORES \[|\]|\{|\}|\(|\)|\*|,|:|;|=|\.|#|&|\+|-|~|!|\/|%|<|>|\^|\?|(\.\.\.)|
 
 %%
 
-[1-9]{DIGITO_DECIMAL}*{SUFIJO_ENTERO} {}
-0{DIGITO_OCTAL}*{SUFIJO_ENTERO} {}
-0[xX]{DIGITO_HEXA}+{SUFIJO_ENTERO} {}
+[1-9]{DIGITO_DECIMAL}*{SUFIJO_ENTERO} {
+    yylloc.last_column += yyleng;
+    yylval.int_type = strtoul(yytext, NULL,0); 
+    return ENTERO;
+}
+0{DIGITO_OCTAL}*{SUFIJO_ENTERO} {
+    yylloc.last_column += yyleng;
+    yylval.int_type = (int) strtoul(yytext, NULL, 0); 
+    return ENTERO;
+}
+0[xX]{DIGITO_HEXA}+{SUFIJO_ENTERO} {
+    yylloc.last_column += yyleng;
+    yylval.int_type = (int) strtoul(yytext, NULL, 0); 
+    return ENTERO;
+}
 
 
-[0-9]+\.[0-9]*{SUFIJO_REAL} {}
-\.[0-9]+{SUFIJO_REAL} {}
-[0-9]+{SUFIJO_REAL} {}
+[0-9]+\.[0-9]*{SUFIJO_REAL} {
+    yylloc.last_column += yyleng;
+    yylval.double_type = strtod(yytext, NULL); 
+    return NUM; 
+}
+\.[0-9]+{SUFIJO_REAL} {
+    yylloc.last_column += yyleng;
+    yylval.double_type = strtod(yytext, NULL); 
+    return NUM; 
+}
+[0-9]+{SUFIJO_REAL} {
+    yylloc.last_column += yyleng;
+    yylval.double_type = strtod(yytext, NULL); 
+    return NUM; 
+}
 
 
-int|float|double|char|void|short|long|unsigned|signed {}
-if|else|while|for|do|switch|case|default|break|continue|return|goto {}
-sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union {}
+int|float|double|char|void|short|long|unsigned|signed {
+    yylloc.last_column += yyleng;
+
+}
+if|else|while|for|do|switch|case|default|break|continue|return|goto {
+    yylloc.last_column += yyleng;
+
+}
+sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union {
+    yylloc.last_column += yyleng;
+
+}
 
 
-'[^\\\']' {}
-'\\{ESCAPE_SIMPLE}' {}
-'\\{DIGITO_OCTAL}{1,3}' {}
-'\\x{DIGITO_HEXA}+' {}
+'[^\\\']' {
+    yylloc.last_column += yyleng;
+
+}
+'\\{ESCAPE_SIMPLE}' {
+    yylloc.last_column += yyleng;
+
+}
+'\\{DIGITO_OCTAL}{1,3}' {
+    yylloc.last_column += yyleng;
+
+}
+'\\x{DIGITO_HEXA}+' {
+    yylloc.last_column += yyleng;
+
+}
 
 
-\"([^\\\"\n]|\\{ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXA}+)*\" {}   
+\"([^\\\"\n]|\\{ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXA}+)*\" {
+    yylloc.last_column += yyleng;
+    yylval.string_type = strdup(yytext); 
+    return LITERAL_CADENA; 
+}   
 
 
-[_a-zA-Z][_a-zA-Z0-9]* {}
+[_a-zA-Z][_a-zA-Z0-9]* {
+    yylloc.last_column += yyleng;
+    yylval.string_type = yytext; 
+    return IDENTIFICADOR;
+}
 
 
-{OPERADORES} {}
+{OPERADORES} {yylloc.last_column += yyleng; return yytext;} 
 
 
-[ \t]+ {}
+[ \t]+ {yylloc.first_column = yylloc.last_column += yyleng;}
 
 
-\n {}
+\n {
+    yylloc.first_line = yylloc.last_line += yyleng; 
+    yylloc.first_column = yylloc.last_column = INICIO_CONTEO_COLUMNA;
+    return '\n';
+  }
 
 
 [^ \t\n] {}
 <tokenNoReconocido>{
-/*    <<EOF>> {
+    <<EOF>> {
+        fprintf(stderr, "\n");
         BEGIN(INITIAL);
     }
     " "|\t|\n {
         yyless(0);
+        fprintf(stderr, "\n");
         BEGIN(INITIAL);
     }
     [^ \t\n]+ {
-        agregar_no_reconocida(yytext);
-        columna += yyleng;
+        yylloc.last_column += yyleng;
+        fprintf(stderr, "%s\n", yytext);
         BEGIN(INITIAL);
-    } */
+    }
 }
 
 %%
-
-int main(int argc, char *argv[]) {
-    if (argc > 1) {
-        yyin = fopen(argv[1], "r");
-        if (!yyin) {
-            printf("Error abriendo el archivo de entrada");
-            return EXIT_FAILURE;
-        }
-    } else {
-        yyin = stdin;
-    }
-
-    yylex();
-
-    if (yyin != stdin) 
-        fclose(yyin);
-
-
-
-    return EXIT_SUCCESS;
-}
