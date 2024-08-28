@@ -26,6 +26,8 @@ void menu(void);
 %token <int_type> ENTERO
 %token <double_type> NUM
 %token <string_type> LITERAL_CADENA
+%token <string_type> PALABRA_RESERVADA
+%token SIZEOF
 
 %type <int_type> expresion expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expMultiplicativa expUnaria expPostfijo listaArgumentos nombreTipo
 
@@ -131,7 +133,7 @@ expPostfijo
 
 listaArgumentos
     :expAsignacion
-    | listaArgumentos "," expAsignac
+    | listaArgumentos "," expAsignacion
     ;
 
 expPrimaria

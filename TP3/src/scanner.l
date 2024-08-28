@@ -40,7 +40,6 @@ OPERADORES \[|\]|\{|\}|\(|\)|\*|,|:|;|=|\.|#|&|\+|-|~|!|\/|%|<|>|\^|\?|(\.\.\.)|
     return ENTERO;
 }
 
-
 [0-9]+\.[0-9]*{SUFIJO_REAL} {
     yylloc.last_column += yyleng;
     yylval.double_type = strtod(yytext, NULL); 
@@ -60,15 +59,15 @@ OPERADORES \[|\]|\{|\}|\(|\)|\*|,|:|;|=|\.|#|&|\+|-|~|!|\/|%|<|>|\^|\?|(\.\.\.)|
 
 int|float|double|char|void|short|long|unsigned|signed {
     yylloc.last_column += yyleng;
-
+    return PALABRA_RESERVADA;
 }
 if|else|while|for|do|switch|case|default|break|continue|return|goto {
     yylloc.last_column += yyleng;
-
+    return PALABRA_RESERVADA;
 }
 sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union {
     yylloc.last_column += yyleng;
-
+    return PALABRA_RESERVADA;
 }
 
 
