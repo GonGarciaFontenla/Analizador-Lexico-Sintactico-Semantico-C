@@ -1,6 +1,7 @@
 %{
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "general.h"
 
 #include "parser.tab.h"
@@ -73,19 +74,19 @@ sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union {
 
 '[^\\\']' {
     yylloc.last_column += yyleng;
-
+    return CONSTANTE; 
 }
 '\\{ESCAPE_SIMPLE}' {
     yylloc.last_column += yyleng;
-
+    return CONSTANTE; 
 }
 '\\{DIGITO_OCTAL}{1,3}' {
     yylloc.last_column += yyleng;
-
+    return CONSTANTE; 
 }
 '\\x{DIGITO_HEXA}+' {
     yylloc.last_column += yyleng;
-
+    return CONSTANTE; 
 }
 
 
@@ -103,7 +104,7 @@ sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union {
 }
 
 
-{OPERADORES} {yylloc.last_column += yyleng; return yytext;} 
+{OPERADORES} {yylloc.last_column += yyleng; return yytext[0];} 
 
 
 [ \t]+ {yylloc.first_column = yylloc.last_column += yyleng;}

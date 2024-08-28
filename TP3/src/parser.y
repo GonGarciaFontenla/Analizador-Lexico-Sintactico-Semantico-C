@@ -22,12 +22,14 @@ void menu(void);
     double double_type;
 }
 
+
 %token <string_type> IDENTIFICADOR
 %token <int_type> ENTERO
 %token <double_type> NUM
 %token <string_type> LITERAL_CADENA
 %token <string_type> PALABRA_RESERVADA
-%token SIZEOF
+%token <int_type> CONSTANTE
+%token CHAR INT FLOAT DOUBLE SIZEOF
 
 %type <int_type> expresion expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expMultiplicativa expUnaria expPostfijo listaArgumentos nombreTipo
 
@@ -46,7 +48,6 @@ void menu(void);
 %nonassoc "(" ")" 
 %nonassoc IDENTIFICADOR CONSTANTE LITERAL_CADENA 
 %nonassoc CHAR INT FLOAT DOUBLE
-
 
 %%
 
@@ -175,15 +176,3 @@ void yyerror(const char* literalCadena)
 {
     fprintf(stderr, "Bison: %d:%d: %s\n", yylloc.first_line, yylloc.first_column, literalCadena);
 }
-
-/*
-
-%token CHAR INT FLOAT DOUBLE
-%token "=" "+=" "-=" "*=" "/="
-%token "?" ":"
-%token "+" "-" "*" "/" "&&" "||" "==" "!=" "<" ">" "<=" ">="
-%token "(" ")" "[" "]" "++" "--" "&" "!" SIZEOF
-
-"(" expresion ")"
-
-*/
