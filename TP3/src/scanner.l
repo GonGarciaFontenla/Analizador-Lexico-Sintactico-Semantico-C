@@ -21,7 +21,6 @@ DIGITO_DECIMAL [0-9]
 DIGITO_OCTAL [0-7]
 DIGITO_HEXA [0-9a-fA-F]
 ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
-OPERADORES \[|\]|\{|\}|\(|\)|\*|,|:|;|=|\.|#|&|\+|-|~|!|\/|%|<|>|\^|\?|(\.\.\.)|(->)|(\+\+)|(--)|(<<)|(>>)|(<=)|(>=)|(==)|(!=)|(&&)|(\|\|)|(\*=)|(\/=)|(%=)|(\+=)|(-=)|(<<=)|(>>=)|(&=)|(\^=)|(\|=)|(##)
 
 %%
 
@@ -72,43 +71,86 @@ sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union {
 }
 
 
+[_a-zA-Z][_a-zA-Z0-9]* {
+    yylloc.last_column += yyleng;
+    yylval.string_type = strdup(yytext); 
+    return IDENTIFICADOR;
+}
+
+
 '[^\\\']' {
     yylloc.last_column += yyleng;
-    return CONSTANTE; 
-}
-'\\{ESCAPE_SIMPLE}' {
-    yylloc.last_column += yyleng;
-    return CONSTANTE; 
-}
-'\\{DIGITO_OCTAL}{1,3}' {
-    yylloc.last_column += yyleng;
-    return CONSTANTE; 
-}
-'\\x{DIGITO_HEXA}+' {
-    yylloc.last_column += yyleng;
+    yylval.char_type = yytext[1];  // Almacena el carácter entre comillas
     return CONSTANTE; 
 }
 
+'\\{ESCAPE_SIMPLE}' {
+    yylloc.last_column += yyleng;
+    yylval.char_type = yytext[1];  // Maneja el carácter de escape
+    return CONSTANTE; 
+}
+
+'\\{DIGITO_OCTAL}{1,3}' {
+    yylloc.last_column += yyleng;
+    yylval.char_type = (char)strtol(yytext+1, NULL, 8);  // Convierte de octal
+    return CONSTANTE; 
+}
+
+'\\x{DIGITO_HEXA}+' {
+    yylloc.last_column += yyleng;
+    yylval.char_type = (char)strtol(yytext+2, NULL, 16);  // Convierte de hexadecimal
+    return CONSTANTE; 
+}
 
 \"([^\\\"\n]|\\{ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXA}+)*\" {
     yylloc.last_column += yyleng;
     yylval.string_type = strdup(yytext); 
     return LITERAL_CADENA; 
-}   
-
-
-[_a-zA-Z][_a-zA-Z0-9]* {
-    yylloc.last_column += yyleng;
-    yylval.string_type = yytext; 
-    return IDENTIFICADOR;
 }
 
 
-{OPERADORES} {yylloc.last_column += yyleng; return yytext[0];} 
+"+" { return '+'; }
+"-" { return '-'; }
+"*" { return '*'; }
+"/" { return '/'; }
+"%" { return '%'; }
+"=" { return '='; }
+"+=" { return ADD_ASSIGN; }
+"-=" { return SUB_ASSIGN; }
+"*=" { return MUL_ASSIGN; }
+"/=" { return DIV_ASSIGN; }
+"%=" { return MOD_ASSIGN; }
+"==" { return EQ; }
+"!=" { return NEQ; }
+"<" { return '<'; }
+">" { return '>'; }
+"<=" { return LE; }
+">=" { return GE; }
+"&&" { return AND; }
+"||" { return OR; }
+"!" { return '!'; }
+"&" { return '&'; }
+"|" { return '|'; }
+"^" { return '^'; }
+"~" { return '~'; }
+"<<" { return LEFT_SHIFT; }
+">>" { return RIGHT_SHIFT; }
+"(" { return '('; }
+")" { return ')'; }
+"[" { return '['; }
+"]" { return ']'; }
+"{" { return '{'; }
+"}" { return '}'; }
+";" { return ';'; }
+"," { return ','; }
+"." { return '.'; }
+"->" { return PTR_OP; }
+"++" { return INC_OP; }
+"--" { return DEC_OP; }
+
 
 
 [ \t]+ {yylloc.first_column = yylloc.last_column += yyleng;}
-
 
 \n {
     yylloc.first_line = yylloc.last_line += yyleng; 
@@ -130,7 +172,7 @@ sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union {
     }
     [^ \t\n]+ {
         yylloc.last_column += yyleng;
-        fprintf(stderr, "%s\n", yytext);
+        fprintf(stderr, "Token no reconocido: %s\n", yytext);
         BEGIN(INITIAL);
     }
 }

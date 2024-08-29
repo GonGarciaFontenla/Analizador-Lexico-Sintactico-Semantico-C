@@ -20,6 +20,7 @@ void menu(void);
     char* string_type;
     int int_type;
     double double_type;
+    char char_type;
 }
 
 %token <string_type> IDENTIFICADOR
@@ -27,8 +28,14 @@ void menu(void);
 %token <double_type> NUM
 %token <string_type> LITERAL_CADENA
 %token <string_type> PALABRA_RESERVADA
-%token <int_type> CONSTANTE
+%token <char_type> CONSTANTE
 %token CHAR INT FLOAT DOUBLE SIZEOF
+
+%token ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
+%token EQ NEQ LE GE AND OR
+%token LEFT_SHIFT RIGHT_SHIFT
+%token PTR_OP INC_OP DEC_OP
+
 
 %type <int_type> expresion expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expMultiplicativa expUnaria expPostfijo
 %type <int_type> operAsignacion operUnario nombreTipo
@@ -36,20 +43,21 @@ void menu(void);
 
 %start expresion
 
-%right "=" "+=" "-=" "*=" "/="
-%right "?" ":"
-%left "||"
-%left "&&"
-%left "==" "!="  
-%left "<" ">" ">=" "<="  
-%left "+" "-"  
-%left "*" "/" "%"
-%right "!" "&"
+%right '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN
+%right '?' ':'
+%left OR
+%left AND
+%left EQ NEQ  
+%left '<' '>' LE GE  
+%left '+' '-'  
+%left '*' '/' '%'
+%right '!' '&'
 
 %%
 
 expresion
-    : expAsignacion
+    : 
+    | expAsignacion
     ;
 
 expAsignacion
@@ -58,87 +66,86 @@ expAsignacion
     ;
 
 operAsignacion
-    : "="  { $$ = '='; }
-    | "+=" { $$ = '+'; }
-    | "-=" { $$ = '-'; }
-    | "*=" { $$ = '*'; }
-    | "/=" { $$ = '/'; }
+    : '='  { $$ = '='; }
+    | ADD_ASSIGN { $$ = '+'; }
+    | SUB_ASSIGN { $$ = '-'; }
+    | MUL_ASSIGN { $$ = '*'; }
+    | DIV_ASSIGN { $$ = '/'; }
     ;
 
 expCondicional
     : expOr
-    | expOr "?" expresion ":" expCondicional { $$ = $3; }
+    | expOr '?' expresion ':' expCondicional { $$ = $3; }
     ;
 
 expOr
     : expAnd
-    | expOr "||" expAnd { $$ = $1 || $3; }
+    | expOr OR expAnd { $$ = $1 || $3; }
     ;
 
 expAnd
     : expIgualdad
-    | expAnd "&&" expIgualdad { $$ = $1 && $3; }
+    | expAnd AND expIgualdad { $$ = $1 && $3; }
     ;
 
 expIgualdad
     : expRelacional
-    | expIgualdad "==" expRelacional { $$ = $1 == $3; }
-    | expIgualdad "!=" expRelacional { $$ = $1 != $3; }
+    | expIgualdad EQ expRelacional { $$ = $1 == $3; }
+    | expIgualdad NEQ expRelacional { $$ = $1 != $3; }
     ;
 
 expRelacional
     : expAditiva
-    | expRelacional "<" expAditiva { $$ = $1 < $3; }
-    | expRelacional ">" expAditiva { $$ = $1 > $3; }
-    | expRelacional "<=" expAditiva { $$ = $1 <= $3; }
-    | expRelacional ">=" expAditiva { $$ = $1 >= $3; }
+    | expRelacional '<' expAditiva { $$ = $1 < $3; }
+    | expRelacional '>' expAditiva { $$ = $1 > $3; }
+    | expRelacional LE expAditiva { $$ = $1 <= $3; }
+    | expRelacional GE expAditiva { $$ = $1 >= $3; }
     ;
 
 expAditiva
     : expMultiplicativa
-    | expAditiva "+" expMultiplicativa { $$ = $1 + $3; }
-    | expAditiva "-" expMultiplicativa { $$ = $1 - $3; }
+    | expAditiva '+' expMultiplicativa { $<double_type>$ = $<double_type>1 + $<double_type>3; }
+    | expAditiva '-' expMultiplicativa { $$ = $1 - $3; }
     ;
 
 expMultiplicativa
     : expUnaria
-    | expMultiplicativa "*" expUnaria { $$ = $1 * $3; }
-    | expMultiplicativa "/" expUnaria { $$ = $1 / $3; }
+    | expMultiplicativa '*' expUnaria { $$ = $1 * $3; }
+    | expMultiplicativa '/' expUnaria { $$ = $1 / $3; }
+    | expMultiplicativa '%' expUnaria { $$ = $1 % $3; }
     ;
 
 expUnaria
     : expPostfijo
-    | "++" expUnaria { $$ = ++$2; }
-    | "--" expUnaria { $$ = --$2; }
-    | expUnaria "++" { $$ = $1++; }
-    | expUnaria "--" { $$ = $1--; }
+    | INC_OP expUnaria { $$ = ++$2; }
+    | DEC_OP expUnaria { $$ = --$2; }
     | operUnario expUnaria { $$ = -$2; }
-    | SIZEOF "(" nombreTipo ")" { $$ = sizeof($3); }
+    | SIZEOF '(' nombreTipo ')' { $$ = sizeof($3); }
     ;
 
 operUnario
-    : "&" { $$ = '&'; }
-    | "*" { $$ = '*'; }
-    | "-" { $$ = '-'; }
-    | "!" { $$ = '!'; }
+    : '&' { $$ = '&'; }
+    | '*' { $$ = '*'; }
+    | '-' { $$ = '-'; }
+    | '!' { $$ = '!'; }
     ;
 
 expPostfijo
     : expPrimaria
-    | expPostfijo "[" expresion "]"
-    | expPostfijo "(" listaArgumentos ")" 
+    | expPostfijo '[' expresion ']' 
+    | expPostfijo '(' listaArgumentos ')' 
     ;
 
 listaArgumentos
     : expAsignacion { $$ = $1; }
-    | listaArgumentos "," expAsignacion { $$ = $1 + $3; }
+    | listaArgumentos ',' expAsignacion { $$ = $1 + $3; }
     ;
 
 expPrimaria
-    : IDENTIFICADOR
-    | CONSTANTE
-    | LITERAL_CADENA
-    | "(" expresion ")" { $$ = $2; }
+    : IDENTIFICADOR { printf("Identificador: %s\n", $1); }
+    | CONSTANTE { $$ = $1; }
+    | LITERAL_CADENA { printf("LIteral cadena: %s\n", $1); }
+    | '(' expresion ')' { $$ = $2; }
     ;
 
 nombreTipo
