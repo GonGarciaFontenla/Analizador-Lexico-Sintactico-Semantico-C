@@ -12,6 +12,8 @@ typedef struct YYLTYPE
   int first_column;
   int last_line;
   int last_column;
+  int first_sent_line;
+  int first_sent_column;
 } YYLTYPE;
 
 #define INICIO_CONTEO_LINEA 1

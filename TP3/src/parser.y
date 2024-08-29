@@ -61,10 +61,10 @@ line
 sentencia
         : sentCompuesta   { printf("El resultado de la sentencia compuesta es: %lu\n", $1); }
                          /* la macro 'YYACEPT;' produce que la función yyparse() retorne inmediatamente con valor 0 */ 
-        | sentExpresion   { printf ("El resultado de la sentencia expresion es: %lu\n", $1); } 
+        | sentExpresion   { printf("El resultado de la sentencia expresion es: %lu\n", $1);} 
         | sentSeleccion   { printf("El resultado de la sentencia seleccion es: %lu\n", $1); }
         | sentIteracion   { printf("El resultado de la sentencia iteracion es: %lu\n", $1); }
-        | sentEtiquetadas { printf("%lu: FILA: %d COLUMNA: %d \n", $1, yylloc.first_line, yylloc.first_column); }
+        | sentEtiquetadas { printf("El resultado de la sentencia etiquetadas es: %lu\n", $1); }
         | sentSalto       { printf("El resultado de la sentencia salto es: %lu\n", $1); }
         | '\n'
         ;
@@ -143,6 +143,7 @@ exp
 
 int main(int argc, char *argv[])
 {
+        inicializarUbicacion();
 
         if (argc > 1) {
         yyin = fopen(argv[1], "r");
@@ -163,8 +164,6 @@ int main(int argc, char *argv[])
         if (yyin != stdin) {
                 fclose(yyin);
         }
-
-        inicializarUbicacion();
 
         #if YYDEBUG
                 yydebug = 1;
