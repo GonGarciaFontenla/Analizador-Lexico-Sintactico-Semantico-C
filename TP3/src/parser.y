@@ -45,10 +45,6 @@ void menu(void);
 %left "+" "-"  
 %left "*" "/" "%"
 %right "!" "&"
-%nonassoc "[" "]"
-%nonassoc "(" ")" 
-%nonassoc IDENTIFICADOR CONSTANTE LITERAL_CADENA 
-%nonassoc CHAR INT FLOAT DOUBLE
 
 %%
 
@@ -129,8 +125,8 @@ operUnario
 
 expPostfijo
     : expPrimaria
-    | expPostfijo "[" expresion "]" { $$ = $1[$3]; }
-    | expPostfijo "(" listaArgumentos ")" { $$ = funcion_llamada($1, $3); }
+    | expPostfijo "[" expresion "]"
+    | expPostfijo "(" listaArgumentos ")" 
     ;
 
 listaArgumentos
