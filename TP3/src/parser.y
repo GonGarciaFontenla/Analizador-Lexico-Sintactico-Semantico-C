@@ -12,7 +12,7 @@ void menu(void);
 
 %}
 
-%define parse.error verbose
+%error-verbose
 
 %locations
 
@@ -22,7 +22,6 @@ void menu(void);
     double double_type;
 }
 
-
 %token <string_type> IDENTIFICADOR
 %token <int_type> ENTERO
 %token <double_type> NUM
@@ -31,7 +30,9 @@ void menu(void);
 %token <int_type> CONSTANTE
 %token CHAR INT FLOAT DOUBLE SIZEOF
 
-%type <int_type> expresion expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expMultiplicativa expUnaria expPostfijo listaArgumentos nombreTipo
+%type <int_type> expresion expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expMultiplicativa expUnaria expPostfijo
+%type <int_type> operAsignacion operUnario nombreTipo
+%type <int_type> listaArgumentos expPrimaria
 
 %start expresion
 
@@ -52,100 +53,100 @@ void menu(void);
 %%
 
 expresion
-    :expAsignacion
+    : expAsignacion
     ;
 
 expAsignacion
-    :expCondicional
-    |expUnaria operAsignacion expAsignacion
+    : expCondicional
+    | expUnaria operAsignacion expAsignacion { $$ = $3; }
     ;
 
 operAsignacion
-    :"="
-    | "+="
-    | "-="
-    | "*="
-    | "/="
+    : "="  { $$ = '='; }
+    | "+=" { $$ = '+'; }
+    | "-=" { $$ = '-'; }
+    | "*=" { $$ = '*'; }
+    | "/=" { $$ = '/'; }
     ;
 
 expCondicional
-    :expOr
-    | expOr "?" expresion ":" expCondicional
+    : expOr
+    | expOr "?" expresion ":" expCondicional { $$ = $3; }
     ;
 
 expOr
-    :expAnd
-    | expOr "||" expAnd
+    : expAnd
+    | expOr "||" expAnd { $$ = $1 || $3; }
     ;
 
 expAnd
-    :expIgualdad
-    | expAnd "&&" expIgualdad
+    : expIgualdad
+    | expAnd "&&" expIgualdad { $$ = $1 && $3; }
     ;
 
 expIgualdad
-    :expRelacional
-    | expIgualdad "==" expRelacional
-    | expIgualdad "!=" expRelacional
+    : expRelacional
+    | expIgualdad "==" expRelacional { $$ = $1 == $3; }
+    | expIgualdad "!=" expRelacional { $$ = $1 != $3; }
     ;
 
 expRelacional
-    :expAditiva
-    | expRelacional "<" expAditiva
-    | expRelacional ">" expAditiva
-    | expRelacional "<=" expAditiva
-    | expRelacional ">=" expAditiva
+    : expAditiva
+    | expRelacional "<" expAditiva { $$ = $1 < $3; }
+    | expRelacional ">" expAditiva { $$ = $1 > $3; }
+    | expRelacional "<=" expAditiva { $$ = $1 <= $3; }
+    | expRelacional ">=" expAditiva { $$ = $1 >= $3; }
     ;
 
 expAditiva
-    :expMultiplicativa
-    | expAditiva "+" expMultiplicativa
-    | expAditiva "-" expMultiplicativa
+    : expMultiplicativa
+    | expAditiva "+" expMultiplicativa { $$ = $1 + $3; }
+    | expAditiva "-" expMultiplicativa { $$ = $1 - $3; }
     ;
 
 expMultiplicativa
-    :expUnaria
-    | expMultiplicativa "*" expUnaria
-    | expMultiplicativa "/" expUnaria
+    : expUnaria
+    | expMultiplicativa "*" expUnaria { $$ = $1 * $3; }
+    | expMultiplicativa "/" expUnaria { $$ = $1 / $3; }
     ;
 
 expUnaria
-    :expPostfijo
-    | "++" expUnaria
-    | "--" expUnaria
-    | expUnaria "++"
-    | expUnaria "--"
-    | operUnario expUnaria
-    | SIZEOF "(" nombreTipo ")"
+    : expPostfijo
+    | "++" expUnaria { $$ = ++$2; }
+    | "--" expUnaria { $$ = --$2; }
+    | expUnaria "++" { $$ = $1++; }
+    | expUnaria "--" { $$ = $1--; }
+    | operUnario expUnaria { $$ = -$2; }
+    | SIZEOF "(" nombreTipo ")" { $$ = sizeof($3); }
     ;
 
 operUnario
-    :"&"
-    | "*"
-    | "-"
-    | "!"
+    : "&" { $$ = '&'; }
+    | "*" { $$ = '*'; }
+    | "-" { $$ = '-'; }
+    | "!" { $$ = '!'; }
     ;
 
 expPostfijo
-    :expPrimaria
-    | expPostfijo "[" expresion "]"
-    | expPostfijo "(" listaArgumentos ")"
+    : expPrimaria
+    | expPostfijo "[" expresion "]" { $$ = $1[$3]; }
+    | expPostfijo "(" listaArgumentos ")" { $$ = funcion_llamada($1, $3); }
     ;
 
 listaArgumentos
-    :expAsignacion
-    | listaArgumentos "," expAsignacion
+    : expAsignacion { $$ = $1; }
+    | listaArgumentos "," expAsignacion { $$ = $1 + $3; }
     ;
 
 expPrimaria
-    :IDENTIFICADOR
+    : IDENTIFICADOR
     | CONSTANTE
     | LITERAL_CADENA
-    | "(" expresion ")"
+    | "(" expresion ")" { $$ = $2; }
     ;
 
 nombreTipo
-    :CHAR
+    : CHAR
     | INT
     | FLOAT
     | DOUBLE
