@@ -52,6 +52,70 @@ digito [0-9]
 
 "^" { yylloc.last_column += yyleng; return '^'; }
 
+";" { yylloc.last_column += yyleng; return ';'; }
+
+"(" { yylloc.last_column += yyleng; return '('; }
+
+")" { yylloc.last_column += yyleng; return ')'; }
+
+":" { yylloc.last_column += yyleng; return ':'; }
+
+"{" { yylloc.last_column += yyleng; return '{'; }
+
+"}" { yylloc.last_column += yyleng; return '}'; }
+
+return  {
+    yylloc.last_column += yyleng;
+    return RETURN;
+}
+
+if  {
+    yylloc.last_column += yyleng;
+    return IF;
+}
+
+else  {
+    yylloc.last_column += yyleng;
+    return ELSE;
+}
+
+while  {
+    yylloc.last_column += yyleng;
+    return WHILE;
+}
+
+do  {
+    yylloc.last_column += yyleng;
+    return DO;
+}
+
+for  {
+    yylloc.last_column += yyleng;
+    return FOR;
+}
+
+case  {
+    yylloc.last_column += yyleng;
+    return CASE;
+}
+
+default  {
+    yylloc.last_column += yyleng;
+    return DEFAULT;
+}
+
+declaracion  {
+    yylloc.last_column += yyleng;
+    return DECLARACION;
+}
+
+[_a-zA-Z][_a-zA-Z0-9]* {
+    yylloc.last_column += yyleng;
+    yylval.string = strdup(yytext); 
+    return IDENTIFICADOR;
+}  /* Este debe ir al final para que no tome CASE/DEFAULT como IDENTIFICADORES */
+
+
 [ \t]+ { yylloc.first_column = yylloc.last_column += yyleng; }
 
 \n {

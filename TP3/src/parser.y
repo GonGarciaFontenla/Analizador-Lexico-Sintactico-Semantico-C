@@ -29,13 +29,15 @@ void yyerror(const char*);
 	/* Para especificar la colección completa de posibles tipos de datos para los valores semánticos */
 %union {
 	unsigned long unsigned_long_type;
+        char* string;
 }
 
         /* */
 %token <unsigned_long_type> NUM
+%token <string> RETURN IF ELSE WHILE DO FOR DEFAULT CASE IDENTIFICADOR DECLARACION
 
 	/* */
-%type <unsigned_long_type> exp
+%type <unsigned_long_type> exp sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
 
 	/* Para especificar el no-terminal de inicio de la gramática (el axioma). Si esto se omitiera, se asumiría que es el no-terminal de la primera regla */
 %start input
@@ -52,8 +54,76 @@ input
 
 line
         : '\n'
-        | exp '\n'  { printf ("El resultado de la expresion es: %lu\n", $1); YYACCEPT; } /* la macro 'YYACEPT;' produce que la función yyparse() retorne inmediatamente con valor 0 */
+        | sentencia '\n'
         ;
+
+/*                                         REGLAS GRAMATICALES DE LAS SENTENCIAS                                         */
+sentencia
+        : sentCompuesta   { printf("El resultado de la sentencia compuesta es: %lu\n", $1); }
+                         /* la macro 'YYACEPT;' produce que la función yyparse() retorne inmediatamente con valor 0 */ 
+        | sentExpresion   { printf ("El resultado de la sentencia expresion es: %lu\n", $1); } 
+        | sentSeleccion   { printf("El resultado de la sentencia seleccion es: %lu\n", $1); }
+        | sentIteracion   { printf("El resultado de la sentencia iteracion es: %lu\n", $1); }
+        | sentEtiquetadas { printf("%lu: FILA: %d COLUMNA: %d \n", $1, yylloc.first_line, yylloc.first_column); }
+        | sentSalto       { printf("El resultado de la sentencia salto es: %lu\n", $1); }
+        | '\n'
+        ;
+
+sentCompuesta
+        : '{' opcionDeclaracion opcionSentencia '}' { $$ = 160902; }  /* TO DO */
+        ;
+        
+opcionDeclaracion
+        : 
+        | listaDeclaraciones
+        ;
+
+opcionSentencia
+        :
+        | sentencia
+        ;
+        
+listaDeclaraciones
+        : DECLARACION
+        | listaDeclaraciones DECLARACION
+        ;
+
+sentIteracion
+        : WHILE '(' exp ')' sentencia                                   { $$ = $3; }
+	| DO sentencia WHILE '(' exp ')' ';'                            { $$ = $5; }
+        | FOR '(' opcionExp ';' opcionExp ';' opcionExp ')' sentencia   { $$ = 99; }    /* TO DO */
+        ;
+
+opcionExp
+        : 
+        | exp 
+        ;
+
+sentExpresion
+        : ';'              { $$ = 0; }       /* TO DO: usar el opcionExp  */
+        | exp ';'          { $$ = $1; }
+        ;
+
+sentSeleccion
+        : IF '(' exp ')' sentencia opcionElse  { $$ = $3; }
+        ;
+
+opcionElse
+        : 
+        | ELSE sentencia 
+        ;
+
+sentEtiquetadas
+        : IDENTIFICADOR ':' sentencia   { $$ = 11111; } 
+        | CASE exp ':' sentencia        { $$ = 22222; }
+        | DEFAULT ':' sentencia         { $$ = 33333; }
+        ;
+
+sentSalto
+        : RETURN ';'       { $$ = 0; }       /* TO DO */
+        | RETURN exp ';'   { $$ = $2; }
+        ;
+/*                                         FIN REGLAS GRAMATICALES DE LAS SENTENCIAS                                         */
 
 exp
         : NUM             { $$ = $1; }
@@ -63,29 +133,42 @@ exp
         | exp exp '/'     { $$ = $1 / $2; }
         | exp exp '^'     { $$ = pow($1, $2); }
         ;
+        
+
 
 %%
 /* Fin de la sección de reglas gramaticales */
 
 /* Inicio de la sección de epílogo (código de usuario) */
 
-int main(void)
+int main(int argc, char *argv[])
 {
+
+        if (argc > 1) {
+        yyin = fopen(argv[1], "r");
+        if (!yyin) {
+            printf("Error abriendo el archivo de entrada");
+            return -1;
+        }
+        } else {
+                yyin = stdin;
+        }
+
+        while(1){
+                if (yyparse() != 0) {
+                        printf("Error durante el analisis sintactico\n");
+                }
+        }
+
+        if (yyin != stdin) {
+                fclose(yyin);
+        }
+
         inicializarUbicacion();
 
         #if YYDEBUG
                 yydebug = 1;
         #endif
-
-        while(1)
-        {
-                printf("Ingrese una expresion aritmetica en notacion polaca inversa para resolver:\n");
-                printf("(La funcion yyparse ha retornado con valor: %d)\n\n", yyparse());
-                /* Valor | Significado */
-                /*   0   | Análisis sintáctico exitoso (debido a un fin de entrada (EOF) indicado por el analizador léxico (yylex), ó bien a una invocación de la macro YYACCEPT) */
-                /*   1   | Fallo en el análisis sintáctico (debido a un error en el análisis sintáctico del que no se pudo recuperar, ó bien a una invocación de la macro YYABORT) */
-                /*   2   | Fallo en el análisis sintáctico (debido a un agotamiento de memoria) */
-        }
 
         pausa();
         return 0;

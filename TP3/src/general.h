@@ -21,4 +21,7 @@ void pausa(void);
 void inicializarUbicacion(void);
 void reinicializarUbicacion(void);
 
+extern FILE *yyin;
+
+
 #endif
