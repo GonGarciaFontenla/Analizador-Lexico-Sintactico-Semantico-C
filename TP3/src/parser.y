@@ -157,22 +157,36 @@ nombreTipo
 
 %%
 
-int main(void)
+int main(int argc, char *argv[])
 {
-    inicializarUbicacion();
+        inicializarUbicacion();
 
-    #if YYDEBUG
-        yydebug = 1;
-    #endif
+        if (argc > 1) {
+        yyin = fopen(argv[1], "r");
+        if (!yyin) {
+            printf("Error abriendo el archivo de entrada");
+            return -1;
+        }
+        } else {
+                yyin = stdin;
+        }
 
-    while(1)
-    {
-        printf("Ingrese una expresion:\n");
-        printf("(La función yyparse ha retornado con valor: %d)\n\n", yyparse());
-    }
+        while(1){
+                if (yyparse() != 0) {
+                        printf("Error durante el analisis sintactico\n");
+                }
+        }
 
-    pausa();
-    return 0;
+        if (yyin != stdin) {
+                fclose(yyin);
+        }
+
+        #if YYDEBUG
+                yydebug = 1;
+        #endif
+
+        pausa();
+        return 0;
 }
 
 /* Definición de la función yyerror para reportar errores */
