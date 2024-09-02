@@ -1,18 +1,17 @@
 %{
-
 #include <stdio.h>
 #include <stdlib.h>
-#include "general.h"
+#include <string.h>
 
+#include "general.h"
 #include "parser.tab.h"
 
 #define LINEA_INICIAL 1
 #define COLUMNA_INICIAL 1
-
-
 %}
-%pointer
+
 %option noyywrap
+%option noinput
 %x tokenNoReconocido
 
 SUFIJO_ENTERO ([uU]?[lL]{0,2}|[lL]{0,2}[uU]?)?
@@ -26,17 +25,19 @@ ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
 
 [1-9]{DIGITO_DECIMAL}*{SUFIJO_ENTERO} {
     yylloc.last_column += yyleng;
-    yylval.int_type = strtoul(yytext, NULL,0); 
+    yylval.int_type = strtoul(yytext, NULL,10); 
     return ENTERO;
 }
+
 0{DIGITO_OCTAL}*{SUFIJO_ENTERO} {
     yylloc.last_column += yyleng;
-    yylval.int_type = (int) strtoul(yytext, NULL, 0); 
+    yylval.int_type = (int) strtoul(yytext, NULL, 10); 
     return ENTERO;
 }
+
 0[xX]{DIGITO_HEXA}+{SUFIJO_ENTERO} {
     yylloc.last_column += yyleng;
-    yylval.int_type = (int) strtoul(yytext, NULL, 0); 
+    yylval.int_type = (int) strtoul(yytext, NULL, 10); 
     return ENTERO;
 }
 
@@ -45,31 +46,43 @@ ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
     yylval.double_type = strtod(yytext, NULL); 
     return NUM; 
 }
+
 \.[0-9]+{SUFIJO_REAL} {
     yylloc.last_column += yyleng;
     yylval.double_type = strtod(yytext, NULL); 
     return NUM; 
 }
+
 [0-9]+{SUFIJO_REAL} {
     yylloc.last_column += yyleng;
     yylval.double_type = strtod(yytext, NULL); 
     return NUM; 
 }
 
-
-int|float|double|char|void|short|long|unsigned|signed {
+char|int|float|double { 
     yylloc.last_column += yyleng;
+    yylval.string_type = strdup(yytext);
+    return TIPO;
+}
+
+
+void|short|long|unsigned|signed {
+    yylloc.last_column += yyleng;
+    yylval.string_type = strdup(yytext);
     return PALABRA_RESERVADA;
 }
+
 if|else|while|for|do|switch|case|default|break|continue|return|goto {
     yylloc.last_column += yyleng;
-    return PALABRA_RESERVADA;
-}
-sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union {
-    yylloc.last_column += yyleng;
+    yylval.string_type = strdup(yytext);
     return PALABRA_RESERVADA;
 }
 
+sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union {
+    yylloc.last_column += yyleng;
+    yylval.string_type = strdup(yytext);
+    return PALABRA_RESERVADA;
+}
 
 [_a-zA-Z][_a-zA-Z0-9]* {
     yylloc.last_column += yyleng;
@@ -77,28 +90,27 @@ sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union {
     return IDENTIFICADOR;
 }
 
-
 '[^\\\']' {
     yylloc.last_column += yyleng;
-    yylval.char_type = yytext[1];  // Almacena el carácter entre comillas
+    yylval.char_type = yytext[1];  
     return CONSTANTE; 
 }
 
 '\\{ESCAPE_SIMPLE}' {
     yylloc.last_column += yyleng;
-    yylval.char_type = yytext[1];  // Maneja el carácter de escape
+    yylval.char_type = yytext[1];  
     return CONSTANTE; 
 }
 
 '\\{DIGITO_OCTAL}{1,3}' {
     yylloc.last_column += yyleng;
-    yylval.char_type = (char)strtol(yytext+1, NULL, 8);  // Convierte de octal
+    yylval.char_type = (char)strtol(yytext+1, NULL, 8);  
     return CONSTANTE; 
 }
 
 '\\x{DIGITO_HEXA}+' {
     yylloc.last_column += yyleng;
-    yylval.char_type = (char)strtol(yytext+2, NULL, 16);  // Convierte de hexadecimal
+    yylval.char_type = (char)strtol(yytext+2, NULL, 16);  
     return CONSTANTE; 
 }
 
@@ -107,7 +119,6 @@ sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union {
     yylval.string_type = strdup(yytext); 
     return LITERAL_CADENA; 
 }
-
 
 "+" { return '+'; }
 "-" { return '-'; }
@@ -148,18 +159,18 @@ sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union {
 "++" { return INC_OP; }
 "--" { return DEC_OP; }
 
-
-
-[ \t]+ {yylloc.first_column = yylloc.last_column += yyleng;}
+[ \t]+ { /* Ignora espacios en blanco */ }
 
 \n {
     yylloc.first_line = yylloc.last_line += yyleng; 
-    yylloc.first_column = yylloc.last_column = INICIO_CONTEO_COLUMNA;
+    yylloc.first_column = yylloc.last_column = COLUMNA_INICIAL;
     return '\n';
-  }
+}
 
+[^ \t\n] {
+    /* Ignora caracteres desconocidos */
+}
 
-[^ \t\n] {}
 <tokenNoReconocido>{
     <<EOF>> {
         fprintf(stderr, "\n");
