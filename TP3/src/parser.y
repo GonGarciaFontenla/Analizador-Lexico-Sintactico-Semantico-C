@@ -1,48 +1,58 @@
-/* Calculadora de notación polaca inversa */
-
-/* Inicio de la seccion de prólogo (declaraciones y definiciones de C y directivas del preprocesador) */
-%{
+%{  
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
+#include <string.h>
+#include <general.h>
 
-#include "general.h"
-
-	/* Declaración de la funcion yylex del analizador léxico, necesaria para que la funcion yyparse del analizador sintáctico pueda invocarla cada vez que solicite un nuevo token */
 extern int yylex(void);
-	/* Declaracion de la función yyerror para reportar errores, necesaria para que la función yyparse del analizador sintáctico pueda invocarla para reportar un error */
+
 void yyerror(const char*);
+void menu(void); 
+
 %}
-/* Fin de la sección de prólogo (declaraciones y definiciones de C y directivas del preprocesador) */
 
-/* Inicio de la sección de declaraciones de Bison */
-
-	/* Para requerir una versión mínima de Bison para procesar la gramática */
-/* %require "2.4.1" */
-
-	/* Para requirle a Bison que describa más detalladamente los mensajes de error al invocar a yyerror */
 %error-verbose
-	/* Nota: esta directiva (escrita de esta manera) quedó obsoleta a partir de Bison v3.0, siendo reemplazada por la directiva: %define parse.error verbose */
 
-	/* Para activar el seguimiento de las ubicaciones de los tokens (número de linea, número de columna) */
 %locations
 
-	/* Para especificar la colección completa de posibles tipos de datos para los valores semánticos */
 %union {
-	unsigned long unsigned_long_type;
+    char* string_type;
+    int int_type;
+    double double_type;
+    char char_type;
 }
 
-        /* */
-%token <unsigned_long_type> NUM
+%token <string_type> IDENTIFICADOR
+%token <int_type> ENTERO
+%token <double_type> NUM
+%token <string_type> LITERAL_CADENA
+%token <string_type> PALABRA_RESERVADA
+%token <string_type> TIPO_DATO
+%token <char_type> CONSTANTE
+%token CHAR INT FLOAT DOUBLE SIZEOF
 
-	/* */
-%type <unsigned_long_type> exp
+%token ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
+%token EQ NEQ LE GE AND OR
+%token LEFT_SHIFT RIGHT_SHIFT
+%token PTR_OP INC_OP DEC_OP
 
-	/* Para especificar el no-terminal de inicio de la gramática (el axioma). Si esto se omitiera, se asumiría que es el no-terminal de la primera regla */
+
+
+%type <int_type> inicializacion unaVarSimple expresion
+
 %start input
 
-/* Fin de la sección de declaraciones de Bison */
+%right '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN
+%right '?' ':'
+%left OR
+%left AND
+%left EQ NEQ  
+%left '<' '>' LE GE  
+%left '+' '-'  
+%left '*' '/' '%'
+%right '!' '&'
 
-/* Inicio de la sección de reglas gramaticales */
 %%
 
 input
@@ -52,22 +62,41 @@ input
 
 line
         : '\n'
-        | exp '\n'  { printf ("El resultado de la expresion es: %lu\n", $1); YYACCEPT; } /* la macro 'YYACEPT;' produce que la función yyparse() retorne inmediatamente con valor 0 */
+        | declaracion '\n'      
         ;
 
-exp
-        : NUM             { $$ = $1; }
-        | exp exp '+'     { $$ = $1 + $2; }
-        | exp exp '-'     { $$ = $1 - $2; }
-        | exp exp '*'     { $$ = $1 * $2; }
-        | exp exp '/'     { $$ = $1 / $2; }
-        | exp exp '^'     { $$ = pow($1, $2); }
+declaracion
+        : declaVarSimples
+        ;
+
+declaVarSimples
+        : TIPO_DATO listaVarSimples ';'
+        ;
+
+listaVarSimples
+        : unaVarSimple
+        | listaVarSimples ',' unaVarSimple
+        ;
+
+unaVarSimple
+        : IDENTIFICADOR inicializacion   { $$ = $2; }
+        ;
+
+inicializacion
+        : /* Vacio */
+        | '=' expresion { $$ = $2; }
+        ;
+
+expresion
+        : NUM                         { $$ = $1; }
+        | expresion expresion '+'     { $$ = $1 + $2; }
+        | expresion expresion '-'     { $$ = $1 - $2; }
+        | expresion expresion '*'     { $$ = $1 * $2; }
+        | expresion expresion '/'     { $$ = $1 / $2; }
+        | expresion expresion '^'     { $$ = pow($1, $2); }
         ;
 
 %%
-/* Fin de la sección de reglas gramaticales */
-
-/* Inicio de la sección de epílogo (código de usuario) */
 
 int main(void)
 {
