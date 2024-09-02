@@ -8,7 +8,6 @@
 extern int yylex(void);
 
 void yyerror(const char*);
-void menu(void); 
 
 %}
 
@@ -56,104 +55,106 @@ void menu(void);
 %%
 
 expresion
-    : 
-    | expAsignacion
+    : /* vacío */
+    | expAsignacion { printf("Expresion asignacion reconocida\n"); }
     ;
 
 expAsignacion
-    : expCondicional
-    | expUnaria operAsignacion expAsignacion { $$ = $3; }
+    : expCondicional { printf("Expresion condicional reconocida\n"); }
+    | expUnaria operAsignacion expAsignacion { printf("Asignacion con operador reconocida\n"); $$ = $3; }
     ;
 
 operAsignacion
-    : '='  { $$ = '='; }
-    | ADD_ASSIGN { $$ = '+'; }
-    | SUB_ASSIGN { $$ = '-'; }
-    | MUL_ASSIGN { $$ = '*'; }
-    | DIV_ASSIGN { $$ = '/'; }
+    : '=' {}
+    | ADD_ASSIGN {}
+    | SUB_ASSIGN {}
+    | MUL_ASSIGN {}
+    | DIV_ASSIGN {}
     ;
 
+
 expCondicional
-    : expOr
-    | expOr '?' expresion ':' expCondicional { $$ = $3; }
+    : expOr { printf("Expresion OR reconocida\n"); }
+    | expOr '?' expresion ':' expCondicional { printf("Expresion condicional ternaria reconocida\n"); $$ = $3; }
     ;
 
 expOr
-    : expAnd
-    | expOr OR expAnd { $$ = $1 || $3; }
+    : expAnd { printf("Expresion AND reconocida\n"); }
+    | expOr OR expAnd { printf("Operacion OR reconocida\n"); $$ = $1 || $3; }
     ;
 
 expAnd
-    : expIgualdad
-    | expAnd AND expIgualdad { $$ = $1 && $3; }
+    : expIgualdad { printf("Expresion de igualdad reconocida\n"); }
+    | expAnd AND expIgualdad { printf("Operacion AND reconocida\n"); $$ = $1 && $3; }
     ;
 
 expIgualdad
-    : expRelacional
-    | expIgualdad EQ expRelacional { $$ = $1 == $3; }
-    | expIgualdad NEQ expRelacional { $$ = $1 != $3; }
+    : expRelacional { printf("Expresion relacional reconocida\n"); }
+    | expIgualdad EQ expRelacional { printf("Operacion de igualdad reconocida\n"); $$ = $1 == $3; }
+    | expIgualdad NEQ expRelacional { printf("Operacion de desigualdad reconocida\n"); $$ = $1 != $3; }
     ;
 
 expRelacional
-    : expAditiva
-    | expRelacional '<' expAditiva { $$ = $1 < $3; }
-    | expRelacional '>' expAditiva { $$ = $1 > $3; }
-    | expRelacional LE expAditiva { $$ = $1 <= $3; }
-    | expRelacional GE expAditiva { $$ = $1 >= $3; }
+    : expAditiva { printf("Expresion aditiva reconocida\n"); }
+    | expRelacional '<' expAditiva { printf("Operacion menor que reconocida\n"); $$ = $1 < $3; }
+    | expRelacional '>' expAditiva { printf("Operacion mayor que reconocida\n"); $$ = $1 > $3; }
+    | expRelacional LE expAditiva { printf("Operacion menor o igual reconocida\n"); $$ = $1 <= $3; }
+    | expRelacional GE expAditiva { printf("Operacion mayor o igual reconocida\n"); $$ = $1 >= $3; }
     ;
 
 expAditiva
-    : expMultiplicativa
-    | expAditiva '+' expMultiplicativa { $<double_type>$ = $<double_type>1 + $<double_type>3; }
-    | expAditiva '-' expMultiplicativa { $$ = $1 - $3; }
+    : expMultiplicativa { printf("Expresion multiplicativa reconocida\n"); }
+    | expAditiva '+' expMultiplicativa { printf("Operacion suma reconocida\n"); $<double_type>$ = $<double_type>1 + $<double_type>3; }
+    | expAditiva '-' expMultiplicativa { printf("Operacion resta reconocida\n"); $$ = $1 - $3; }
     ;
 
 expMultiplicativa
-    : expUnaria
-    | expMultiplicativa '*' expUnaria { $$ = $1 * $3; }
-    | expMultiplicativa '/' expUnaria { $$ = $1 / $3; }
-    | expMultiplicativa '%' expUnaria { $$ = $1 % $3; }
+    : expUnaria { printf("Expresion unaria reconocida\n"); }
+    | expMultiplicativa '*' expUnaria { printf("Operacion multiplicacion reconocida\n"); $$ = $1 * $3; }
+    | expMultiplicativa '/' expUnaria { printf("Operacion division reconocida\n"); $$ = $1 / $3; }
+    | expMultiplicativa '%' expUnaria { printf("Operacion modulo reconocida\n"); $$ = $1 % $3; }
     ;
 
 expUnaria
-    : expPostfijo
-    | INC_OP expUnaria { $$ = ++$2; }
-    | DEC_OP expUnaria { $$ = --$2; }
-    | operUnario expUnaria { $$ = -$2; }
-    | SIZEOF '(' nombreTipo ')' { $$ = sizeof($3); }
+    : expPostfijo { printf("Expresion postfijo reconocida\n"); }
+    | INC_OP expUnaria { printf("Operacion incremento reconocida\n"); $$ = ++$2; }
+    | DEC_OP expUnaria { printf("Operacion decremento reconocida\n"); $$ = --$2; }
+    | operUnario expUnaria { printf("Operacion unaria reconocida\n"); $$ = -$2; }
+    | SIZEOF '(' nombreTipo ')' { printf("Operacion sizeof reconocida\n"); $$ = sizeof($3); }
     ;
 
 operUnario
-    : '&' { $$ = '&'; }
-    | '*' { $$ = '*'; }
-    | '-' { $$ = '-'; }
-    | '!' { $$ = '!'; }
+    : '&' {}
+    | '*' {}
+    | '-' {}
+    | '!' {}
     ;
 
 expPostfijo
-    : expPrimaria
-    | expPostfijo '[' expresion ']' 
-    | expPostfijo '(' listaArgumentos ')' 
+    : expPrimaria { printf("Expresion primaria reconocida en postfijo\n"); }
+    | expPostfijo '[' expresion ']' { printf("Acceso a array en postfijo reconocido\n"); }
+    | expPostfijo '(' listaArgumentos ')' { printf("Llamada a funcion en postfijo reconocida\n"); }
     ;
 
 listaArgumentos
-    : expAsignacion { $$ = $1; }
-    | listaArgumentos ',' expAsignacion { $$ = $1 + $3; }
+    : expAsignacion { printf("Argumento de lista reconocido\n"); $$ = $1; }
+    | listaArgumentos ',' expAsignacion { printf("Lista de argumentos reconocida\n"); $$ = $1 + $3; }
     ;
 
 expPrimaria
-    : IDENTIFICADOR { printf("Identificador: %s\n", $1); }
-    | CONSTANTE { $$ = $1; }
-    | LITERAL_CADENA { printf("LIteral cadena: %s\n", $1); }
-    | '(' expresion ')' { $$ = $2; }
+    : IDENTIFICADOR { printf("Identificador reconocido: %s\n", $1); }
+    | CONSTANTE { printf("Constante reconocida\n"); $$ = $1; }
+    | LITERAL_CADENA { printf("Literal cadena reconocida: %s\n", $1); }
+    | '(' expresion ')' { printf("Expresion entre parentesis reconocida\n"); $$ = $2; }
     ;
 
 nombreTipo
-    : CHAR
-    | INT
-    | FLOAT
-    | DOUBLE
+    : CHAR {}
+    | INT {}
+    | FLOAT {}
+    | DOUBLE {}
     ;
+
 
 %%
 

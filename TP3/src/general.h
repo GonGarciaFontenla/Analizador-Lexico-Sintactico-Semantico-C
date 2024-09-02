@@ -32,6 +32,7 @@ typedef struct Nodo {
 #define INICIO_CONTEO_COLUMNA 1
 
 extern Nodo* symbols;
+extern FILE *yyin;
 
 void pausa(void);
 void inicializarUbicacion(void);
