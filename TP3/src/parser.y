@@ -51,7 +51,136 @@ void yyerror(const char*);
 %left '*' '/' '%'
 %right '!' '&'
 
+%%programa:
+    |expresion { printf("Expresion reconocida\n"); }
+    ;
+
+expresion
+    : expAsignacion { /*printf("Expresion asignacion reconocida\n");*/ }
+    ;
+
+expAsignacion
+    : expCondicional { }
+    | expUnaria operAsignacion expAsignacion {}
+    ;
+
+operAsignacion
+    : '=' {}
+    | ADD_ASSIGN {}
+    | SUB_ASSIGN {}
+    | MUL_ASSIGN {}
+    | DIV_ASSIGN {}
+    ;
+
+expCondicional
+    : expOr {}
+    | expOr '?' expresion ':' expCondicional { }
+    ;
+
+expOr
+    : expAnd {  }
+    | expOr OR expAnd { }
+    ;
+
+expAnd
+    : expIgualdad { }
+    | expAnd AND expIgualdad { }
+    ;
+
+expIgualdad
+    : expRelacional { }
+    | expIgualdad EQ expRelacional { }
+    | expIgualdad NEQ expRelacional {}
+    ;
+
+expRelacional
+    : expAditiva { }
+    | expRelacional '<' expAditiva {}
+    | expRelacional '>' expAditiva {  }
+    | expRelacional LE expAditiva {  }
+    | expRelacional GE expAditiva {  }
+    ;
+
+expAditiva
+    : expMultiplicativa {}
+    | expAditiva '+' expMultiplicativa {  }
+    | expAditiva '-' expMultiplicativa {  }
+    ;
+
+expMultiplicativa
+    : expUnaria { }
+    | expMultiplicativa '*' expUnaria {}
+    | expMultiplicativa '/' expUnaria { }
+    | expMultiplicativa '%' expUnaria {  }
+    ;
+
+expUnaria
+    : expPostfijo { }
+    | INC_OP expUnaria {  }
+    | DEC_OP expUnaria { }
+    | operUnario expUnaria {  }
+    | SIZEOF '(' nombreTipo ')' { ; }
+    ;
+
+operUnario
+    : '&' {}
+    | '*' {}
+    | '-' {}
+    | '!' {}
+    ;
+
+expPostfijo
+    : expPrimaria { }
+    | expPostfijo '[' expresion ']' { }
+    | expPostfijo '(' listaArgumentos ')' {  }
+    ;
+
+listaArgumentos
+    : expAsignacion {}
+    | listaArgumentos ',' expAsignacion { }
+    ;
+
+expPrimaria
+    : IDENTIFICADOR {}
+    | ENTERO
+    | CONSTANTE {}
+    | LITERAL_CADENA {}
+    | '(' expresion ')' {}
+    ;
+
+nombreTipo
+    : TIPO {}
+    ;
+
 %%
+
+int main(int argc, char *argv[]) {
+    if (argc > 1) {
+        FILE *file = fopen(argv[1], "r");
+        if (!file) {
+            perror("Error abriendo el archivo de entrada");
+            return 1;
+        }
+        yyin = file;
+    }
+
+    if (yyparse() != 0) {
+        fprintf(stderr, "Error durante el análisis sintáctico\n");
+    }
+
+    if (yyin && yyin != stdin) {
+        fclose(yyin);
+    }
+
+    return 0;
+}
+
+void yyerror(const char *s) {
+    fprintf(stderr, "Error: %s\n", s);
+}
+
+
+/*
 programa:
     expresion { printf("Expresion reconocida\n"); }
     ;
@@ -153,29 +282,4 @@ nombreTipo
     : TIPO { printf("Tipo de expresion reconocido: %s\n", $1); }
     ;
 
-%%
-
-int main(int argc, char *argv[]) {
-    if (argc > 1) {
-        FILE *file = fopen(argv[1], "r");
-        if (!file) {
-            perror("Error abriendo el archivo de entrada");
-            return 1;
-        }
-        yyin = file;
-    }
-
-    if (yyparse() != 0) {
-        fprintf(stderr, "Error durante el análisis sintáctico\n");
-    }
-
-    if (yyin && yyin != stdin) {
-        fclose(yyin);
-    }
-
-    return 0;
-}
-
-void yyerror(const char *s) {
-    fprintf(stderr, "Error: %s\n", s);
-}
+*/
