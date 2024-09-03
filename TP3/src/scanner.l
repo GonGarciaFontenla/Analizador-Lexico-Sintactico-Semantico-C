@@ -62,15 +62,34 @@ int|float|double|char|void|short|long|unsigned|signed {
     yylloc.last_column += yyleng;
     return TIPO_DATO;
 }
-if|else|while|for|do|switch|case|default|break|continue|return|goto {
+sizeof|if|else|while|for|do|switch|case|default|break|continue|return|goto {
     yylloc.last_column += yyleng;
     return PALABRA_RESERVADA;
 }
-sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union {
+volatile|const {
     yylloc.last_column += yyleng;
-    return PALABRA_RESERVADA;
+    return TIPO_CALIFICADOR;
 }
 
+typedef|static|extern|auto|register {
+    yylloc.last_column += yyleng;
+    return TIPO_ALMACENAMIENTO;
+}
+
+union {
+    yylloc.last_column += yyleng;
+    return UNION;
+}
+
+struct {
+    yylloc.last_column += yyleng;
+    return STRUCT;
+}
+
+enum {
+    yylloc.last_column += yyleng;
+    return ENUM;
+}
 
 [_a-zA-Z][_a-zA-Z0-9]* {
     yylloc.last_column += yyleng;
@@ -148,6 +167,7 @@ sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union {
 "->" { return PTR_OP; }
 "++" { return INC_OP; }
 "--" { return DEC_OP; }
+"..." { return ELIPSIS; }
 
 
 [ \t]+ {yylloc.first_column = yylloc.last_column += yyleng;}

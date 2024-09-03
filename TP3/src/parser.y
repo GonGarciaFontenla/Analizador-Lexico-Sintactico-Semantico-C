@@ -31,15 +31,17 @@ void menu(void);
 %token <string_type> TIPO_DATO
 %token <char_type> CONSTANTE
 %token CHAR INT FLOAT DOUBLE SIZEOF
+%token <string_type> TIPO_ALMACENAMIENTO TIPO_CALIFICADOR ENUM STRUCT UNION
 
 %token ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
 %token EQ NEQ LE GE AND OR
 %token LEFT_SHIFT RIGHT_SHIFT
 %token PTR_OP INC_OP DEC_OP
+%token ELIPSIS
 
 
 
-%type <int_type> inicializacion unaVarSimple expresion
+%type <int_type> expresion
 
 %start input
 
@@ -56,44 +58,214 @@ void menu(void);
 %%
 
 input
-        : /* intencionalmente se deja el resto de esta línea vacía: es la producción nula */
+        : /* Vacio */
         | input line
         ;
 
 line
         : '\n'
-        | declaracion '\n'      
+        | unidadTraduccion '\n'      
+        ;
+
+unidadTraduccion
+        : declaracionExt
+        | unidadTraduccion declaracionExt
+        ;
+
+declaracionExt
+        : defFuncion    { printf("Se ha definido una funcion\n"); }
+        | declaracion   { printf("Se ha declarado una variable\n"); }
+        ;
+
+defFuncion
+        : especificadoresOp declarador listaDeclaracionOp sentCompuesta
+        ;
+
+listaDeclaracionOp
+        : /* Vacio */
+        | listaDeclaraciones 
+        ;
+
+listaDeclaraciones
+        : declaracion
+        | listaDeclaraciones declaracion
         ;
 
 declaracion
-        : declaVarSimples
+        : especificadores listaInicializadoresDecOp ','
         ;
 
-declaVarSimples
-        : TIPO_DATO listaVarSimples ';'
-        ;
-
-listaVarSimples
-        : unaVarSimple
-        | listaVarSimples ',' unaVarSimple
-        ;
-
-unaVarSimple
-        : IDENTIFICADOR inicializacion   { $$ = $2; }
-        ;
-
-inicializacion
+especificadoresOp
         : /* Vacio */
-        | '=' expresion { $$ = $2; }
+        | especificadores
         ;
 
-expresion
-        : NUM                         { $$ = $1; }
-        | expresion expresion '+'     { $$ = $1 + $2; }
-        | expresion expresion '-'     { $$ = $1 - $2; }
-        | expresion expresion '*'     { $$ = $1 * $2; }
-        | expresion expresion '/'     { $$ = $1 / $2; }
-        | expresion expresion '^'     { $$ = pow($1, $2); }
+especificadores
+        : TIPO_ALMACENAMIENTO especificadoresOp
+        | especificadorTipo especificadoresOp
+        | TIPO_CALIFICADOR especificadoresOp
+        ;
+
+listaInicializadoresDecOp
+        : /* Vacio */
+        | listaInicializadoresDec
+        ;
+
+listaInicializadoresDec
+        : inicializadorDec
+        | listaInicializadoresDec ',' inicializadorDec
+        ;
+
+inicializadorDec
+        : declarador
+        | declarador '=' inicializador
+        ;
+
+especificadorTipo
+        : TIPO_DATO
+        | espStructOrUnion
+        | especificadorEnum
+        | nombreTypedef
+        ;
+
+espStructOrUnion
+        : structUnion identOp '{' listaDeclaracionStruct '}'
+        | structUnion IDENTIFICADOR
+        ;
+
+identOp
+        : /* Vacio */
+        | IDENTIFICADOR
+        ;
+
+structUnion
+        : STRUCT
+        | UNION
+        ;
+
+listaDeclaracionStruct
+        : declaracionStruct
+        | listaDeclaracionStruct declaracionStruct
+        ;
+
+declaracionStruct
+        : especificadoresCalificadores listaStruct ';'
+        ;
+
+especificadoresCalificadores
+        : especificadorTipo especificadoresCalificadoresOp
+        | TIPO_CALIFICADOR especificadoresCalificadoresOp
+        ;
+
+especificadoresCalificadoresOp
+        : /* Vacio */
+        | especificadoresCalificadores
+        ;
+
+listaStruct
+        : declaradorStruct
+        | listaStruct ',' declaradorStruct
+        ;
+
+declaradorStruct
+        : declarador
+        | declaradorOp ':' expCondicional
+        ;
+
+declaradorOp
+        : /* Vacio */
+        | declarador
+        ;
+
+especificadorEnum
+        : ENUM identOp '{' listaEnum '}'
+        | ENUM IDENTIFICADOR
+        ;
+
+listaEnum
+        : enumerador
+        | listaEnum ',' enumerador
+        ;
+
+enumerador
+        : IDENTIFICADOR
+        | IDENTIFICADOR '=' expCondicional
+        ;
+
+declarador
+        : punteroOp declaradorDirecto
+        ;
+
+declaradorDirecto
+        : IDENTIFICADOR
+        |'(' declarador ')'
+        | declaradorDirecto '[' expCondicionalOp ']'
+        | declaradorDirecto '(' listaTipoParametros ')'
+        | declaradorDirecto '(' listaIdentificadoresOp ')'
+        ;
+
+expCondicionalOp
+        : /* Vacio */
+        | expCondicional
+        ;
+
+punteroOp
+        : /* Vacio */
+        | puntero
+        ;
+
+puntero
+        : '*' listaTiposCalOp
+        | '*' listaTiposCalOp puntero
+        ;
+
+listaTiposCalOp
+        : /* Vacio */
+        | listaTiposCal
+        ;
+
+listaTiposCal
+        : TIPO_CALIFICADOR
+        | listaTiposCal TIPO_CALIFICADOR
+        ;
+
+listaTipoParametros
+        : listaParametros
+        | listaParametros ',' ELIPSIS
+        ;
+
+listaParametros
+        : declaracionParametro
+        | listaParametros ',' declaracionParametro
+        ;
+
+declaracionParametro
+        : especificadores declarador
+        ;
+
+listaIdentificadoresOp
+        : /* Vacio */
+        | listaIdentificadores
+        ;
+
+listaIdentificadores
+        : IDENTIFICADOR
+        | listaIdentificadores ',' IDENTIFICADOR
+        ;
+
+inicializador
+        : expAsignacion
+        | '{' listaInicializadores '}'
+        | '{' listaInicializadores ',' '}'
+        ;
+
+listaInicializadores
+        : inicializador
+        | listaInicializadores ',' inicializador
+        ;
+        
+nombreTypedef
+        : IDENTIFICADOR
         ;
 
 %%
@@ -108,7 +280,7 @@ int main(void)
 
         while(1)
         {
-                printf("Ingrese una expresion aritmetica en notacion polaca inversa para resolver:\n");
+                printf("Ingrese una expresion para probar:\n");
                 printf("(La funcion yyparse ha retornado con valor: %d)\n\n", yyparse());
                 /* Valor | Significado */
                 /*   0   | Análisis sintáctico exitoso (debido a un fin de entrada (EOF) indicado por el analizador léxico (yylex), ó bien a una invocación de la macro YYACCEPT) */
