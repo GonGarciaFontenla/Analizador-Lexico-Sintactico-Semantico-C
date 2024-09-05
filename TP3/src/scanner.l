@@ -28,44 +28,108 @@ ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
 [1-9]{DIGITO_DECIMAL}*{SUFIJO_ENTERO} {
     yylloc.last_column += yyleng;
     yylval.int_type = strtoul(yytext, NULL,0); 
-    return ENTERO;
+    printf("Decimal: %s\n",yytext);
+    return CONSTANTE;
 }
 0{DIGITO_OCTAL}*{SUFIJO_ENTERO} {
     yylloc.last_column += yyleng;
     yylval.int_type = (int) strtoul(yytext, NULL, 0); 
-    return ENTERO;
+    return CONSTANTE;
 }
 0[xX]{DIGITO_HEXA}+{SUFIJO_ENTERO} {
     yylloc.last_column += yyleng;
     yylval.int_type = (int) strtoul(yytext, NULL, 0); 
-    return ENTERO;
+    return CONSTANTE;
 }
 
 [0-9]+\.[0-9]*{SUFIJO_REAL} {
     yylloc.last_column += yyleng;
     yylval.double_type = strtod(yytext, NULL); 
-    return NUM; 
+    return CONSTANTE; 
 }
 \.[0-9]+{SUFIJO_REAL} {
     yylloc.last_column += yyleng;
     yylval.double_type = strtod(yytext, NULL); 
-    return NUM; 
+    return CONSTANTE; 
 }
 [0-9]+{SUFIJO_REAL} {
     yylloc.last_column += yyleng;
     yylval.double_type = strtod(yytext, NULL); 
-    return NUM; 
+    return CONSTANTE; 
 }
 
 
 int|float|double|char|void|short|long|unsigned|signed {
     yylloc.last_column += yyleng;
+    printf("Tipo dato: %s\n",yytext);
     return TIPO_DATO;
 }
-sizeof|if|else|while|for|do|switch|case|default|break|continue|return|goto {
+
+sizeof {
     yylloc.last_column += yyleng;
-    return PALABRA_RESERVADA;
+    return SIZEOF;
 }
+
+case {
+    yylloc.last_column += yyleng;
+    return CASE;
+}
+
+default {
+    yylloc.last_column += yyleng;
+    return DEFAULT;
+}
+
+goto {
+    yylloc.last_column += yyleng;
+    return GOTO;
+}
+
+return {
+    yylloc.last_column += yyleng;
+    return RETURN;
+}
+
+continue {
+    yylloc.last_column += yyleng;
+    return CONTINUE;
+}
+
+if {
+    yylloc.last_column += yyleng;
+    return IF;
+}
+
+switch {
+    yylloc.last_column += yyleng;
+    return SWITCH;
+}
+
+else {
+    yylloc.last_column += yyleng;
+    return ELSE;
+}
+
+break {
+    yylloc.last_column += yyleng;
+    return BREAK;
+}
+
+while {
+    yylloc.last_column += yyleng;
+    return WHILE;
+}
+
+for {
+    yylloc.last_column += yyleng;
+    return FOR;
+}
+
+do {
+    yylloc.last_column += yyleng;
+    return DO;
+}
+
 volatile|const {
     yylloc.last_column += yyleng;
     return TIPO_CALIFICADOR;
@@ -94,6 +158,7 @@ enum {
 [_a-zA-Z][_a-zA-Z0-9]* {
     yylloc.last_column += yyleng;
     yylval.string_type = strdup(yytext); 
+    printf("ID: %s\n",yytext);
     return IDENTIFICADOR;
 }
 
@@ -134,7 +199,7 @@ enum {
 "*" { return '*'; }
 "/" { return '/'; }
 "%" { return '%'; }
-"=" { return '='; }
+"=" { printf("Token: =\n"); return '='; }
 "+=" { return ADD_ASSIGN; }
 "-=" { return SUB_ASSIGN; }
 "*=" { return MUL_ASSIGN; }

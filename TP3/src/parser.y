@@ -24,14 +24,13 @@ void menu(void);
 }
 
 %token <string_type> IDENTIFICADOR
-%token <int_type> ENTERO
-%token <double_type> NUM
 %token <string_type> LITERAL_CADENA
 %token <string_type> PALABRA_RESERVADA
 %token <string_type> TIPO_DATO
-%token <char_type> CONSTANTE
-%token CHAR INT FLOAT DOUBLE SIZEOF
+%token CONSTANTE
+%token CHAR INT FLOAT DOUBLE
 %token <string_type> TIPO_ALMACENAMIENTO TIPO_CALIFICADOR ENUM STRUCT UNION
+%token <string_type> DO IF CONTINUE WHILE ELSE BREAK FOR GOTO SWITCH RETURN CASE SIZEOF DEFAULT
 
 %token ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
 %token EQ NEQ LE GE AND OR
@@ -64,7 +63,7 @@ input
 
 line
         : '\n'
-        | unidadTraduccion '\n'      
+        | unidadTraduccion '\n'   { printf ("Expresion reconocida\n"); YYACCEPT; }   
         ;
 
 unidadTraduccion
@@ -83,16 +82,11 @@ defFuncion
 
 listaDeclaracionOp
         : /* Vacio */
-        | listaDeclaraciones 
-        ;
-
-listaDeclaraciones
-        : declaracion
-        | listaDeclaraciones declaracion
+        | listaDeclaraciones
         ;
 
 declaracion
-        : especificadores listaInicializadoresDecOp ','
+        : especificadores listaDeclaradores ';' 
         ;
 
 especificadoresOp
@@ -106,30 +100,35 @@ especificadores
         | TIPO_CALIFICADOR especificadoresOp
         ;
 
-listaInicializadoresDecOp
-        : /* Vacio */
-        | listaInicializadoresDec
-        ;
-
-listaInicializadoresDec
-        : inicializadorDec
-        | listaInicializadoresDec ',' inicializadorDec
-        ;
-
-inicializadorDec
+listaDeclaradores
         : declarador
-        | declarador '=' inicializador
+        | listaDeclaradores ',' declarador
+        ;
+
+declarador    
+        : decla
+        | decla '=' inicializador
+        ;
+
+inicializador
+        : expAsignacion
+        | '{' listaInicializadores '}' 
+        | '{' listaInicializadores ',' '}'
+        ;
+
+listaInicializadores
+        : inicializador
+        | listaInicializadores ',' inicializador
         ;
 
 especificadorTipo
         : TIPO_DATO
-        | espStructOrUnion
-        | especificadorEnum
-        | nombreTypedef
+        | espStructUnion
+        | espEnum
         ;
 
-espStructOrUnion
-        : structUnion identOp '{' listaDeclaracionStruct '}'
+espStructUnion
+        : structUnion identOp '{' listaDecStruct '}'
         | structUnion IDENTIFICADOR
         ;
 
@@ -139,66 +138,50 @@ identOp
         ;
 
 structUnion
-        : STRUCT
-        | UNION
+        : STRUCT | UNION
         ;
 
-listaDeclaracionStruct
-        : declaracionStruct
-        | listaDeclaracionStruct declaracionStruct
+listaDecStruct
+        : decStruct
+        | listaDecStruct decStruct
         ;
 
-declaracionStruct
-        : especificadoresCalificadores listaStruct ';'
+decStruct
+        : listaCalificadores declaradoresStruct ';'
         ;
 
-especificadoresCalificadores
-        : especificadorTipo especificadoresCalificadoresOp
-        | TIPO_CALIFICADOR especificadoresCalificadoresOp
+listaCalificadores
+        : especificadorTipo listaCalificadoresOp
+        | TIPO_CALIFICADOR listaCalificadoresOp
         ;
 
-especificadoresCalificadoresOp
+listaCalificadoresOp
         : /* Vacio */
-        | especificadoresCalificadores
+        | listaCalificadores
         ;
 
-listaStruct
-        : declaradorStruct
-        | listaStruct ',' declaradorStruct
+declaradoresStruct
+        : declaStruct
+        | declaradoresStruct ',' declaStruct
         ;
 
-declaradorStruct
-        : declarador
-        | declaradorOp ':' expCondicional
+declaStruct     
+        : decla
+        | declaOp ':' expCondicional
         ;
 
-declaradorOp
+declaOp
         : /* Vacio */
-        | declarador
+        | decla
         ;
 
-especificadorEnum
-        : ENUM identOp '{' listaEnum '}'
-        | ENUM IDENTIFICADOR
-        ;
-
-listaEnum
-        : enumerador
-        | listaEnum ',' enumerador
-        ;
-
-enumerador
-        : IDENTIFICADOR
-        | IDENTIFICADOR '=' expCondicional
-        ;
-
-declarador
-        : punteroOp declaradorDirecto
+decla
+        : declaradorDirecto
         ;
 
 declaradorDirecto
         : IDENTIFICADOR
-        |'(' declarador ')'
+        | '(' decla ')'
         | declaradorDirecto '[' expCondicionalOp ']'
         | declaradorDirecto '(' listaTipoParametros ')'
         | declaradorDirecto '(' listaIdentificadoresOp ')'
@@ -207,26 +190,6 @@ declaradorDirecto
 expCondicionalOp
         : /* Vacio */
         | expCondicional
-        ;
-
-punteroOp
-        : /* Vacio */
-        | puntero
-        ;
-
-puntero
-        : '*' listaTiposCalOp
-        | '*' listaTiposCalOp puntero
-        ;
-
-listaTiposCalOp
-        : /* Vacio */
-        | listaTiposCal
-        ;
-
-listaTiposCal
-        : TIPO_CALIFICADOR
-        | listaTiposCal TIPO_CALIFICADOR
         ;
 
 listaTipoParametros
@@ -240,7 +203,7 @@ listaParametros
         ;
 
 declaracionParametro
-        : especificadores declarador
+        : especificadores decla
         ;
 
 listaIdentificadoresOp
@@ -253,19 +216,19 @@ listaIdentificadores
         | listaIdentificadores ',' IDENTIFICADOR
         ;
 
-inicializador
-        : expAsignacion
-        | '{' listaInicializadores '}'
-        | '{' listaInicializadores ',' '}'
+espEnum
+        : ENUM identOp '{' listaEnum '}'
+        | ENUM IDENTIFICADOR
         ;
 
-listaInicializadores
-        : inicializador
-        | listaInicializadores ',' inicializador
+listaEnum
+        : enumerador
+        | listaEnum ',' enumerador
         ;
-        
-nombreTypedef
+
+enumerador
         : IDENTIFICADOR
+        | IDENTIFICADOR '=' expCondicional
         ;
 
 %%
