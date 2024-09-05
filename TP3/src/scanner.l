@@ -27,33 +27,33 @@ ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
 [1-9]{DIGITO_DECIMAL}*{SUFIJO_ENTERO} {
     yylloc.last_column += yyleng;
     yylval.int_type = strtoul(yytext, NULL,0); 
-    return ENTERO;
+    return CONSTANTE;
 }
 0{DIGITO_OCTAL}*{SUFIJO_ENTERO} {
     yylloc.last_column += yyleng;
     yylval.int_type = (int) strtoul(yytext, NULL, 0); 
-    return ENTERO;
+    return CONSTANTE;
 }
 0[xX]{DIGITO_HEXA}+{SUFIJO_ENTERO} {
     yylloc.last_column += yyleng;
     yylval.int_type = (int) strtoul(yytext, NULL, 0); 
-    return ENTERO;
+    return CONSTANTE;
 }
 
 [0-9]+\.[0-9]*{SUFIJO_REAL} {
     yylloc.last_column += yyleng;
     yylval.double_type = strtod(yytext, NULL); 
-    return NUM; 
+    return CONSTANTE; 
 }
 \.[0-9]+{SUFIJO_REAL} {
     yylloc.last_column += yyleng;
     yylval.double_type = strtod(yytext, NULL); 
-    return NUM; 
+    return CONSTANTE; 
 }
 [0-9]+{SUFIJO_REAL} {
     yylloc.last_column += yyleng;
     yylval.double_type = strtod(yytext, NULL); 
-    return NUM; 
+    return CONSTANTE; 
 }
 
 int|float|double|char|void|short|long|unsigned|signed {

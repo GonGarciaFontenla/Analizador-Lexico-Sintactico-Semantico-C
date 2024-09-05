@@ -23,15 +23,13 @@ void yyerror(const char*);
 }
 
 %token <string_type> IDENTIFICADOR
-%token <int_type> ENTERO
-%token <double_type> NUM
 %token <string_type> LITERAL_CADENA
 %token <string_type> PALABRA_RESERVADA
-%token <char_type> CONSTANTE
+%token CONSTANTE
 %token <string_type> TIPO_DATO
-%token SIZEOF
 %token <string_type> TIPO_ALMACENAMIENTO TIPO_CALIFICADOR ENUM STRUCT UNION
 %token <string_type> RETURN IF ELSE WHILE DO FOR DEFAULT CASE  
+%token <string_type> CONTINUE BREAK GOTO SWITCH SIZEOF
 
 %token ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
 %token EQ NEQ LE GE AND OR
@@ -40,7 +38,7 @@ void yyerror(const char*);
 %token ELIPSIS
 
 %type <int_type> expresion expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expMultiplicativa expUnaria expPostfijo
-%type <int_type> operAsignacion operUnario nombreTipo
+%type <int_type> operAsignacion operUnario
 %type <int_type> listaArgumentos expPrimaria
 %type <unsigned_long_type> sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
 
@@ -57,215 +55,179 @@ void yyerror(const char*);
 %right '!' '&'
 
 %%
+
 programa
-    : input
-    ;
+        : input
+        ;
 
 input
-    : /* vacío */
-    | input unidadTraduccion
-    ;
+        : /* Vacio */
+        | input unidadTraduccion
+        ;
 
 unidadTraduccion
-    : declaracionExt
-    | unidadTraduccion declaracionExt
-    ;
+        : declaracionExt
+        | unidadTraduccion declaracionExt
+        ;
 
 declaracionExt
-    : defFuncion { printf("Se ha definido una funcion\n"); }
-    | declaracion { printf("Se ha declarado una variable\n"); }
-    ;
+        : defFuncion    { printf("Se ha definido una funcion\n"); }
+        | declaracion   { printf("Se ha declarado una variable\n"); }
+        ;
 
 defFuncion
-    : especificadoresOp declarador listaDeclaracionOp sentCompuesta
-    ;
+        : especificadoresOp declarador listaDeclaracionOp sentCompuesta
+        ;
 
 listaDeclaracionOp
-    : /* vacío */
-    | listaDeclaraciones 
-    ;
-
-listaDeclaraciones
-    : declaracion
-    | listaDeclaraciones declaracion
-    ;
+        : /* Vacio */
+        | listaDeclaraciones
+        ;
 
 declaracion
-    : especificadores listaInicializadoresDecOp ';'
-    ;
+        : especificadores listaDeclaradores ';' 
+        ;
 
 especificadoresOp
-    : /* vacío */
-    | especificadores
-    ;
+        : /* Vacio */
+        | especificadores
+        ;
 
 especificadores
-    : TIPO_ALMACENAMIENTO especificadoresOp
-    | especificadorTipo especificadoresOp
-    | TIPO_CALIFICADOR especificadoresOp
-    ;
+        : TIPO_ALMACENAMIENTO especificadoresOp
+        | especificadorTipo especificadoresOp
+        | TIPO_CALIFICADOR especificadoresOp
+        ;
 
-listaInicializadoresDecOp
-    : /* vacío */
-    | listaInicializadoresDec
-    ;
+listaDeclaradores
+        : declarador
+        | listaDeclaradores ',' declarador
+        ;
 
-listaInicializadoresDec
-    : inicializadorDec
-    | listaInicializadoresDec ',' inicializadorDec
-    ;
-
-inicializadorDec
-    : declarador
-    | declarador '=' inicializador
-    ;
-
-especificadorTipo
-    : TIPO_DATO
-    | espStructOrUnion
-    | especificadorEnum
-    | nombreTypedef
-    ;
-
-espStructOrUnion
-    : structUnion identOp '{' listaDeclaracionStruct '}'
-    | structUnion IDENTIFICADOR
-    ;
-
-identOp
-    : /* vacío */
-    | IDENTIFICADOR
-    ;
-
-structUnion
-    : STRUCT
-    | UNION
-    ;
-
-listaDeclaracionStruct
-    : declaracionStruct
-    | listaDeclaracionStruct declaracionStruct
-    ;
-
-declaracionStruct
-    : especificadoresCalificadores listaStruct ';'
-    ;
-
-especificadoresCalificadores
-    : especificadorTipo especificadoresCalificadoresOp
-    | TIPO_CALIFICADOR especificadoresCalificadoresOp
-    ;
-
-especificadoresCalificadoresOp
-    : /* vacío */
-    | especificadoresCalificadores
-    ;
-
-listaStruct
-    : declaradorStruct
-    | listaStruct ',' declaradorStruct
-    ;
-
-declaradorStruct
-    : declarador
-    | declaradorOp ':' expCondicional
-    ;
-
-declaradorOp
-    : /* vacío */
-    | declarador
-    ;
-
-especificadorEnum
-    : ENUM identOp '{' listaEnum '}'
-    | ENUM IDENTIFICADOR
-    ;
-
-listaEnum
-    : enumerador
-    | listaEnum ',' enumerador
-    ;
-
-enumerador
-    : IDENTIFICADOR
-    | IDENTIFICADOR '=' expCondicional
-    ;
-
-declarador
-    : punteroOp declaradorDirecto
-    ;
-
-declaradorDirecto
-    : IDENTIFICADOR
-    |'(' declarador ')'
-    | declaradorDirecto '[' expCondicionalOp ']'
-    | declaradorDirecto '(' listaTipoParametros ')'
-    | declaradorDirecto '(' listaIdentificadoresOp ')'
-    ;
-
-expCondicionalOp
-    : /* vacío */
-    | expCondicional
-    ;
-
-punteroOp
-    : /* vacío */
-    | puntero
-    ;
-
-puntero
-    : '*' listaTiposCalOp
-    | '*' listaTiposCalOp puntero
-    ;
-
-listaTiposCalOp
-    : /* vacío */
-    | listaTiposCal
-    ;
-
-listaTiposCal
-    : TIPO_CALIFICADOR
-    | listaTiposCal TIPO_CALIFICADOR
-    ;
-
-listaTipoParametros
-    : listaParametros
-    | listaParametros ',' ELIPSIS
-    ;
-
-listaParametros
-    : declaracionParametro
-    | listaParametros ',' declaracionParametro
-    ;
-
-declaracionParametro
-    : especificadores declarador
-    ;
-
-listaIdentificadoresOp
-    : /* vacío */
-    | listaIdentificadores
-    ;
-
-listaIdentificadores
-    : IDENTIFICADOR
-    | listaIdentificadores ',' IDENTIFICADOR
-    ;
+declarador    
+        : decla
+        | decla '=' inicializador
+        ;
 
 inicializador
-    : expAsignacion
-    | '{' listaInicializadores '}'
-    | '{' listaInicializadores ',' '}'
-    ;
+        : expAsignacion
+        | '{' listaInicializadores '}' 
+        | '{' listaInicializadores ',' '}'
+        ;
 
 listaInicializadores
-    : inicializador
-    | listaInicializadores ',' inicializador
-    ;
+        : inicializador
+        | listaInicializadores ',' inicializador
+        ;
 
-nombreTypedef
-    : IDENTIFICADOR
-    ;
+especificadorTipo
+        : TIPO_DATO
+        | espStructUnion
+        | espEnum
+        ;
+
+espStructUnion
+        : structUnion identOp '{' listaDecStruct '}'
+        | structUnion IDENTIFICADOR
+        ;
+
+identOp
+        : /* Vacio */
+        | IDENTIFICADOR
+        ;
+
+structUnion
+        : STRUCT | UNION
+        ;
+
+listaDecStruct
+        : decStruct
+        | listaDecStruct decStruct
+        ;
+
+decStruct
+        : listaCalificadores declaradoresStruct ';'
+        ;
+
+listaCalificadores
+        : especificadorTipo listaCalificadoresOp
+        | TIPO_CALIFICADOR listaCalificadoresOp
+        ;
+
+listaCalificadoresOp
+        : /* Vacio */
+        | listaCalificadores
+        ;
+
+declaradoresStruct
+        : declaStruct
+        | declaradoresStruct ',' declaStruct
+        ;
+
+declaStruct     
+        : decla
+        | declaOp ':' expCondicional
+        ;
+
+declaOp
+        : /* Vacio */
+        | decla
+        ;
+
+decla
+        : declaradorDirecto
+        ;
+
+declaradorDirecto
+        : IDENTIFICADOR
+        | '(' decla ')'
+        | declaradorDirecto '[' expCondicionalOp ']'
+        | declaradorDirecto '(' listaTipoParametros ')'
+        | declaradorDirecto '(' listaIdentificadoresOp ')'
+        ;
+
+expCondicionalOp
+        : /* Vacio */
+        | expCondicional
+        ;
+
+listaTipoParametros
+        : listaParametros
+        | listaParametros ',' ELIPSIS
+        ;
+
+listaParametros
+        : declaracionParametro
+        | listaParametros ',' declaracionParametro
+        ;
+
+declaracionParametro
+        : especificadores decla
+        ;
+
+listaIdentificadoresOp
+        : /* Vacio */
+        | listaIdentificadores
+        ;
+
+listaIdentificadores
+        : IDENTIFICADOR
+        | listaIdentificadores ',' IDENTIFICADOR
+        ;
+
+espEnum
+        : ENUM identOp '{' listaEnum '}'
+        | ENUM IDENTIFICADOR
+        ;
+
+listaEnum
+        : enumerador
+        | listaEnum ',' enumerador
+        ;
+
+enumerador
+        : IDENTIFICADOR
+        | IDENTIFICADOR '=' expCondicional
 
 sentencia
     : sentCompuesta { printf("Sentencia compuesta\n"); }
@@ -277,12 +239,12 @@ sentencia
     ;
 
 sentExpresion
-    : ';' { $$ = 0; }
-    | expresion ';' { $$ = $1; }
+    : ';'       { $$ = 0; }
+    | expresion ';'     { $$ = $1; }
     ;
 
 sentCompuesta
-    : '{' opcionDeclaracion opcionSentencia '}' { $$ = 160902; }
+    : '{' opcionDeclaracion opcionSentencia '}' 
     ;
 
 opcionDeclaracion
@@ -290,13 +252,24 @@ opcionDeclaracion
     | listaDeclaraciones
     ;
 
+listaDeclaraciones
+        : declaracion
+        | listaDeclaraciones declaracion
+        ;
+
 opcionSentencia
     : /* vacío */
-    | sentencia
+    | listaSentencias
     ;
+
+listaSentencias
+        : sentencia
+        | listaSentencias sentencia
+        ;
 
 sentSeleccion
     : IF '(' expresion ')' sentencia opcionElse { $$ = $3; }
+    | SWITCH '(' expresion ')' sentencia
     ;
 
 opcionElse
@@ -305,9 +278,9 @@ opcionElse
     ;
 
 sentIteracion
-    : WHILE '(' expresion ')' sentencia { $$ = $3; }
-    | DO sentencia WHILE '(' expresion ')' ';' { $$ = $5; }
-    | FOR '(' opcionExp ';' opcionExp ';' opcionExp ')' sentencia { $$ = 99; }
+    : WHILE '(' expresion ')' sentencia         { $$ = $3; }
+    | DO sentencia WHILE '(' expresion ')' ';'  { $$ = $5; }
+    | FOR '(' opcionExp ';' opcionExp ';' opcionExp ')' sentencia 
     ;
 
 opcionExp
@@ -316,18 +289,22 @@ opcionExp
     ;
 
 sentEtiquetadas
-    : IDENTIFICADOR ':' sentencia { $$ = 11111; }
-    | CASE expresion ':' sentencia { $$ = 22222; }
-    | DEFAULT ':' sentencia { $$ = 33333; }
+    : IDENTIFICADOR ':' sentencia
+    | CASE expCondicional ':' sentencia
+    | DEFAULT ':' sentencia 
     ;
 
 sentSalto
-    : RETURN ';' { $$ = 0; }
+    : CONTINUE ';'
+    | BREAK ';'
+    | GOTO IDENTIFICADOR ';'
+    | RETURN ';'        { $$ = 0 }
     | RETURN expresion ';' { $$ = $2; }
     ;
 
 expresion
-    : expAsignacion { printf("Expresion asignacion reconocida\n"); }
+    : expresion ',' expAsignacion
+    | expAsignacion { printf("Expresion asignacion reconocida\n"); }
     ;
 
 expAsignacion
@@ -347,6 +324,7 @@ expCondicional
     : expOr { printf("Expresion OR reconocida\n"); }
     | expOr '?' expresion ':' expCondicional { printf("Expresion condicional ternaria reconocida\n"); }
     ;
+
 expOr
     : expAnd { printf("Expresion AND reconocida\n"); }
     | expOr OR expAnd { printf("Expresion OR reconocida\n"); }
@@ -413,8 +391,8 @@ listaArgumentosOp
     ;
 
 listaArgumentos
-    : expresion
-    | listaArgumentos ',' expresion
+    : expAsignacion
+    | listaArgumentos ',' expAsignacion
     ;
 
 expPrimaria
