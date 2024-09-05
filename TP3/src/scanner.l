@@ -56,27 +56,86 @@ ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
     return NUM; 
 }
 
-
 int|float|double|char|void|short|long|unsigned|signed {
     yylloc.last_column += yyleng;
-    return PALABRA_RESERVADA;
+    return TIPO_DATO;
 }
-if|else|while|for|do|switch|case|default|break|continue|return|goto {
+
+return  {
     yylloc.last_column += yyleng;
-    return PALABRA_RESERVADA;
+    return RETURN;
 }
-sizeof|typedef|static|extern|auto|register|volatile|const|enum|struct|union {
+
+if  {
+    yylloc.last_column += yyleng;
+    return IF;
+}
+
+else  {
+    yylloc.last_column += yyleng;
+    return ELSE;
+}
+
+while  {
+    yylloc.last_column += yyleng;
+    return WHILE;
+}
+
+do  {
+    yylloc.last_column += yyleng;
+    return DO;
+}
+
+for  {
+    yylloc.last_column += yyleng;
+    return FOR;
+}
+
+case  {
+    yylloc.last_column += yyleng;
+    return CASE;
+}
+
+default  {
+    yylloc.last_column += yyleng;
+    return DEFAULT;
+}
+
+sizeof|switch|break|continue|goto {
     yylloc.last_column += yyleng;
     return PALABRA_RESERVADA;
 }
 
+volatile|const {
+    yylloc.last_column += yyleng;
+    return TIPO_CALIFICADOR;
+}
+
+typedef|static|extern|auto|register {
+    yylloc.last_column += yyleng;
+    return TIPO_ALMACENAMIENTO;
+}
+
+union {
+    yylloc.last_column += yyleng;
+    return UNION;
+}
+
+struct {
+    yylloc.last_column += yyleng;
+    return STRUCT;
+}
+
+enum {
+    yylloc.last_column += yyleng;
+    return ENUM;
+}
 
 [_a-zA-Z][_a-zA-Z0-9]* {
     yylloc.last_column += yyleng;
     yylval.string_type = strdup(yytext); 
     return IDENTIFICADOR;
 }
-
 
 '[^\\\']' {
     yylloc.last_column += yyleng;
