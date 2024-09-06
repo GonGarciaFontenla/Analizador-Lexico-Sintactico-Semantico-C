@@ -71,20 +71,14 @@ unidadTraduccion
     ;
 
 declaracionExterna
-    : definicionFuncion     { printf("Se ha definido una funcion\n"); }
-    | declaracion           { printf("Se ha declarado una variable\n"); }
+    : especificadorDeclaracionOp decla restoDeclaracionExterna
     ;
 
-/* ------------------ HAY QUE ARREGLAR ACÁ  ------------------------- */
-/* El problema es la ambigüedad entre definicionFuncion y declaracion porque ambos empiezan igual */
-definicionFuncion
-    : especificadorDeclaracionOp decla listaDeclaracionOp sentCompuesta
+restoDeclaracionExterna
+    : sentCompuesta            { printf("Se ha definido una funcion\n"); }
+    | ';'                      { printf("Se ha declarado una variable\n"); }
     ;
-    
-declaracion
-    : especificadorDeclaracion listaDeclaracionOp 
-    ;
-    
+
 especificadorDeclaracionOp
     :
     | especificadorDeclaracion
@@ -330,10 +324,7 @@ int main(void)
         return 0;
 }
 
-	/* Definición de la funcion yyerror para reportar errores, necesaria para que la funcion yyparse del analizador sintáctico pueda invocarla para reportar un error */
 void yyerror(const char* literalCadena)
 {
     fprintf(stderr, "Bison: %d:%d: %s\n", yylloc.first_line, yylloc.first_column, literalCadena);
 }
-
-/* Fin de la sección de epílogo (código de usuario) */
