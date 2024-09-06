@@ -71,7 +71,7 @@ input
 linea
     : '\n'
     | sentencia '\n'
-    | expresion 
+    | expresion { printf("Expresion reconocida \n");}
     ;
 
 sentencia
@@ -85,7 +85,7 @@ sentencia
     ;
 
 sentCompuesta
-    : '{' opcionDeclaracion opcionSentencia '}' { printf("Bloque compuesto reconocido\n"); }
+    : '{' opcionDeclaracion opcionSentencia '}' 
     ;
 
 opcionDeclaracion
@@ -104,12 +104,12 @@ listaDeclaraciones
     ;
 
 sentExpresion
-    : ';' { printf("Sentencia vacía reconocida\n"); }
-    | expresion ';' { printf("Expresion reconocida\n"); }
+    : ';' 
+    | expresion ';' 
     ;
 
 sentSeleccion
-    : IF '(' expresion ')' sentencia opcionElse { printf("Sentencia if reconocida\n"); }
+    : IF '(' expresion ')' sentencia opcionElse 
     ;
 
 opcionElse
@@ -118,24 +118,24 @@ opcionElse
     ;
 
 sentIteracion
-    : WHILE '(' expresion ')' sentencia { printf("Sentencia while reconocida\n"); }
-    | DO sentencia WHILE '(' expresion ')' ';' { printf("Sentencia do-while reconocida\n"); }
-    | FOR '(' opcionExp ';' opcionExp ';' opcionExp ')' sentencia { printf("Sentencia for reconocida\n"); }
+    : WHILE '(' expresion ')' sentencia 
+    | DO sentencia WHILE '(' expresion ')' ';' 
+    | FOR '(' opcionExp ';' opcionExp ';' opcionExp ')' sentencia 
     ;
 
 sentEtiquetadas
-    : IDENTIFICADOR ':' sentencia { printf("Sentencia etiquetada reconocida\n"); }
-    | CASE expresion ':' sentencia { printf("Caso reconocido\n"); }
-    | DEFAULT ':' sentencia { printf("Sentencia default reconocida\n"); }
+    : IDENTIFICADOR ':' sentencia 
+    | CASE expresion ':' sentencia 
+    | DEFAULT ':' sentencia 
     ;
 
 sentSalto
-    : RETURN ';' { printf("Sentencia return sin expresion reconocida\n"); }
-    | RETURN expresion ';' { printf("Sentencia return con expresion reconocida\n"); }
+    : RETURN ';'
+    | RETURN expresion ';' 
     ;
 
 expresion
-    : expAsignacion { printf("Expresion asignacion reconocida\n"); }
+    : expAsignacion 
     ;
 
 opcionExp
@@ -144,8 +144,8 @@ opcionExp
     ;
 
 expAsignacion
-    : expCondicional { printf("Expresion condicional reconocida\n"); }
-    | expUnaria operAsignacion expAsignacion { printf("Asignacion con operador reconocida\n"); }
+    : expCondicional 
+    | expUnaria operAsignacion expAsignacion
     ;
 
 operAsignacion
@@ -157,53 +157,71 @@ operAsignacion
     ;
 
 expCondicional
-    : expOr { printf("Expresion OR reconocida\n"); }
-    | expOr '?' expresion ':' expCondicional { printf("Expresion ternaria reconocida\n"); }
+    : expOr opcionCondicional
+    ; 
+opcionCondicional
+    :
+    | '?' expresion ':' expCondicional 
     ;
 
 expOr
-    : expAnd { printf("Expresion AND reconocida\n"); }
-    | expOr OR expAnd { printf("Operacion OR reconocida\n"); }
+    : expAnd
+    | expOr OR expAnd
     ;
 
 expAnd
-    : expIgualdad { printf("Expresion de igualdad reconocida\n"); }
-    | expAnd AND expIgualdad { printf("Operacion AND reconocida\n"); }
+    : expIgualdad 
+    | expAnd AND expIgualdad 
     ;
 
 expIgualdad
-    : expRelacional { printf("Expresion relacional reconocida\n"); }
-    | expIgualdad EQ expRelacional { printf("Operacion de igualdad reconocida\n"); }
-    | expIgualdad NEQ expRelacional { printf("Operacion de desigualdad reconocida\n"); }
+    : expRelacional opcionIgualdad
+    ;
+opcionIgualdad
+    :
+    | EQ expRelacional
+    | NEQ expRelacional 
     ;
 
 expRelacional
-    : expAditiva { printf("Expresion aditiva reconocida\n"); }
-    | expRelacional '<' expAditiva { printf("Operacion menor que reconocida\n"); }
-    | expRelacional '>' expAditiva { printf("Operacion mayor que reconocida\n"); }
-    | expRelacional LE expAditiva { printf("Operacion menor o igual reconocida\n"); }
-    | expRelacional GE expAditiva { printf("Operacion mayor o igual reconocida\n"); }
+    : expAditiva
+    | expRelacional opcionRelacional
+    ;
+    
+opcionRelacional
+    :
+    | '<' expAditiva
+    | '>' expAditiva
+    | LE expAditiva
+    | GE expAditiva
     ;
 
 expAditiva
-    : expMultiplicativa { printf("Expresion multiplicativa reconocida\n"); }
-    | expAditiva '+' expMultiplicativa { printf("Operacion suma reconocida\n"); }
-    | expAditiva '-' expMultiplicativa { printf("Operacion resta reconocida\n"); }
+    : expMultiplicativa
+    | expAditiva opcionAditiva
     ;
-
+opcionAditiva
+    :
+    | '+' expMultiplicativa
+    | '-' expMultiplicativa
+    ;
+    
 expMultiplicativa
-    : expUnaria { printf("Expresion unaria reconocida\n"); }
-    | expMultiplicativa '*' expUnaria { printf("Operacion multiplicacion reconocida\n"); }
-    | expMultiplicativa '/' expUnaria { printf("Operacion division reconocida\n"); }
-    | expMultiplicativa '%' expUnaria { printf("Operacion modulo reconocida\n"); }
+    : expUnaria
+    | expMultiplicativa opcionMultiplicativa
+    ;
+opcionMultiplicativa
+    : '*' expUnaria
+    | '/' expUnaria
+    | '%' expUnaria
     ;
 
 expUnaria
-    : expPostfijo { printf("Expresion postfijo reconocida\n"); }
-    | INC_OP expUnaria { printf("Operacion incremento reconocida\n"); }
-    | DEC_OP expUnaria { printf("Operacion decremento reconocida\n"); }
-    | operUnario expUnaria { printf("Operacion unaria reconocida\n"); }
-    | SIZEOF '(' nombreTipo ')' { printf("Operacion sizeof reconocida\n"); }
+    : expPostfijo 
+    | INC_OP expUnaria 
+    | DEC_OP expUnaria 
+    | operUnario expUnaria 
+    | SIZEOF '(' nombreTipo ')' 
     ;
 
 operUnario
@@ -214,14 +232,22 @@ operUnario
     ;
 
 expPostfijo
-    : expPrimaria { printf("Expresion primaria reconocida\n"); }
-    | expPostfijo '[' expresion ']' { printf("Acceso a array en postfijo reconocido\n"); }
-    | expPostfijo '(' listaArgumentos ')' { printf("Llamada a funcion en postfijo reconocida\n"); }
+    : expPrimaria
+    | expPostfijo opcionPostfijo
+    ;
+opcionPostfijo
+    : '[' expresion ']'
+    | '(' listaArgumentosOp ')'
+    ;
+
+listaArgumentosOp
+    : 
+    | listaArgumentos
     ;
 
 listaArgumentos
-    : expAsignacion { printf("Argumento de lista reconocido\n"); }
-    | listaArgumentos ',' expAsignacion { printf("Lista de argumentos reconocida\n"); }
+    : expAsignacion 
+    | listaArgumentos ',' expAsignacion
     ;
 
 expPrimaria
@@ -233,7 +259,7 @@ expPrimaria
     ;
 
 nombreTipo
-    : TIPO_DATO { printf("Tipo reconocido: %s\n", $1); }
+    : TIPO_DATO 
     ;
 
 %%
