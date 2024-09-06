@@ -9,8 +9,8 @@
 #define LINEA_INICIAL 1
 #define COLUMNA_INICIAL 1
 
-
 %}
+
 %pointer
 %option noyywrap
 %x tokenNoReconocido
@@ -39,7 +39,6 @@ ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
     yylval.int_type = (int) strtoul(yytext, NULL, 0); 
     return ENTERO;
 }
-
 [0-9]+\.[0-9]*{SUFIJO_REAL} {
     yylloc.last_column += yyleng;
     yylval.double_type = strtod(yytext, NULL); 
