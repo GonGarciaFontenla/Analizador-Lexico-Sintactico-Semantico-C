@@ -140,14 +140,9 @@ typedef|static|extern|auto|register {
     return TIPO_ALMACENAMIENTO;
 }
 
-union {
+union|struct {
     yylloc.last_column += yyleng;
-    return UNION;
-}
-
-struct {
-    yylloc.last_column += yyleng;
-    return STRUCT;
+    return UNION_STRUCT;
 }
 
 enum {
