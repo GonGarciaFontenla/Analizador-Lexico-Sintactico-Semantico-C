@@ -52,8 +52,9 @@ void yyerror(const char*);
 %right '!' '&'
 
 %%
-programa:
-    expresion { printf("Expresion reconocida\n"); }
+programa
+    : expresion { printf("Expresion reconocida\n"); }
+    | programa expresion { printf("Otra expresion reconocida\n"); }
     ;
 
 expresion
