@@ -64,7 +64,9 @@ programa
 input
     : /* vacío */
     | input linea
+    | input sentencia /* Permitir que el archivo termine con una sentencia */
     ;
+
 
 linea
     : '\n'
@@ -130,10 +132,6 @@ sentSalto
     : RETURN ';' { printf("Sentencia return sin expresión reconocida\n"); }
     | RETURN expresion ';' { printf("Sentencia return con expresión reconocida\n"); }
     ;
-
-
-
-
 
 expresion
     : expAsignacion { printf("Expresion asignación reconocida\n"); }
