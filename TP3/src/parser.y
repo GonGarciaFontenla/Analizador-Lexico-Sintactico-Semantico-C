@@ -76,7 +76,7 @@ declaracionExterna
     ;
 
 /* ------------------ HAY QUE ARREGLAR ACÁ  ------------------------- */
-
+/* El problema es la ambigüedad entre definicionFuncion y declaracion porque ambos empiezan igual */
 definicionFuncion
     : especificadorDeclaracionOp decla listaDeclaracionOp sentCompuesta
     ;
