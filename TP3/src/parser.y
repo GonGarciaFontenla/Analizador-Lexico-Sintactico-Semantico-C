@@ -37,7 +37,7 @@ void menu(void);
 %token LEFT_SHIFT RIGHT_SHIFT
 %token PTR_OP INC_OP DEC_OP
 %token ELIPSIS
-%token sentCompuesta expAsignacion expCondicional
+%token sentCompuesta expAsignacion expCondicional expConstante expresion
 
 %type <int_type> expresion
 
@@ -74,6 +74,8 @@ declaracionExterna
     : definicionFuncion     { printf("Se ha definido una funcion\n"); }
     | declaracion           { printf("Se ha declarado una variable\n"); }
     ;
+
+/* ------------------ HAY QUE ARREGLAR ACÁ  ------------------------- */
 
 definicionFuncion
     : especificadorDeclaracionOp decla listaDeclaracionOp sentCompuesta
@@ -128,7 +130,7 @@ especificadorTipo
     : TIPO_DATO
     | especificadorStructUnion
     | especificadorEnum
-    | nombreTypeDef 
+    | IDENTIFICADOR
     ;
 
 especificadorStructUnion
@@ -147,7 +149,7 @@ cuerpoStructOp
 
 listaDeclaracionesStruct
     : declaracionStruct
-    | listaDeclaracionStruct declaracionStruct
+    | listaDeclaracionesStruct declaracionStruct
     ;
 
 declaracionStruct
@@ -170,116 +172,139 @@ declaradoresStruct
     ;
 
 declaStruct     
-    : decla
-    | declaOp ':' expCondicional
+    : declaSi
+    | ':' expCondicional
     ;
 
---------------------------------
+declaSi
+    : decla expConstanteOp
+    ;
 
-especificadoresOp
-        : /* Vacio */
-        | especificadores
-        ;
-
-especificadores
-        : TIPO_ALMACENAMIENTO especificadoresOp
-        | especificadorTipo especificadoresOp
-        | TIPO_CALIFICADOR especificadoresOp
-        ;
-
-
-
-
-
-
-
-
-
-structUnion
-        : STRUCT | UNION
-        ;
-
-listaDecStruct
-        : decStruct
-        | listaDecStruct decStruct
-        ;
-
-
-
-listaCalificadores
-        : especificadorTipo listaCalificadoresOp
-        | TIPO_CALIFICADOR listaCalificadoresOp
-        ;
-
-listaCalificadoresOp
-        : /* Vacio */
-        | listaCalificadores
-        ;
-
-
-
-
-
-declaOp
-        : /* Vacio */
-        | decla
-        ;
+expConstanteOp
+    :
+    | ':' expConstante
+    ;
 
 decla
-        : declaradorDirecto
-        ;
+    : punteroOp declaradorDirecto
+    ;
+
+punteroOp
+    :
+    | puntero
+    ;
+
+puntero
+    : '*' listaCalificadoresTipoOp punteroOp
+    ;
+
+listaCalificadoresTipoOp
+    : 
+    | listaCalificadoresTipo
+    ;
+    
+listaCalificadoresTipo
+    : TIPO_CALIFICADOR
+    | listaCalificadoresTipo TIPO_CALIFICADOR
+    ;
 
 declaradorDirecto
-        : IDENTIFICADOR
-        | '(' decla ')'
-        | declaradorDirecto '[' expCondicionalOp ']'
-        | declaradorDirecto '(' listaTipoParametros ')'
-        | declaradorDirecto '(' listaIdentificadoresOp ')'
-        ;
+    : IDENTIFICADOR
+    | '(' decla ')'
+    | declaradorDirecto continuacionDeclaradorDirecto
+    ;
 
-expCondicionalOp
-        : /* Vacio */
-        | expCondicional
-        ;
+continuacionDeclaradorDirecto
+    : '[' expConstanteOp ']'
+    | '(' listaTiposParametrosOp ')'
+    | '(' listaIdentificadoresOp ')'
+    ;
 
-listaTipoParametros
-        : listaParametros
-        | listaParametros ',' ELIPSIS
-        ;
+listaTiposParametrosOp 
+    : 
+    | listaTiposParametros
+    ;
+    
+listaTiposParametros
+    : listaParametros opcionalListaParametros
+    ;
+    
+opcionalListaParametros
+    :
+    | ',' ELIPSIS
+    ;
 
 listaParametros
-        : declaracionParametro
-        | listaParametros ',' declaracionParametro
-        ;
-
+    : declaracionParametro
+    | listaParametros ',' declaracionParametro
+    ;
+    
 declaracionParametro
-        : especificadores decla
-        ;
+    : especificadorDeclaracion opcionesDecla
+    ;
+
+opcionesDecla
+    : decla
+    | declaradorAbstracto
+    ;
 
 listaIdentificadoresOp
-        : /* Vacio */
-        | listaIdentificadores
-        ;
+    :
+    | listaIdentificadores
+    ;
 
 listaIdentificadores
-        : IDENTIFICADOR
-        | listaIdentificadores ',' IDENTIFICADOR
-        ;
+    : IDENTIFICADOR
+    | listaIdentificadores ',' IDENTIFICADOR
+    ;
 
-espEnum
-        : ENUM identOp '{' listaEnum '}'
-        | ENUM IDENTIFICADOR
-        ;
+especificadorEnum
+    : ENUM opcionalEspecificadorEnum
+    ;
 
-listaEnum
-        : enumerador
-        | listaEnum ',' enumerador
-        ;
+opcionalEspecificadorEnum
+    : IDENTIFICADOR opcionalListaEnumeradores
+    | '{' listaEnumeradores '}'
+    ;
+
+opcionalListaEnumeradores
+    :
+    | '{' listaEnumeradores '}'
+    ;
+
+listaEnumeradores
+    : enumerador
+    | listaEnumeradores ',' enumerador
+    ;
 
 enumerador
-        : IDENTIFICADOR
-        | IDENTIFICADOR '=' expCondicional
-        ;
+    : IDENTIFICADOR opcionalEnumerador
+    ;
+
+opcionalEnumerador
+    :
+    | '=' expConstante
+    ;
+
+declaradorAbstracto
+    : puntero declaradorAbstractoDirectoOp
+    | declaradorAbstractoDirecto
+    ;
+
+declaradorAbstractoDirectoOp
+    : 
+    | declaradorAbstractoDirecto
+    ;
+
+declaradorAbstractoDirecto
+    : '(' declaradorAbstracto ')'
+    | declaradorAbstractoDirectoOp postOpcionDeclaradorAbstracto
+    ;
+
+postOpcionDeclaradorAbstracto
+    : '[' expConstante ']'
+    | '(' listaTiposParametrosOp ')'
+    ;
 
 %%
 
@@ -308,7 +333,7 @@ int main(void)
 	/* Definición de la funcion yyerror para reportar errores, necesaria para que la funcion yyparse del analizador sintáctico pueda invocarla para reportar un error */
 void yyerror(const char* literalCadena)
 {
-        fprintf(stderr, "Bison: %d:%d: %s\n", yylloc.first_line, yylloc.first_column, literalCadena);
+    fprintf(stderr, "Bison: %d:%d: %s\n", yylloc.first_line, yylloc.first_column, literalCadena);
 }
 
 /* Fin de la sección de epílogo (código de usuario) */
