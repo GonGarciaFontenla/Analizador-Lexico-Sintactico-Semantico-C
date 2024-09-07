@@ -28,7 +28,6 @@ ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
 [1-9]{DIGITO_DECIMAL}*{SUFIJO_ENTERO} {
     yylloc.last_column += yyleng;
     yylval.int_type = strtoul(yytext, NULL,0); 
-    printf("Decimal: %s\n",yytext);
     return CONSTANTE;
 }
 0{DIGITO_OCTAL}*{SUFIJO_ENTERO} {
@@ -61,7 +60,6 @@ ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
 
 int|float|double|char|void|short|long|unsigned|signed {
     yylloc.last_column += yyleng;
-    printf("Tipo dato: %s\n",yytext);
     return TIPO_DATO;
 }
 
@@ -153,7 +151,6 @@ enum {
 [_a-zA-Z][_a-zA-Z0-9]* {
     yylloc.last_column += yyleng;
     yylval.string_type = strdup(yytext); 
-    printf("ID: %s\n",yytext);
     return IDENTIFICADOR;
 }
 
