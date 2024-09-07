@@ -31,8 +31,6 @@ void yyerror(const char*);
 %token <int_type> ENTERO
 %token <double_type> NUM
 
-%token <string_type> DECLARACION
-
 %token ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
 %token EQ NEQ LE GE AND OR
 %token LEFT_SHIFT RIGHT_SHIFT
@@ -65,8 +63,8 @@ input
     : /* vacío */
     | input linea
     | input sentencia /* Permitir que el archivo termine con una sentencia */
+    | input declaracionExterna
     ;
-
 
 linea
     : '\n'
@@ -95,12 +93,17 @@ opcionDeclaracion
 
 opcionSentencia
     :
-    | sentencia
+    | listaSentencias
     ;
 
 listaDeclaraciones
-    : DECLARACION
-    | listaDeclaraciones DECLARACION
+    : listaDeclaraciones declaracionExterna
+    | declaracionExterna
+    ;
+
+listaSentencias
+    : listaSentencias sentencia
+    | sentencia
     ;
 
 sentExpresion
@@ -262,7 +265,197 @@ nombreTipo
     : TIPO_DATO 
     ;
 
+declaracionExterna
+    : especificadorDeclaracionOp decla restoDeclaracionExterna
+    ;
+
+restoDeclaracionExterna
+    : sentCompuesta { printf("Se ha definido una función\n"); }
+    | ';' { printf("Se ha declarado una variable o estructura\n"); }
+    ;
+
+especificadorDeclaracionOp
+    : especificadorDeclaracion
+    | /* vacío */
+    ;
+
+especificadorDeclaracion 
+    : TIPO_ALMACENAMIENTO especificadorDeclaracionOp
+    | especificadorTipo especificadorDeclaracionOp
+    | TIPO_CALIFICADOR especificadorDeclaracionOp 
+    ;
+
+listaDeclaradores
+    : declarador
+    | listaDeclaradores ',' declarador
+    ;
+
+listaDeclaracionOp
+    : listaDeclaradores
+    | /* vacío */
+    ;
+    
+declarador
+    : decla
+    | decla '=' inicializador
+    ;
+
+inicializador
+    : expAsignacion
+    | '{' listaInicializadores opcionComa '}' 
+    ;
+
+opcionComa
+    :
+    | ','
+    ;
+
+listaInicializadores
+    : inicializador
+    | listaInicializadores ',' inicializador
+    ;
+
+especificadorTipo
+    : TIPO_DATO
+    | especificadorStructUnion
+    | especificadorEnum
+    | IDENTIFICADOR
+    ;
+
+especificadorStructUnion
+    : UNION cuerpoEspecificador
+    ;
+
+
+
+especificadorStructUnion
+    : STRUCT cuerpoEspecificador
+    | UNION cuerpoEspecificador
+    ;
+
+cuerpoEspecificador
+    : IDENTIFICADOR cuerpoStructOp
+    | '{' listaDeclaracionesStruct '}'
+    ;
+
+cuerpoStructOp
+    : /* vacío */
+    | '{' listaDeclaracionesStruct '}'
+    ;
+
+listaDeclaracionesStruct
+    : declaracionStruct
+    | listaDeclaracionesStruct declaracionStruct
+    ;
+
+declaracionStruct
+    : listaCalificadores declaradoresStruct ';'
+    ;
+
+listaCalificadores
+    : especificadorTipo listaCalificadoresOp
+    | TIPO_CALIFICADOR listaCalificadoresOp
+    ;
+
+listaCalificadoresOp
+    : listaCalificadores
+    | /* vacío */
+    ;
+
+declaradoresStruct
+    : declaStruct
+    | declaradoresStruct ',' declaStruct
+    ;
+
+declaStruct     
+    : declaSi
+    | ':' expCondicional
+    ;
+
+declaSi
+    : decla expCondicionalOp
+    ;
+
+expCondicionalOp
+    : ':' expCondicional
+    | /* vacío */
+    ;
+
+decla
+    : punteroOp declaradorDirecto
+    ;
+
+punteroOp
+    : puntero
+    | /* vacío */
+    ;
+
+puntero
+    : '*' listaCalificadoresTipoOp punteroOp
+    ;
+
+listaCalificadoresTipoOp
+    : listaCalificadoresTipo
+    | /* vacío */
+    ;
+    
+listaCalificadoresTipo
+    : TIPO_CALIFICADOR
+    | listaCalificadoresTipo TIPO_CALIFICADOR
+    ;
+
+declaradorDirecto
+    : IDENTIFICADOR
+    | '(' declarador ')'
+    | declaradorDirecto '[' opcionExp ']'   /* Para arreglos */
+    | declaradorDirecto '(' listaParametrosOp ')'  /* Para funciones con parámetros */
+    ;
+
+opcionExp
+    :
+    | expresion
+    ;
+
+listaParametrosOp
+    :
+    | listaParametros
+    ;
+
+listaParametros
+    : especificadorDeclaracionOp decla
+    | listaParametros ',' especificadorDeclaracionOp decla
+    ;
+
+especificadorEnum
+    : ENUM cuerpoEnumOp
+    ;
+
+cuerpoEnumOp
+    : cuerpoEnum
+    | /* vacío */
+    ;
+
+cuerpoEnum
+    : IDENTIFICADOR
+    | '{' listaEnumeradores '}'
+    ;
+
+listaEnumeradores
+    : listaEnumeradores ',' enumerador
+    | enumerador
+    ;
+
+enumerador
+    : IDENTIFICADOR
+    | IDENTIFICADOR '=' constanteExp
+    ;
+
+constanteExp
+    : expresion
+    ;
+
 %%
+
 int main(int argc, char *argv[]) {
     if (argc > 1) {
         FILE *file = fopen(argv[1], "r");

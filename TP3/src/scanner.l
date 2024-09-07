@@ -206,11 +206,6 @@ enum {
 "++" { return INC_OP; }
 "--" { return DEC_OP; }
 
-declaracion  {
-    yylloc.last_column += yyleng;
-    return DECLARACION;
-}
-
 [ \t]+ {yylloc.first_column = yylloc.last_column += yyleng;}
 
 \n {
