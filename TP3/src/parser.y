@@ -43,16 +43,6 @@ void yyerror(const char*);
 
 %start programa
 
-%right '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN
-%right '?' ':'
-%left OR
-%left AND
-%left EQ NEQ  
-%left '<' '>' LE GE  
-%left '+' '-'  
-%left '*' '/' '%'
-%right '!' '&'
-
 %%
 
 programa
@@ -68,9 +58,7 @@ input
 
 linea
     : '\n'
-    | sentencia {printf("Sentencia reconocida\n"); }
     | expresion { printf("Expresion reconocida \n");}
-    | unidadTraduccion {printf("Declaracion reconocida\n");}
     ;
 
 sentencia
@@ -131,9 +119,8 @@ sentIteracion
 
 sentEtiquetadas
     : IDENTIFICADOR ':' sentencia 
-    | CASE expCondicional ':' sentencia 
-    | DEFAULT ':' sentencia 
-    ;
+    | CASE expresion ':' listaSentencias 
+    | DEFAULT ':' listaSentencias
 
 sentSalto
     : RETURN ';'
@@ -157,11 +144,11 @@ expAsignacion
     ;
 
 operAsignacion
-    : '=' {}
-    | ADD_ASSIGN {}
-    | SUB_ASSIGN {}
-    | MUL_ASSIGN {}
-    | DIV_ASSIGN {}
+    : '=' 
+    | ADD_ASSIGN 
+    | SUB_ASSIGN 
+    | MUL_ASSIGN 
+    | DIV_ASSIGN 
     ;
 
 expCondicional
@@ -238,10 +225,10 @@ expUnaria
     ;
 
 operUnario
-    : '&' {}
-    | '*' {}
-    | '-' {}
-    | '!' {}
+    : '&' 
+    | '*' 
+    | '-' 
+    | '!' 
     ;
 
 expPostfijo
@@ -271,7 +258,7 @@ expPrimaria
     | LITERAL_CADENA 
     | '(' expresion ')' 
     | TIPO_DATO
-    | PALABRA_RESERVADA {printf("INVENTO MIO, NO SE DONDE IRIAN LAS PALABRAS RESERVADAS\n"); }
+    | PALABRA_RESERVADA 
     ;
 
 nombreTipo
@@ -419,7 +406,7 @@ listaCalificadoresTipo
     ;
 
 declaradorDirecto
-    : IDENTIFICADOR { printf("Se ha declarado un identificador\n");}
+    : IDENTIFICADOR
     | '(' decla ')'
     | declaradorDirecto continuacionDeclaradorDirecto
     ;

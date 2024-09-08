@@ -171,7 +171,7 @@ enum {
     return LITERAL_CADENA; 
 }
 
-
+":" {return ':';}
 "+" { return '+'; }
 "-" { return '-'; }
 "*" { return '*'; }
