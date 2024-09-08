@@ -37,9 +37,11 @@ void menu(void);
 %token LEFT_SHIFT RIGHT_SHIFT
 %token PTR_OP INC_OP DEC_OP
 %token ELIPSIS
-%token sentCompuesta expAsignacion expCondicional expConstante expresion
+
+%token expresion 
 
 %type <int_type> expresion
+%type <string_type> especificadorDeclaracion especificadorTipo declarador listaDeclaradores inicializador
 
 %start input
 
@@ -56,7 +58,7 @@ void menu(void);
 %%
 
 input
-    : /* Vacio */
+    : /* Vacío */
     | input line
     ;
 
@@ -71,14 +73,18 @@ unidadTraduccion
     ;
 
 declaracionExterna
-    : especificadorDeclaracionOp decla restoDeclaracionExterna
+    : definicionFuncion     { printf("Se ha definido una funcion\n"); }
+    | declaracion           { printf("Se ha declarado una variable\n"); }
     ;
 
-restoDeclaracionExterna
-    : sentCompuesta            { printf("Se ha definido una funcion\n"); }
-    | ';'                      { printf("Se ha declarado una variable\n"); }
+definicionFuncion
+    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta
     ;
-
+    
+declaracion
+    : especificadorDeclaracion listaDeclaradores ';' 
+    ;
+    
 especificadorDeclaracionOp
     :
     | especificadorDeclaracion
@@ -106,8 +112,8 @@ declarador
     ;
 
 inicializador
-    : expAsignacion
-    | '{' listaInicializadores opcionComa'}' 
+    : expresion
+    | '{' listaInicializadores opcionComa '}' 
     ;
 
 opcionComa
@@ -124,7 +130,6 @@ especificadorTipo
     : TIPO_DATO
     | especificadorStructUnion
     | especificadorEnum
-    | IDENTIFICADOR
     ;
 
 especificadorStructUnion
@@ -167,7 +172,7 @@ declaradoresStruct
 
 declaStruct     
     : declaSi
-    | ':' expCondicional
+    | ':' expresion
     ;
 
 declaSi
@@ -176,7 +181,7 @@ declaSi
 
 expConstanteOp
     :
-    | ':' expConstante
+    | ':' expresion
     ;
 
 decla
@@ -277,7 +282,7 @@ enumerador
 
 opcionalEnumerador
     :
-    | '=' expConstante
+    | '=' expresion
     ;
 
 declaradorAbstracto
@@ -296,35 +301,48 @@ declaradorAbstractoDirecto
     ;
 
 postOpcionDeclaradorAbstracto
-    : '[' expConstante ']'
+    : '[' expresion ']'
     | '(' listaTiposParametrosOp ')'
+    ;
+
+sentCompuesta
+    : '{' listaDeclaracionSentencia '}'
+    ;
+
+listaDeclaracionSentencia
+    :
+    | listaDeclaracionSentencia declaracion
+    | listaDeclaracionSentencia sentencia
+    ;
+
+sentencia
+    : expresion ';'
+    | sentCompuesta
     ;
 
 %%
 
-int main(void)
-{
-        inicializarUbicacion();
-
-        #if YYDEBUG
-                yydebug = 1;
-        #endif
-
-        while(1)
-        {
-                printf("Ingrese una expresion para probar:\n");
-                printf("(La funcion yyparse ha retornado con valor: %d)\n\n", yyparse());
-                /* Valor | Significado */
-                /*   0   | Análisis sintáctico exitoso (debido a un fin de entrada (EOF) indicado por el analizador léxico (yylex), ó bien a una invocación de la macro YYACCEPT) */
-                /*   1   | Fallo en el análisis sintáctico (debido a un error en el análisis sintáctico del que no se pudo recuperar, ó bien a una invocación de la macro YYABORT) */
-                /*   2   | Fallo en el análisis sintáctico (debido a un agotamiento de memoria) */
+int main(int argc, char *argv[]) {
+    if (argc > 1) {
+        FILE *file = fopen(argv[1], "r");
+        if (!file) {
+            perror("Error abriendo el archivo de entrada");
+            return 1;
         }
+        yyin = file;
+    }
 
-        pausa();
-        return 0;
+    if (yyparse() != 0) {
+        fprintf(stderr, "Error durante el análisis sintáctico\n");
+    }
+
+    if (yyin && yyin != stdin) {
+        fclose(yyin);
+    }
+
+    return 0;
 }
 
-void yyerror(const char* literalCadena)
-{
-    fprintf(stderr, "Bison: %d:%d: %s\n", yylloc.first_line, yylloc.first_column, literalCadena);
+void yyerror(const char *s) {
+    fprintf(stderr, "Error: %s\n", s);
 }

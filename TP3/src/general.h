@@ -6,6 +6,8 @@
 
 #define YYLTYPE YYLTYPE
 
+extern FILE *yyin;
+
 typedef struct YYLTYPE
 {
   int first_line;

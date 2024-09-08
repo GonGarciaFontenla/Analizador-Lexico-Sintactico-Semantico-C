@@ -191,7 +191,7 @@ enum {
 "*" { return '*'; }
 "/" { return '/'; }
 "%" { return '%'; }
-"=" { printf("Token: =\n"); return '='; }
+"=" { return '='; }
 "+=" { return ADD_ASSIGN; }
 "-=" { return SUB_ASSIGN; }
 "*=" { return MUL_ASSIGN; }
