@@ -100,7 +100,12 @@ default  {
     return DEFAULT;
 }
 
-sizeof|switch|break|continue|goto {
+switch {
+    yylloc.last_column += yyleng;
+    return SWITCH;
+}
+
+sizeof|break|continue|goto {
     yylloc.last_column += yyleng;
     return PALABRA_RESERVADA;
 }
@@ -214,6 +219,7 @@ enum {
     return '\n';
   }
 
+[ \t\n\r]+  /* Ignorar espacios, tabs, y saltos de línea */
 
 [^ \t\n] {}
 <tokenNoReconocido>{

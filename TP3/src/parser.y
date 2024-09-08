@@ -110,10 +110,12 @@ listaSentencias
 sentExpresion
     : ';' 
     | expresion ';' 
+    | expresion
     ;
 
 sentSeleccion
     : IF '(' expresion ')' sentencia opcionElse 
+    | SWITCH '(' expresion ')' sentencia
     ;
 
 opcionElse
@@ -124,12 +126,12 @@ opcionElse
 sentIteracion
     : WHILE '(' expresion ')' sentencia 
     | DO sentencia WHILE '(' expresion ')' ';' 
-    | FOR '(' opcionExp ';' opcionExp ';' opcionExp ')' sentencia 
+    | FOR '(' opcionExp')' sentencia 
     ;
 
 sentEtiquetadas
     : IDENTIFICADOR ':' sentencia 
-    | CASE expresion ':' sentencia 
+    | CASE expCondicional ':' sentencia 
     | DEFAULT ':' sentencia 
     ;
 
@@ -145,11 +147,13 @@ expresion
 opcionExp
     :
     | expresion
+    | expresion ';' expresion
+    | expresion ';' expresion ';' expresion
     ;
 
 expAsignacion
     : expCondicional 
-    | expUnaria operAsignacion expAsignacion
+    | expUnaria operAsignacion expAsignacion 
     ;
 
 operAsignacion
@@ -161,7 +165,7 @@ operAsignacion
     ;
 
 expCondicional
-    : expOr 
+    :expOr 
     |opcionCondicional
     ; 
     
@@ -183,6 +187,7 @@ expAnd
 expIgualdad
     : expRelacional opcionIgualdad
     ;
+
 opcionIgualdad
     :
     | EQ expRelacional
@@ -226,6 +231,8 @@ expUnaria
     : expPostfijo 
     | INC_OP expUnaria 
     | DEC_OP expUnaria 
+    | expUnaria INC_OP
+    | expUnaria DEC_OP
     | operUnario expUnaria 
     | SIZEOF '(' nombreTipo ')' 
     ;
@@ -239,6 +246,7 @@ operUnario
 
 expPostfijo
     : expPrimaria
+    | expPostfijo expPrimaria
     | expPostfijo opcionPostfijo
     ;
 opcionPostfijo
@@ -257,11 +265,13 @@ listaArgumentos
     ;
 
 expPrimaria
-    : IDENTIFICADOR {}
+    : IDENTIFICADOR
     | ENTERO
-    | CONSTANTE {}
-    | LITERAL_CADENA {}
-    | '(' expresion ')' {}
+    | CONSTANTE 
+    | LITERAL_CADENA 
+    | '(' expresion ')' 
+    | TIPO_DATO
+    | PALABRA_RESERVADA {printf("INVENTO MIO, NO SE DONDE IRIAN LAS PALABRAS RESERVADAS\n"); }
     ;
 
 nombreTipo
@@ -307,7 +317,7 @@ listaDeclaracionOp
     | listaDeclaradores
     ;
     
-declarador    
+declarador
     : decla
     | decla '=' inicializador
     ;
@@ -409,7 +419,7 @@ listaCalificadoresTipo
     ;
 
 declaradorDirecto
-    : IDENTIFICADOR
+    : IDENTIFICADOR { printf("Se ha declarado un identificador\n");}
     | '(' decla ')'
     | declaradorDirecto continuacionDeclaradorDirecto
     ;
