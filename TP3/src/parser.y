@@ -63,13 +63,14 @@ input
     : /* vacío */
     | input linea
     | input sentencia /* Permitir que el archivo termine con una sentencia */
-    | input declaracionExterna
+    | input unidadTraduccion
     ;
 
 linea
     : '\n'
-    | sentencia '\n'
+    | sentencia {printf("Sentencia reconocida\n"); }
     | expresion { printf("Expresion reconocida \n");}
+    | unidadTraduccion {printf("Declaracion reconocida\n");}
     ;
 
 sentencia
@@ -160,8 +161,10 @@ operAsignacion
     ;
 
 expCondicional
-    : expOr opcionCondicional
+    : expOr 
+    |opcionCondicional
     ; 
+    
 opcionCondicional
     :
     | '?' expresion ':' expCondicional 
@@ -265,20 +268,29 @@ nombreTipo
     : TIPO_DATO 
     ;
 
+unidadTraduccion
+    : declaracionExterna
+    | unidadTraduccion declaracionExterna
+    ;
+
 declaracionExterna
-    : especificadorDeclaracionOp decla restoDeclaracionExterna
+    : definicionFuncion     { printf("Se ha definido una funcion\n"); }
+    | declaracion           { printf("Se ha declarado una variable\n"); }
     ;
 
-restoDeclaracionExterna
-    : sentCompuesta { printf("Se ha definido una función\n"); }
-    | ';' { printf("Se ha declarado una variable o estructura\n"); }
+definicionFuncion
+    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta
     ;
-
+    
+declaracion
+    : especificadorDeclaracion listaDeclaradores ';' 
+    ;
+    
 especificadorDeclaracionOp
-    : especificadorDeclaracion
-    | /* vacío */
+    :
+    | especificadorDeclaracion
     ;
-
+    
 especificadorDeclaracion 
     : TIPO_ALMACENAMIENTO especificadorDeclaracionOp
     | especificadorTipo especificadorDeclaracionOp
@@ -291,17 +303,17 @@ listaDeclaradores
     ;
 
 listaDeclaracionOp
-    : listaDeclaradores
-    | /* vacío */
+    : 
+    | listaDeclaradores
     ;
     
-declarador
+declarador    
     : decla
     | decla '=' inicializador
     ;
 
 inicializador
-    : expAsignacion
+    : expresion
     | '{' listaInicializadores opcionComa '}' 
     ;
 
@@ -319,27 +331,19 @@ especificadorTipo
     : TIPO_DATO
     | especificadorStructUnion
     | especificadorEnum
-    | IDENTIFICADOR
     ;
-
-especificadorStructUnion
-    : UNION cuerpoEspecificador
-    ;
-
-
 
 especificadorStructUnion
     : STRUCT cuerpoEspecificador
-    | UNION cuerpoEspecificador
     ;
 
 cuerpoEspecificador
-    : IDENTIFICADOR cuerpoStructOp
-    | '{' listaDeclaracionesStruct '}'
+    : '{' listaDeclaracionesStruct '}'
+    | IDENTIFICADOR cuerpoStructOp
     ;
 
 cuerpoStructOp
-    : /* vacío */
+    : 
     | '{' listaDeclaracionesStruct '}'
     ;
 
@@ -358,8 +362,8 @@ listaCalificadores
     ;
 
 listaCalificadoresOp
-    : listaCalificadores
-    | /* vacío */
+    :
+    | listaCalificadores
     ;
 
 declaradoresStruct
@@ -369,16 +373,16 @@ declaradoresStruct
 
 declaStruct     
     : declaSi
-    | ':' expCondicional
+    | ':' expresion
     ;
 
 declaSi
-    : decla expCondicionalOp
+    : decla expConstanteOp
     ;
 
-expCondicionalOp
-    : ':' expCondicional
-    | /* vacío */
+expConstanteOp
+    :
+    | ':' expresion
     ;
 
 decla
@@ -386,8 +390,8 @@ decla
     ;
 
 punteroOp
-    : puntero
-    | /* vacío */
+    :
+    | puntero
     ;
 
 puntero
@@ -395,8 +399,8 @@ puntero
     ;
 
 listaCalificadoresTipoOp
-    : listaCalificadoresTipo
-    | /* vacío */
+    : 
+    | listaCalificadoresTipo
     ;
     
 listaCalificadoresTipo
@@ -406,52 +410,106 @@ listaCalificadoresTipo
 
 declaradorDirecto
     : IDENTIFICADOR
-    | '(' declarador ')'
-    | declaradorDirecto '[' opcionExp ']'   /* Para arreglos */
-    | declaradorDirecto '(' listaParametrosOp ')'  /* Para funciones con parámetros */
+    | '(' decla ')'
+    | declaradorDirecto continuacionDeclaradorDirecto
     ;
 
-opcionExp
-    :
-    | expresion
+continuacionDeclaradorDirecto
+    : '[' expConstanteOp ']'
+    | '(' listaTiposParametrosOp ')'
+    | '(' listaIdentificadoresOp ')'
     ;
 
-listaParametrosOp
+listaTiposParametrosOp 
+    : 
+    | listaTiposParametros
+    ;
+    
+listaTiposParametros
+    : listaParametros opcionalListaParametros
+    ;
+    
+opcionalListaParametros
     :
-    | listaParametros
+    | ',' ELIPSIS
     ;
 
 listaParametros
-    : especificadorDeclaracionOp decla
-    | listaParametros ',' especificadorDeclaracionOp decla
+    : declaracionParametro
+    | listaParametros ',' declaracionParametro
+    ;
+    
+declaracionParametro
+    : especificadorDeclaracion opcionesDecla
+    ;
+
+opcionesDecla
+    : decla
+    | declaradorAbstracto
+    ;
+
+listaIdentificadoresOp
+    :
+    | listaIdentificadores
+    ;
+
+listaIdentificadores
+    : IDENTIFICADOR
+    | listaIdentificadores ',' IDENTIFICADOR
     ;
 
 especificadorEnum
-    : ENUM cuerpoEnumOp
+    : ENUM opcionalEspecificadorEnum
     ;
 
-cuerpoEnumOp
-    : cuerpoEnum
-    | /* vacío */
+opcionalEspecificadorEnum
+    : IDENTIFICADOR opcionalListaEnumeradores
+    | '{' listaEnumeradores '}'
     ;
 
-cuerpoEnum
-    : IDENTIFICADOR
+opcionalListaEnumeradores
+    :
     | '{' listaEnumeradores '}'
     ;
 
 listaEnumeradores
-    : listaEnumeradores ',' enumerador
-    | enumerador
+    : enumerador
+    | listaEnumeradores ',' enumerador
     ;
 
 enumerador
-    : IDENTIFICADOR
-    | IDENTIFICADOR '=' constanteExp
+    : IDENTIFICADOR opcionalEnumerador
     ;
 
-constanteExp
-    : expresion
+opcionalEnumerador
+    :
+    | '=' expresion
+    ;
+
+declaradorAbstracto
+    : puntero declaradorAbstractoDirectoOp
+    | declaradorAbstractoDirecto
+    ;
+
+declaradorAbstractoDirectoOp
+    : 
+    | declaradorAbstractoDirecto
+    ;
+
+declaradorAbstractoDirecto
+    : '(' declaradorAbstracto ')'
+    | declaradorAbstractoDirectoOp postOpcionDeclaradorAbstracto
+    ;
+
+postOpcionDeclaradorAbstracto
+    : '[' expresion ']'
+    | '(' listaTiposParametrosOp ')'
+    ;
+
+listaDeclaracionSentencia
+    :
+    | listaDeclaracionSentencia declaracion
+    | listaDeclaracionSentencia sentencia
     ;
 
 %%
