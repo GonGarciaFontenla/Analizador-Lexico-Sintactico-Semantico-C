@@ -18,18 +18,67 @@ typedef struct YYLTYPE
 } YYLTYPE;
 
 typedef struct {
-    char* sym_name; // Para los nombres de cada simbolo
-    char* sym_type; // Tipo de variable
-    int sym_line;
-    int sym_column; 
-} t_sym;
+    location* location;
+    char* type;
+    char* variable;
+} t_variable;
 
-typedef struct Nodo {
-    t_sym sym;
-    struct Nodo* sig;
-} Nodo;
+typedef struct {
+    int linea;
+    char* type; // Si es declaracion o definicion
+    char** parameters; // Es una sublista (array de parametros, guardar como string el tipo y el ID)
+} t_function;
 
+typedef struct {
+    location* location;
+    char* type;
+} t_statement;
 
+typedef struct {
+    int line;
+    char* structure;
+} t_structure_unrecognised;
+
+typedef struct {
+    int line;
+    int column;
+    char* token;
+} t_token_unrecognised;
+
+typedef struct {
+    int line;
+    int column;
+} location;
+
+typedef struct VariableNode {
+    t_variable* variable;
+    struct VariableNode* next;
+} VariableNode;
+
+typedef struct FunctionNode {
+    t_function* function;
+    struct FunctionNode* next;
+} FunctionNode;
+
+typedef struct StatementNode {
+    t_statement* statement;
+    struct StatementNode* next;
+} StatementNode;
+
+typedef struct UnrecognisedStructureNode {
+    t_structure_unrecognised* structure;
+    struct UnrecognisedStructureNode* next;
+} UnrecognisedStructureNode;
+
+typedef struct UnrecognisedTokenNode {
+    t_token_unrecognised* token;
+    struct UnrecognisedTokenNode* next;
+} UnrecognisedTokenNode;
+
+typedef struct GenericNode { // Estructura para reducir lógica repetida en los agregar //
+    void* data;
+    struct GenericNode* next;
+} GenericNode;
 
 #define INICIO_CONTEO_LINEA 1
 #define INICIO_CONTEO_COLUMNA 1
@@ -40,8 +89,8 @@ void pausa(void);
 void inicializarUbicacion(void);
 void reinicializarUbicacion(void);
 
-void append_sym(char* name, char* type, int line, int column); 
-int find_sym(char* name); 
-void free_symbols();
-
+/* Ejemplo: GenericNode* function = NULL (Para la lista que queremos); t_function* function_data = NULL; (Para los datos que queremos guardar)
+   Agregamos datos a cada miembro de la estructura t_function de "function_data"
+   add_node(&function, function_data, sizeof(t_function)); */ 
+void add_node(GenericNode** list, void* new_data, size_t data_size); // Agregar a la lista de manera genérica //
 #endif
