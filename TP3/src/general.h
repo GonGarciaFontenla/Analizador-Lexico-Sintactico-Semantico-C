@@ -7,6 +7,7 @@
 #define YYLTYPE YYLTYPE
 
 extern FILE *yyin;
+extern int yylineno;
 
 typedef struct YYLTYPE
 {

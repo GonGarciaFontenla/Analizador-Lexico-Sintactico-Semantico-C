@@ -51,14 +51,10 @@ programa
 
 input
     : /* vacío */
-    | input linea
+    | input expresion { printf("Expresion reconocida \n");}
     | input sentencia /* Permitir que el archivo termine con una sentencia */
     | input unidadTraduccion
-    ;
-
-linea
-    : '\n'
-    | expresion { printf("Expresion reconocida \n");}
+    //| error '\n' { printf("Error sintactico \n"); yyerrok; }
     ;
 
 sentencia
@@ -72,7 +68,7 @@ sentencia
     ;
 
 sentCompuesta
-    : '{' opcionDeclaracion opcionSentencia '}' 
+    : '{' opcionDeclaracion opcionSentencia '}'
     ;
 
 opcionDeclaracion
@@ -98,7 +94,6 @@ listaSentencias
 sentExpresion
     : ';' 
     | expresion ';' 
-    | expresion
     ;
 
 sentSeleccion
@@ -114,7 +109,7 @@ opcionElse
 sentIteracion
     : WHILE '(' expresion ')' sentencia 
     | DO sentencia WHILE '(' expresion ')' ';' 
-    | FOR '(' opcionExp')' sentencia 
+    | FOR '('opcionExp')' sentencia 
     ;
 
 sentEtiquetadas
@@ -129,11 +124,12 @@ sentSalto
 
 expresion
     : expAsignacion 
+    | expresion ',' expAsignacion
     ;
 
 opcionExp
     :
-    | expresion
+    | expresion ';' 
     | expresion ';' expresion
     | expresion ';' expresion ';' expresion
     ;
@@ -152,14 +148,9 @@ operAsignacion
     ;
 
 expCondicional
-    :expOr 
-    |opcionCondicional
+    : expOr 
+    | expOr '?' expresion : expCondicional
     ; 
-    
-opcionCondicional
-    :
-    | '?' expresion ':' expCondicional 
-    ;
 
 expOr
     : expAnd
@@ -172,12 +163,12 @@ expAnd
     ;
 
 expIgualdad
-    : expRelacional opcionIgualdad
+    : expRelacional 
+    | expIgualdad opcionIgualdad
     ;
 
 opcionIgualdad
-    :
-    | EQ expRelacional
+    : EQ expRelacional
     | NEQ expRelacional 
     ;
 
@@ -198,6 +189,7 @@ expAditiva
     : expMultiplicativa
     | expAditiva opcionAditiva
     ;
+
 opcionAditiva
     :
     | '+' expMultiplicativa
@@ -254,11 +246,12 @@ listaArgumentos
 expPrimaria
     : IDENTIFICADOR
     | ENTERO
-    | CONSTANTE 
+    | NUM
+    | CONSTANTE
     | LITERAL_CADENA 
-    | '(' expresion ')' 
+    | '(' expresion ')'
     | TIPO_DATO
-    | PALABRA_RESERVADA 
+    | PALABRA_RESERVADA
     ;
 
 nombreTipo
@@ -278,7 +271,7 @@ declaracionExterna
 definicionFuncion
     : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta
     ;
-    
+
 declaracion
     : especificadorDeclaracion listaDeclaradores ';' 
     ;
@@ -520,18 +513,15 @@ int main(int argc, char *argv[]) {
         }
         yyin = file;
     }
+    #if YYDEBUG
+    yydebug = 1;
+    #endif
 
-    if (yyparse() != 0) {
-        fprintf(stderr, "Error durante el análisis sintáctico\n");
-    }
+    yyparse();
 
     if (yyin && yyin != stdin) {
         fclose(yyin);
     }
 
     return 0;
-}
-
-void yyerror(const char *s) {
-    fprintf(stderr, "Error: %s\n", s);
 }

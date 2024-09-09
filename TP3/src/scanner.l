@@ -171,7 +171,8 @@ enum {
     return LITERAL_CADENA; 
 }
 
-":" {return ':';}
+":" { return ':';}
+"?" { return '?';}
 "+" { return '+'; }
 "-" { return '-'; }
 "*" { return '*'; }
@@ -219,7 +220,10 @@ enum {
     return '\n';
   }
 
-[ \t\n\r]+  /* Ignorar espacios, tabs, y saltos de línea */
+[\t\n\r]+ {
+    yylloc.first_line = yylloc.last_line += yyleng; 
+} /* Ignorar espacios y tabs */
+
 
 [^ \t\n] {}
 <tokenNoReconocido>{
