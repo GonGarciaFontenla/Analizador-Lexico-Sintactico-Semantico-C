@@ -27,7 +27,7 @@ void reinicializarUbicacion(void)
     yylloc.first_column = yylloc.last_column;
 }
 
-void init_structures() {
+void init_structures() { // Iniciar todas las estructuras
     data_variable = (t_variable*)malloc(sizeof(t_variable));
     if (data_variable == NULL) {
         printf("Error al asignar memoria para data_variable\n");
@@ -37,7 +37,7 @@ void init_structures() {
 
 }
 
-void add_node(GenericNode** list, void* new_data, size_t data_size) {
+void add_node(GenericNode** list, void* new_data, size_t data_size) { // Agregar a la lista genericamente
     GenericNode* new_node = (GenericNode*)malloc(sizeof(GenericNode)); // Reservamos memoria para cada nodo //
     new_node->data = malloc(data_size);
 
@@ -51,7 +51,7 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
     if(variable) {
         GenericNode* aux = variable;
         while(aux) {
-            t_variable* temp = (t_variable*)variable->data;
+            t_variable* temp = (t_variable*)aux->data;
             printf("%s: %s, linea %i\n", temp->variable, temp->type, temp->line);
             aux = aux->next;
         }

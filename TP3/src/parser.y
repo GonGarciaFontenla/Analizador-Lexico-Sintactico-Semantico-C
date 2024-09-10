@@ -524,11 +524,13 @@ int main(int argc, char *argv[]) {
 
     yyparse();
 
-    print_list();
+    print_lists();
 
     if (yyin && yyin != stdin) {
         fclose(yyin);
     }
+
+    //free_lists();
 
     return 0;
 }
