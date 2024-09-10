@@ -84,16 +84,13 @@ typedef struct GenericNode { // Estructura para reducir lógica repetida en los 
     struct GenericNode* next;
 } GenericNode;
 
-<<<<<<< HEAD
 #define INICIO_CONTEO_LINEA 1
 #define INICIO_CONTEO_COLUMNA 1
 
 // extern Nodo* symbols;
 extern GenericNode* statements_list;
-=======
-extern GenericNode* variable;
+// extern GenericNode* variable;
 extern t_variable* data_variable;
->>>>>>> 67b945135f842eeb2e0076d9b2c1ef28d0c73a26
 
 void pausa(void);
 void inicializarUbicacion(void);
@@ -104,11 +101,9 @@ void init_structures();
    Agregamos datos a cada miembro de la estructura t_function de "function_data"
    add_node(&function, function_data, sizeof(t_function)); */ 
 void add_node(GenericNode** list, void* new_data, size_t data_size); // Agregar a la lista de manera genérica //
-<<<<<<< HEAD
 void free_list(GenericNode** list);
 void print_statements_list();
 =======
 void print_lists();
 // void free_lists(); TODO: hacer una funcion que free a todas las listas!
->>>>>>> 67b945135f842eeb2e0076d9b2c1ef28d0c73a26
 #endif

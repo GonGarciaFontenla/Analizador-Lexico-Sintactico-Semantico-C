@@ -8,11 +8,8 @@
 #include "general.h"
 
 extern YYLTYPE yylloc;
-<<<<<<< HEAD
 GenericNode* statements_list = NULL;
 // Nodo* symbols = NULL;
-=======
->>>>>>> 67b945135f842eeb2e0076d9b2c1ef28d0c73a26
 
 void pausa(void)
 {
@@ -52,7 +49,6 @@ void add_node(GenericNode** list, void* new_data, size_t data_size) { // Agregar
     *list = new_node;
 }
 
-<<<<<<< HEAD
 void free_list(GenericNode** list) {
     GenericNode* nodo_actual = *list;
     GenericNode* nodo_siguiente = NULL;
@@ -80,7 +76,6 @@ void print_statements_list() {
     }
 }
 
-=======
 void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HACIENDO UN PRINT PARTICULAR GENERICO
     if(variable) {
         GenericNode* aux = variable;
@@ -91,4 +86,3 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
         }
     }
 }
->>>>>>> 67b945135f842eeb2e0076d9b2c1ef28d0c73a26
