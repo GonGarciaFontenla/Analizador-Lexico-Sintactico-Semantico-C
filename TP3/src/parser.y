@@ -7,6 +7,7 @@
 
 extern int yylex(void);
 void yyerror(const char*);
+int if_first_line, if_first_column;
 %}
 
 %error-verbose
@@ -54,7 +55,7 @@ input
     | input expresion { printf("Expresion reconocida \n");}
     | input sentencia /* Permitir que el archivo termine con una sentencia */
     | input unidadTraduccion
-    //| error '\n' { printf("Error sintactico \n"); yyerrok; }
+    /* | input error '\n' { printf("EL ERROR ESTA ACA \n"); yyerrok; } */
     ;
 
 sentencia
@@ -68,7 +69,7 @@ sentencia
     ;
 
 sentCompuesta
-    : '{' opcionDeclaracion opcionSentencia '}'
+    : '{' opcionDeclaracion opcionSentencia '}' 
     ;
 
 opcionDeclaracion
@@ -97,29 +98,101 @@ sentExpresion
     ;
 
 sentSeleccion
-    : IF '(' expresion ')' sentencia opcionElse 
-    | SWITCH '(' expresion ')' sentencia
+    : IF '(' expresion ')' sentencia opcionElse
+    | SWITCH {
+
+        t_statement* stament = malloc(sizeof(t_statement));
+        stament->location = malloc(sizeof(location));
+        stament->location->line = @1.first_line;  
+        stament->location->column = @1.first_column;  
+        stament->type = "switch";
+
+        add_node(&statements_list, stament, sizeof(t_statement));
+    } '(' expresion ')' sentencia 
     ;
 
 opcionElse
-    :
+    : 
     | ELSE sentencia
     ;
 
 sentIteracion
-    : WHILE '(' expresion ')' sentencia 
-    | DO sentencia WHILE '(' expresion ')' ';' 
-    | FOR '('opcionExp')' sentencia 
+    : WHILE '(' expresion ')' sentencia{
+
+        t_statement* stament = malloc(sizeof(t_statement));
+        stament->location = malloc(sizeof(location));
+        stament->location->line = @1.first_line;  
+        stament->location->column = @1.first_column;  
+        stament->type = "while";
+
+        add_node(&statements_list, stament, sizeof(t_statement));
+    } 
+    | DO sentencia WHILE '(' expresion ')' ';'{
+
+        t_statement* stament = malloc(sizeof(t_statement));
+        stament->location = malloc(sizeof(location));
+        stament->location->line = @1.first_line;  
+        stament->location->column = @1.first_column;  
+        stament->type = "do/while";
+
+        add_node(&statements_list, stament, sizeof(t_statement));
+    } 
+    | FOR '('opcionExp')' sentencia{
+
+        t_statement* stament = malloc(sizeof(t_statement));
+        stament->location = malloc(sizeof(location));
+        stament->location->line = @1.first_line;  
+        stament->location->column = @1.first_column;  
+        stament->type = "for";
+
+        add_node(&statements_list, stament, sizeof(t_statement));
+    }  
     ;
 
 sentEtiquetadas
     : IDENTIFICADOR ':' sentencia 
-    | CASE expresion ':' listaSentencias 
-    | DEFAULT ':' listaSentencias
+    | CASE  expresion ':' listaSentencias{
+
+        t_statement* stament = malloc(sizeof(t_statement));
+        stament->location = malloc(sizeof(location));
+        stament->location->line = @1.first_line;  
+        stament->location->column = @1.first_column;  
+        stament->type = "case";
+
+        add_node(&statements_list, stament, sizeof(t_statement));
+    } 
+    | DEFAULT ':' listaSentencias {
+
+        t_statement* stament = malloc(sizeof(t_statement));
+        stament->location = malloc(sizeof(location));
+        stament->location->line = @1.first_line;  
+        stament->location->column = @1.first_column;  
+        stament->type = "default";
+
+        add_node(&statements_list, stament, sizeof(t_statement));
+    }
 
 sentSalto
-    : RETURN ';'
-    | RETURN expresion ';' 
+    : RETURN ';' {
+
+        t_statement* stament = malloc(sizeof(t_statement));
+        stament->location = malloc(sizeof(location));
+        stament->location->line = @1.first_line;  
+        stament->location->column = @1.first_column;  
+        stament->type = "return";
+
+        add_node(&statements_list, stament, sizeof(t_statement));
+    }
+    | RETURN expresion ';' {
+
+        t_statement* stament = malloc(sizeof(t_statement));
+        stament->location = malloc(sizeof(location));
+        stament->location->line = @1.first_line;  
+        stament->location->column = @1.first_column;  
+        stament->type = "return";
+
+        add_node(&statements_list, stament, sizeof(t_statement));
+    } 
     ;
 
 expresion
@@ -518,6 +591,8 @@ int main(int argc, char *argv[]) {
     #endif
 
     yyparse();
+
+    print_statements_list();
 
     if (yyin && yyin != stdin) {
         fclose(yyin);

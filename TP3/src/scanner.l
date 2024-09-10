@@ -9,6 +9,8 @@
 #define LINEA_INICIAL 1
 #define COLUMNA_INICIAL 1
 
+int inicializar = 1;
+
 %}
 
 %pointer
@@ -23,6 +25,12 @@ DIGITO_HEXA [0-9a-fA-F]
 ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
 
 %%
+    
+    if(inicializar == 1){
+        inicializarUbicacion();
+        inicializar = -1;
+    }
+    reinicializarUbicacion();
 
 [1-9]{DIGITO_DECIMAL}*{SUFIJO_ENTERO} {
     yylloc.last_column += yyleng;

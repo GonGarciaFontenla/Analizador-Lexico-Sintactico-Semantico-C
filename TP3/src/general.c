@@ -8,8 +8,8 @@
 #include "general.h"
 
 extern YYLTYPE yylloc;
-
-Nodo* symbols = NULL;
+GenericNode* statements_list = NULL;
+// Nodo* symbols = NULL;
 
 void pausa(void)
 {
@@ -38,3 +38,31 @@ void add_node(GenericNode** list, void* new_data, size_t data_size) {
     new_node->next = *list;
     *list = new_node;
 }
+
+void free_list(GenericNode** list) {
+    GenericNode* nodo_actual = *list;
+    GenericNode* nodo_siguiente = NULL;
+
+    while (nodo_actual != NULL) {
+        nodo_siguiente = nodo_actual->next;
+        free(nodo_actual->data);
+        free(nodo_actual);
+        nodo_actual = nodo_siguiente;
+    }
+    *list = NULL;
+}
+
+void print_statements_list() {
+    StatementNode* nodo_actual = statements_list;
+    printf("* Listado de sentencias indicando tipo, numero de linea y de columna:\n");
+    while (nodo_actual != NULL) {
+        t_statement* stmt = nodo_actual->statement;
+        if (stmt != NULL) {
+            printf("%s: linea %d, columna %d\n",stmt->type, stmt->location->line, stmt->location->column);
+        } else {
+            printf("Sentencia vacía.\n");
+        }
+        nodo_actual = nodo_actual->next;
+    }
+}
+

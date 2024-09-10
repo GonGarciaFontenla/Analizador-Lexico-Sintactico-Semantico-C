@@ -16,6 +16,10 @@ typedef struct YYLTYPE
     int last_line;
     int last_column;
 } YYLTYPE;
+typedef struct {
+    int line;
+    int column;
+} location;
 
 typedef struct {
     location* location;
@@ -44,11 +48,6 @@ typedef struct {
     int column;
     char* token;
 } t_token_unrecognised;
-
-typedef struct {
-    int line;
-    int column;
-} location;
 
 typedef struct VariableNode {
     t_variable* variable;
@@ -83,7 +82,8 @@ typedef struct GenericNode { // Estructura para reducir lógica repetida en los 
 #define INICIO_CONTEO_LINEA 1
 #define INICIO_CONTEO_COLUMNA 1
 
-extern Nodo* symbols;
+// extern Nodo* symbols;
+extern GenericNode* statements_list;
 
 void pausa(void);
 void inicializarUbicacion(void);
@@ -93,4 +93,6 @@ void reinicializarUbicacion(void);
    Agregamos datos a cada miembro de la estructura t_function de "function_data"
    add_node(&function, function_data, sizeof(t_function)); */ 
 void add_node(GenericNode** list, void* new_data, size_t data_size); // Agregar a la lista de manera genérica //
+void free_list(GenericNode** list);
+void print_statements_list();
 #endif
