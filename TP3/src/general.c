@@ -62,19 +62,19 @@ void free_list(GenericNode** list) {
     *list = NULL;
 }
 
-void print_statements_list() {
-    StatementNode* nodo_actual = statements_list;
-    printf("* Listado de sentencias indicando tipo, numero de linea y de columna:\n");
-    while (nodo_actual != NULL) {
-        t_statement* stmt = nodo_actual->statement;
-        if (stmt != NULL) {
-            printf("%s: linea %d, columna %d\n",stmt->type, stmt->location->line, stmt->location->column);
-        } else {
-            printf("Sentencia vacía.\n");
-        }
-        nodo_actual = nodo_actual->next;
-    }
-}
+// void print_statements_list() {
+//     StatementNode* nodo_actual = statements_list;
+//     printf("* Listado de sentencias indicando tipo, numero de linea y de columna:\n");
+//     while (nodo_actual != NULL) {
+//         t_statement* stmt = nodo_actual->statement;
+//         if (stmt != NULL) {
+//             printf("%s: linea %d, columna %d\n",stmt->type, stmt->location->line, stmt->location->column);
+//         } else {
+//             printf("Sentencia vacía.\n");
+//         }
+//         nodo_actual = nodo_actual->next;
+//     }
+// }
 
 void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HACIENDO UN PRINT PARTICULAR GENERICO
     if(variable) {

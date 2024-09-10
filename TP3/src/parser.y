@@ -11,6 +11,7 @@ void yyerror(const char*);
 //-------- Declaracion de variables --------//
 GenericNode* variable = NULL;
 t_variable* data_variable = NULL;
+
 %}
 
 %error-verbose
@@ -102,16 +103,16 @@ sentExpresion
 
 sentSeleccion
     : IF '(' expresion ')' sentencia opcionElse
-    | SWITCH {
+    | SWITCH //{
 
-        t_statement* stament = malloc(sizeof(t_statement));
-        stament->location = malloc(sizeof(location));
-        stament->location->line = @1.first_line;  
-        stament->location->column = @1.first_column;  
-        stament->type = "switch";
+    //     t_statement* stament = malloc(sizeof(t_statement));
+    //     stament->location = malloc(sizeof(location));
+    //     stament->location->line = @1.first_line;  
+    //     stament->location->column = @1.first_column;  
+    //     stament->type = "switch";
 
-        add_node(&statements_list, stament, sizeof(t_statement));
-    } '(' expresion ')' sentencia 
+    //     add_node(&statements_list, stament, sizeof(t_statement));}
+    | '(' expresion ')' sentencia 
     ;
 
 opcionElse
@@ -120,82 +121,83 @@ opcionElse
     ;
 
 sentIteracion
-    : WHILE '(' expresion ')' sentencia{
+    : WHILE '(' expresion ')' sentencia
 
-        t_statement* stament = malloc(sizeof(t_statement));
-        stament->location = malloc(sizeof(location));
-        stament->location->line = @1.first_line;  
-        stament->location->column = @1.first_column;  
-        stament->type = "while";
+    //     t_statement* stament = malloc(sizeof(t_statement));
+    //     stament->location = malloc(sizeof(location));
+    //     stament->location->line = @1.first_line;  
+    //     stament->location->column = @1.first_column;  
+    //     stament->type = "while";
 
-        add_node(&statements_list, stament, sizeof(t_statement));
-    } 
-    | DO sentencia WHILE '(' expresion ')' ';'{
+    //     add_node(&statements_list, stament, sizeof(t_statement));
+    // } 
+    | DO sentencia WHILE '(' expresion ')' ';'
 
-        t_statement* stament = malloc(sizeof(t_statement));
-        stament->location = malloc(sizeof(location));
-        stament->location->line = @1.first_line;  
-        stament->location->column = @1.first_column;  
-        stament->type = "do/while";
+    //     t_statement* stament = malloc(sizeof(t_statement));
+    //     stament->location = malloc(sizeof(location));
+    //     stament->location->line = @1.first_line;  
+    //     stament->location->column = @1.first_column;  
+    //     stament->type = "do/while";
 
-        add_node(&statements_list, stament, sizeof(t_statement));
-    } 
-    | FOR '('opcionExp')' sentencia{
+    //     add_node(&statements_list, stament, sizeof(t_statement));
+    // } 
+    | FOR '('opcionExp')' sentencia
 
-        t_statement* stament = malloc(sizeof(t_statement));
-        stament->location = malloc(sizeof(location));
-        stament->location->line = @1.first_line;  
-        stament->location->column = @1.first_column;  
-        stament->type = "for";
+        // t_statement* stament = malloc(sizeof(t_statement));
+        // stament->location = malloc(sizeof(location));
+        // stament->location->line = @1.first_line;  
+        // stament->location->column = @1.first_column;  
+        // stament->type = "for";
 
-        add_node(&statements_list, stament, sizeof(t_statement));
-    }  
+        // add_node(&statements_list, stament, sizeof(t_statement));
+
     ;
 
 sentEtiquetadas
     : IDENTIFICADOR ':' sentencia 
-    | CASE  expresion ':' listaSentencias{
+    | CASE  expresion ':' listaSentencias
 
-        t_statement* stament = malloc(sizeof(t_statement));
-        stament->location = malloc(sizeof(location));
-        stament->location->line = @1.first_line;  
-        stament->location->column = @1.first_column;  
-        stament->type = "case";
+    //     t_statement* stament = malloc(sizeof(t_statement));
+    //     stament->location = malloc(sizeof(location));
+    //     stament->location->line = @1.first_line;  
+    //     stament->location->column = @1.first_column;  
+    //     stament->type = "case";
 
-        add_node(&statements_list, stament, sizeof(t_statement));
-    } 
-    | DEFAULT ':' listaSentencias {
+    //     add_node(&statements_list, stament, sizeof(t_statement));
+    // } 
+    | DEFAULT ':' listaSentencias 
 
-        t_statement* stament = malloc(sizeof(t_statement));
-        stament->location = malloc(sizeof(location));
-        stament->location->line = @1.first_line;  
-        stament->location->column = @1.first_column;  
-        stament->type = "default";
+    //     t_statement* stament = malloc(sizeof(t_statement));
+    //     stament->location = malloc(sizeof(location));
+    //     stament->location->line = @1.first_line;  
+    //     stament->location->column = @1.first_column;  
+    //     stament->type = "default";
 
-        add_node(&statements_list, stament, sizeof(t_statement));
-    }
+    //     add_node(&statements_list, stament, sizeof(t_statement));
+    // }
+    ;
 
 sentSalto
-    : RETURN ';' {
+    : RETURN ';' 
 
-        t_statement* stament = malloc(sizeof(t_statement));
-        stament->location = malloc(sizeof(location));
-        stament->location->line = @1.first_line;  
-        stament->location->column = @1.first_column;  
-        stament->type = "return";
+    //     t_statement* stament = malloc(sizeof(t_statement));
+    //     stament->location = malloc(sizeof(location));
+    //     stament->location->line = @1.first_line;  
+    //     stament->location->column = @1.first_column;  
+    //     stament->type = "return";
 
-        add_node(&statements_list, stament, sizeof(t_statement));
-    }
-    | RETURN expresion ';' {
+    //     add_node(&statements_list, stament, sizeof(t_statement));
+    // }
+    | RETURN expresion ';' 
 
-        t_statement* stament = malloc(sizeof(t_statement));
-        stament->location = malloc(sizeof(location));
-        stament->location->line = @1.first_line;  
-        stament->location->column = @1.first_column;  
-        stament->type = "return";
+    //     t_statement* stament = malloc(sizeof(t_statement));
+    //     stament->location = malloc(sizeof(location));
+    //     stament->location->line = @1.first_line;  
+    //     stament->location->column = @1.first_column;  
+    //     stament->type = "return";
 
-        add_node(&statements_list, stament, sizeof(t_statement));
-    } 
+    //     add_node(&statements_list, stament, sizeof(t_statement));
+    // } 
     ;
 
 expresion
@@ -595,7 +597,7 @@ int main(int argc, char *argv[]) {
 
     yyparse();
 
-    print_statements_list();
+    // print_statements_list();
     print_lists();
 
     if (yyin && yyin != stdin) {
