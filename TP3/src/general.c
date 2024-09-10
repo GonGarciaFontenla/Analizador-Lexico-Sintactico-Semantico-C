@@ -8,8 +8,11 @@
 #include "general.h"
 
 extern YYLTYPE yylloc;
+<<<<<<< HEAD
 GenericNode* statements_list = NULL;
 // Nodo* symbols = NULL;
+=======
+>>>>>>> 67b945135f842eeb2e0076d9b2c1ef28d0c73a26
 
 void pausa(void)
 {
@@ -29,7 +32,17 @@ void reinicializarUbicacion(void)
     yylloc.first_column = yylloc.last_column;
 }
 
-void add_node(GenericNode** list, void* new_data, size_t data_size) {
+void init_structures() { // Iniciar todas las estructuras
+    data_variable = (t_variable*)malloc(sizeof(t_variable));
+    if (data_variable == NULL) {
+        printf("Error al asignar memoria para data_variable\n");
+        exit(EXIT_FAILURE);
+    }
+    data_variable->line = 0;
+
+}
+
+void add_node(GenericNode** list, void* new_data, size_t data_size) { // Agregar a la lista genericamente
     GenericNode* new_node = (GenericNode*)malloc(sizeof(GenericNode)); // Reservamos memoria para cada nodo //
     new_node->data = malloc(data_size);
 
@@ -39,6 +52,7 @@ void add_node(GenericNode** list, void* new_data, size_t data_size) {
     *list = new_node;
 }
 
+<<<<<<< HEAD
 void free_list(GenericNode** list) {
     GenericNode* nodo_actual = *list;
     GenericNode* nodo_siguiente = NULL;
@@ -66,3 +80,15 @@ void print_statements_list() {
     }
 }
 
+=======
+void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HACIENDO UN PRINT PARTICULAR GENERICO
+    if(variable) {
+        GenericNode* aux = variable;
+        while(aux) {
+            t_variable* temp = (t_variable*)aux->data;
+            printf("%s: %s, linea %i\n", temp->variable, temp->type, temp->line);
+            aux = aux->next;
+        }
+    }
+}
+>>>>>>> 67b945135f842eeb2e0076d9b2c1ef28d0c73a26

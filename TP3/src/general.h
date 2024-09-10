@@ -6,8 +6,12 @@
 
 #define YYLTYPE YYLTYPE
 
+#define INICIO_CONTEO_LINEA 1
+#define INICIO_CONTEO_COLUMNA 1
+
 extern FILE *yyin;
-extern int yylineno;
+
+extern char* type;
 
 typedef struct YYLTYPE
 {
@@ -22,7 +26,7 @@ typedef struct {
 } location;
 
 typedef struct {
-    location* location;
+    int line;
     char* type;
     char* variable;
 } t_variable;
@@ -34,7 +38,8 @@ typedef struct {
 } t_function;
 
 typedef struct {
-    location* location;
+    int line;
+    int column;
     char* type;
 } t_statement;
 
@@ -79,20 +84,31 @@ typedef struct GenericNode { // Estructura para reducir lógica repetida en los 
     struct GenericNode* next;
 } GenericNode;
 
+<<<<<<< HEAD
 #define INICIO_CONTEO_LINEA 1
 #define INICIO_CONTEO_COLUMNA 1
 
 // extern Nodo* symbols;
 extern GenericNode* statements_list;
+=======
+extern GenericNode* variable;
+extern t_variable* data_variable;
+>>>>>>> 67b945135f842eeb2e0076d9b2c1ef28d0c73a26
 
 void pausa(void);
 void inicializarUbicacion(void);
 void reinicializarUbicacion(void);
+void init_structures();
 
 /* Ejemplo: GenericNode* function = NULL (Para la lista que queremos); t_function* function_data = NULL; (Para los datos que queremos guardar)
    Agregamos datos a cada miembro de la estructura t_function de "function_data"
    add_node(&function, function_data, sizeof(t_function)); */ 
 void add_node(GenericNode** list, void* new_data, size_t data_size); // Agregar a la lista de manera genérica //
+<<<<<<< HEAD
 void free_list(GenericNode** list);
 void print_statements_list();
+=======
+void print_lists();
+// void free_lists(); TODO: hacer una funcion que free a todas las listas!
+>>>>>>> 67b945135f842eeb2e0076d9b2c1ef28d0c73a26
 #endif

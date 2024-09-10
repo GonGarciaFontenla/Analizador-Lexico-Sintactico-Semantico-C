@@ -64,6 +64,7 @@ ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
 }
 
 int|float|double|char|void|short|long|unsigned|signed {
+    yylval.string_type = strdup(yytext);  // Asigna el valor del token reconocido
     yylloc.last_column += yyleng;
     return TIPO_DATO;
 }

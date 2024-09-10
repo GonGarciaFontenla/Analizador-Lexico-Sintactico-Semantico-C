@@ -7,7 +7,10 @@
 
 extern int yylex(void);
 void yyerror(const char*);
-int if_first_line, if_first_column;
+
+//-------- Declaracion de variables --------//
+GenericNode* variable = NULL;
+t_variable* data_variable = NULL;
 %}
 
 %error-verbose
@@ -323,8 +326,6 @@ expPrimaria
     | CONSTANTE
     | LITERAL_CADENA 
     | '(' expresion ')'
-    | TIPO_DATO
-    | PALABRA_RESERVADA
     ;
 
 nombreTipo
@@ -338,7 +339,7 @@ unidadTraduccion
 
 declaracionExterna
     : definicionFuncion     { printf("Se ha definido una funcion\n"); }
-    | declaracion           { printf("Se ha declarado una variable\n"); }
+    | declaracion           { add_node(&variable, data_variable, sizeof(t_variable));}
     ;
 
 definicionFuncion
@@ -391,7 +392,7 @@ listaInicializadores
     ;
 
 especificadorTipo
-    : TIPO_DATO
+    : TIPO_DATO          { data_variable -> type = strdup($<string_type>1);}
     | especificadorStructUnion
     | especificadorEnum
     ;
@@ -472,7 +473,10 @@ listaCalificadoresTipo
     ;
 
 declaradorDirecto
-    : IDENTIFICADOR
+    : IDENTIFICADOR { 
+        data_variable -> variable = strdup($<string_type>1); 
+        data_variable->line = yylloc.first_line;
+    }
     | '(' decla ')'
     | declaradorDirecto continuacionDeclaradorDirecto
     ;
@@ -586,17 +590,19 @@ int main(int argc, char *argv[]) {
         }
         yyin = file;
     }
-    #if YYDEBUG
-    yydebug = 1;
-    #endif
+
+    init_structures();
 
     yyparse();
 
     print_statements_list();
+    print_lists();
 
     if (yyin && yyin != stdin) {
         fclose(yyin);
     }
+
+    //free_lists();
 
     return 0;
 }
