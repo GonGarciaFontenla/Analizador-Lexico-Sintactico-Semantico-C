@@ -27,27 +27,22 @@ t_function* data_function = NULL;
     unsigned long unsigned_long_type;
 }
 
-%token <string_type> IDENTIFICADOR
-%token <string_type> LITERAL_CADENA
-%token <string_type> PALABRA_RESERVADA
-%token CONSTANTE
-%token <string_type> TIPO_DATO
-%token <string_type> TIPO_ALMACENAMIENTO TIPO_CALIFICADOR ENUM STRUCT UNION
-%token <string_type> RETURN IF ELSE WHILE DO FOR DEFAULT CASE  
-%token <string_type> CONTINUE BREAK GOTO SWITCH SIZEOF
-%token <int_type> ENTERO
-%token <double_type> NUM
+%token <int_type> TIPO_DATO IF WHILE DO SWITCH FOR IDENTIFICADOR RETURN DEFAULT CASE SIZEOF LITERAL_CADENA CONSTANTE ENTERO NUM
+%token <int_type> CONTINUE BREAK GOTO ELSE TIPO_ALMACENAMIENTO TIPO_CALIFICADOR ENUM STRUCT UNION PALABRA_RESERVADA
 
-%token ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
+%token <int_type> PTR_OP INC_OP DEC_OP
+%token <int_type> ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
 %token EQ NEQ LE GE AND OR
 %token LEFT_SHIFT RIGHT_SHIFT
-%token PTR_OP INC_OP DEC_OP
 %token ELIPSIS
+
+%token <int_type> '=' ';' '(' ')' '&' '{' '}' '-' '!' '\n' '*'
 
 %type <int_type> expresion expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expMultiplicativa expUnaria expPostfijo
 %type <int_type> operAsignacion operUnario nombreTipo listaArgumentos expPrimaria
 %type <int_type> sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
-%type <string_type> unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto
+%type <int_type> unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp puntero
+                    declarador declaradorDirecto decla especificadorTipo especificadorDeclaracionOp especificadorStructUnion especificadorEnum punteroOp
 
 %start programa
 
@@ -478,9 +473,7 @@ listaCalificadoresTipo
     ;
 
 declaradorDirecto
-    : IDENTIFICADOR { 
-        add_variable($<string_type>1); 
-    }
+    : IDENTIFICADOR {add_variable($<string_type>1);}
     | '(' decla ')'
     | declaradorDirecto continuacionDeclaradorDirecto
     ;

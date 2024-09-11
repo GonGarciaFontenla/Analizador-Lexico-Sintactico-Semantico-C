@@ -229,16 +229,16 @@ enum {
 
 [ \t]+ {yylloc.first_column = yylloc.last_column += yyleng;}
 
-\n {
-    yylloc.first_line = yylloc.last_line += yyleng; 
-    yylloc.first_column = yylloc.last_column = INICIO_CONTEO_COLUMNA;
-    return '\n';
-  }
 
 [\t\n\r]+ {
     yylloc.first_line = yylloc.last_line += yyleng; 
 } /* Ignorar espacios y tabs */
 
+\n {
+    yylloc.first_line = yylloc.last_line += yyleng; 
+    yylloc.first_column = yylloc.last_column = INICIO_CONTEO_COLUMNA;
+    return '\n';
+  }
 
 [^ \t\n] {}
 <tokenNoReconocido>{
