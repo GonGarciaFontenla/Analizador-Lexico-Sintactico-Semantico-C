@@ -69,6 +69,12 @@ int|float|double|char|void|short|long|unsigned|signed {
     return TIPO_DATO;
 }
 
+"unsigned int"|"signed int"|"short int"|"signed short int"|"unsigned short int"|"long int"|"signed long int" {
+    yylval.string_type = yytext; 
+    yylloc.last_column += yyleng;
+    return TIPO_DATO;
+}
+
 return  {
     yylloc.last_column += yyleng;
     return RETURN;

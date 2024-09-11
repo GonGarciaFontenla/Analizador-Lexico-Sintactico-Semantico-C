@@ -342,7 +342,7 @@ unidadTraduccion
 
 declaracionExterna
     : definicionFuncion     { printf("Se ha definido una funcion\n"); }
-    | declaracion           
+    | declaracion
     ;
 
 definicionFuncion
