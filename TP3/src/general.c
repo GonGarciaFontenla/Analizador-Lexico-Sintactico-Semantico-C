@@ -49,6 +49,15 @@ void add_node(GenericNode** list, void* new_data, size_t data_size) { // Agregar
     *list = new_node;
 }
 
+void add_variable(char* variable_name) {
+    data_variable->variable = strdup(variable_name);
+    data_variable->type = strdup(data_variable->type);  // Copiar el tipo de la variable actual
+    data_variable->line = yylloc.first_line;  // Guardar la línea donde fue declarada
+
+    // Agregar la variable a la lista
+    add_node(&variable, data_variable, sizeof(t_variable));
+}
+
 void free_list(GenericNode** list) {
     GenericNode* nodo_actual = *list;
     GenericNode* nodo_siguiente = NULL;

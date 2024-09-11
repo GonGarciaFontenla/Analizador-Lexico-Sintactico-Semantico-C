@@ -20,6 +20,7 @@ typedef struct YYLTYPE
     int last_line;
     int last_column;
 } YYLTYPE;
+
 typedef struct {
     int line;
     int column;
@@ -101,6 +102,7 @@ void init_structures();
    Agregamos datos a cada miembro de la estructura t_function de "function_data"
    add_node(&function, function_data, sizeof(t_function)); */ 
 void add_node(GenericNode** list, void* new_data, size_t data_size); // Agregar a la lista de manera genérica //
+void add_variable(char* variable_name);
 void free_list(GenericNode** list);
 //void print_statements_list();
 

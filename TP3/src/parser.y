@@ -14,7 +14,7 @@ t_variable* data_variable = NULL;
 
 %}
 
-%error-verbose
+%define parse.error verbose
 %locations
 
 %union {
@@ -44,7 +44,8 @@ t_variable* data_variable = NULL;
 
 %type <int_type> expresion expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expMultiplicativa expUnaria expPostfijo
 %type <int_type> operAsignacion operUnario nombreTipo listaArgumentos expPrimaria
-%type <unsigned_long_type> sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
+%type <int_type> sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
+%type <string_type> unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto
 
 %start programa
 
@@ -55,7 +56,7 @@ programa
     ;
 
 input
-    : /* vacío */
+    : %empty
     | input expresion { printf("Expresion reconocida \n");}
     | input sentencia /* Permitir que el archivo termine con una sentencia */
     | input unidadTraduccion
@@ -77,12 +78,12 @@ sentCompuesta
     ;
 
 opcionDeclaracion
-    :
+    : %empty
     | listaDeclaraciones
     ;
 
 opcionSentencia
-    :
+    : %empty
     | listaSentencias
     ;
 
@@ -116,7 +117,7 @@ sentSeleccion
     ;
 
 opcionElse
-    : 
+    : %empty
     | ELSE sentencia
     ;
 
@@ -206,7 +207,7 @@ expresion
     ;
 
 opcionExp
-    :
+    : %empty
     | expresion ';' 
     | expresion ';' expresion
     | expresion ';' expresion ';' expresion
@@ -256,7 +257,7 @@ expRelacional
     ;
     
 opcionRelacional
-    :
+    : %empty
     | '<' expAditiva
     | '>' expAditiva
     | LE expAditiva
@@ -269,7 +270,7 @@ expAditiva
     ;
 
 opcionAditiva
-    :
+    : %empty
     | '+' expMultiplicativa
     | '-' expMultiplicativa
     ;
@@ -312,7 +313,7 @@ opcionPostfijo
     ;
 
 listaArgumentosOp
-    : 
+    : %empty
     | listaArgumentos
     ;
 
@@ -341,7 +342,7 @@ unidadTraduccion
 
 declaracionExterna
     : definicionFuncion     { printf("Se ha definido una funcion\n"); }
-    | declaracion           { add_node(&variable, data_variable, sizeof(t_variable));}
+    | declaracion           
     ;
 
 definicionFuncion
@@ -353,7 +354,7 @@ declaracion
     ;
     
 especificadorDeclaracionOp
-    :
+    : %empty
     | especificadorDeclaracion
     ;
     
@@ -364,12 +365,12 @@ especificadorDeclaracion
     ;
 
 listaDeclaradores
-    : declarador
+    : declarador 
     | listaDeclaradores ',' declarador
     ;
 
 listaDeclaracionOp
-    : 
+    : %empty
     | listaDeclaradores
     ;
     
@@ -384,7 +385,7 @@ inicializador
     ;
 
 opcionComa
-    :
+    : %empty
     | ','
     ;
 
@@ -394,7 +395,7 @@ listaInicializadores
     ;
 
 especificadorTipo
-    : TIPO_DATO          { data_variable -> type = strdup($<string_type>1);}
+    : TIPO_DATO { data_variable -> type = strdup($<string_type>1);}
     | especificadorStructUnion
     | especificadorEnum
     ;
@@ -409,7 +410,7 @@ cuerpoEspecificador
     ;
 
 cuerpoStructOp
-    : 
+    : %empty
     | '{' listaDeclaracionesStruct '}'
     ;
 
@@ -428,7 +429,7 @@ listaCalificadores
     ;
 
 listaCalificadoresOp
-    :
+    : %empty
     | listaCalificadores
     ;
 
@@ -447,7 +448,7 @@ declaSi
     ;
 
 expConstanteOp
-    :
+    : %empty
     | ':' expresion
     ;
 
@@ -456,7 +457,7 @@ decla
     ;
 
 punteroOp
-    :
+    : %empty
     | puntero
     ;
 
@@ -465,7 +466,7 @@ puntero
     ;
 
 listaCalificadoresTipoOp
-    : 
+    : %empty
     | listaCalificadoresTipo
     ;
     
@@ -476,8 +477,7 @@ listaCalificadoresTipo
 
 declaradorDirecto
     : IDENTIFICADOR { 
-        data_variable -> variable = strdup($<string_type>1); 
-        data_variable->line = yylloc.first_line;
+        add_variable($<string_type>1); 
     }
     | '(' decla ')'
     | declaradorDirecto continuacionDeclaradorDirecto
@@ -490,7 +490,7 @@ continuacionDeclaradorDirecto
     ;
 
 listaTiposParametrosOp 
-    : 
+    : %empty
     | listaTiposParametros
     ;
     
@@ -499,7 +499,7 @@ listaTiposParametros
     ;
     
 opcionalListaParametros
-    :
+    : %empty
     | ',' ELIPSIS
     ;
 
@@ -518,13 +518,13 @@ opcionesDecla
     ;
 
 listaIdentificadoresOp
-    :
+    : %empty
     | listaIdentificadores
     ;
 
 listaIdentificadores
     : IDENTIFICADOR
-    | listaIdentificadores ',' IDENTIFICADOR
+    | listaIdentificadores ',' IDENTIFICADOR 
     ;
 
 especificadorEnum
@@ -537,7 +537,7 @@ opcionalEspecificadorEnum
     ;
 
 opcionalListaEnumeradores
-    :
+    : %empty
     | '{' listaEnumeradores '}'
     ;
 
@@ -551,7 +551,7 @@ enumerador
     ;
 
 opcionalEnumerador
-    :
+    : %empty
     | '=' expresion
     ;
 
@@ -561,7 +561,7 @@ declaradorAbstracto
     ;
 
 declaradorAbstractoDirectoOp
-    : 
+    : %empty
     | declaradorAbstractoDirecto
     ;
 
@@ -576,7 +576,7 @@ postOpcionDeclaradorAbstracto
     ;
 
 listaDeclaracionSentencia
-    :
+    : %empty
     | listaDeclaracionSentencia declaracion
     | listaDeclaracionSentencia sentencia
     ;
