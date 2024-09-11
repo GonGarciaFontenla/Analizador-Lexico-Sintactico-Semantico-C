@@ -87,14 +87,14 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
     }
 }
 
-// void add_variable(char* variable_name) { YA NO HACE FALTA, PERO POR LAS DUDAS LA DEJAMOS
-//     data_variable->variable = strdup(variable_name);
-//     data_variable->type = strdup(data_variable->type);  // Copiar el tipo de la variable actual
-//     data_variable->line = yylloc.first_line;  // Guardar la línea donde fue declarada
+void add_variable(char* variable_name) { 
+    data_variable->variable = strdup(variable_name);
+    data_variable->type = strdup(data_variable->type);  // Copiar el tipo de la variable actual
+    data_variable->line = yylloc.first_line;  // Guardar la línea donde fue declarada
 
-//     // Agregar la variable a la lista
-//     add_node(&variable, data_variable, sizeof(t_variable));
-// }
+    // Agregar la variable a la lista
+    add_node(&variable, data_variable, sizeof(t_variable));
+}
 
 void add_function(char* function_name, char* function_type) {
     data_function->name = strdup(function_name);
