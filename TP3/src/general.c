@@ -67,15 +67,34 @@ void add_node(GenericNode** list, void* new_data, size_t data_size) { // Agregar
     current->next = new_node;
 }
 
+void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HACIENDO UN PRINT PARTICULAR GENERICO
+    if(variable) {
+        GenericNode* aux = variable;
+        while(aux) {
+            t_variable* temp = (t_variable*)aux->data;
+            printf("%s: %s, linea %i\n", temp->variable, temp->type, temp->line);
+            aux = aux->next;
+        }
+    }
 
-void add_variable(char* variable_name) {
-    data_variable->variable = strdup(variable_name);
-    data_variable->type = strdup(data_variable->type);  // Copiar el tipo de la variable actual
-    data_variable->line = yylloc.first_line;  // Guardar la línea donde fue declarada
-
-    // Agregar la variable a la lista
-    add_node(&variable, data_variable, sizeof(t_variable));
+    if(function) {
+        GenericNode* aux = function;
+        while(aux) {
+            t_function* temp = (t_function*)aux->data;
+            printf("%s: %s, input ... retorna: %s, linea %i\n", temp->name, temp->type, temp->return_type, temp->line);
+            aux = aux->next;
+        }
+    }
 }
+
+// void add_variable(char* variable_name) { YA NO HACE FALTA, PERO POR LAS DUDAS LA DEJAMOS
+//     data_variable->variable = strdup(variable_name);
+//     data_variable->type = strdup(data_variable->type);  // Copiar el tipo de la variable actual
+//     data_variable->line = yylloc.first_line;  // Guardar la línea donde fue declarada
+
+//     // Agregar la variable a la lista
+//     add_node(&variable, data_variable, sizeof(t_variable));
+// }
 
 void add_function(char* function_name, char* function_type) {
     data_function->name = strdup(function_name);
@@ -114,22 +133,3 @@ void free_list(GenericNode** list) {
 //     }
 // }
 
-void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HACIENDO UN PRINT PARTICULAR GENERICO
-    if(variable) {
-        GenericNode* aux = variable;
-        while(aux) {
-            t_variable* temp = (t_variable*)aux->data;
-            printf("%s: %s, linea %i\n", temp->variable, temp->type, temp->line);
-            aux = aux->next;
-        }
-    }
-
-    if(function) {
-        GenericNode* aux = function;
-        while(aux) {
-            t_function* temp = (t_function*)aux->data;
-            printf("%s: %s, input ... retorna: %s, linea %i\n", temp->name, temp->type, temp->return_type, temp->line);
-            aux = aux->next;
-        }
-    }
-}

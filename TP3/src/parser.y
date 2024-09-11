@@ -10,9 +10,9 @@ void yyerror(const char*);
 
 //-------- Declaracion de variables --------//
 GenericNode* variable = NULL;
-GenericNode* function = NULL;
 t_variable* data_variable = NULL;
-t_function* data_function = NULL;
+t_function* data_function;
+GenericNode* function;
 
 %}
 
@@ -27,22 +27,27 @@ t_function* data_function = NULL;
     unsigned long unsigned_long_type;
 }
 
-%token <int_type> TIPO_DATO IF WHILE DO SWITCH FOR IDENTIFICADOR RETURN DEFAULT CASE SIZEOF LITERAL_CADENA CONSTANTE ENTERO NUM
-%token <int_type> CONTINUE BREAK GOTO ELSE TIPO_ALMACENAMIENTO TIPO_CALIFICADOR ENUM STRUCT UNION PALABRA_RESERVADA
+%token <string_type> IDENTIFICADOR
+%token <string_type> LITERAL_CADENA
+%token <string_type> PALABRA_RESERVADA
+%token CONSTANTE
+%token <string_type> TIPO_DATO
+%token <string_type> TIPO_ALMACENAMIENTO TIPO_CALIFICADOR ENUM STRUCT UNION
+%token <string_type> RETURN IF ELSE WHILE DO FOR DEFAULT CASE  
+%token <string_type> CONTINUE BREAK GOTO SWITCH SIZEOF
+%token <int_type> ENTERO
+%token <double_type> NUM
 
-%token <int_type> PTR_OP INC_OP DEC_OP
-%token <int_type> ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
+%token ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
 %token EQ NEQ LE GE AND OR
 %token LEFT_SHIFT RIGHT_SHIFT
+%token PTR_OP INC_OP DEC_OP
 %token ELIPSIS
-
-%token <int_type> '=' ';' '(' ')' '&' '{' '}' '-' '!' '\n' '*'
 
 %type <int_type> expresion expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expMultiplicativa expUnaria expPostfijo
 %type <int_type> operAsignacion operUnario nombreTipo listaArgumentos expPrimaria
 %type <int_type> sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
-%type <int_type> unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp puntero
-                    declarador declaradorDirecto decla especificadorTipo especificadorDeclaracionOp especificadorStructUnion especificadorEnum punteroOp
+%type <string_type> unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto
 
 %start programa
 
@@ -54,19 +59,19 @@ programa
 
 input
     : %empty
-    | input expresion { printf("Expresion reconocida \n");}
+    | input expresion
     | input sentencia /* Permitir que el archivo termine con una sentencia */
     | input unidadTraduccion
     /* | input error '\n' { printf("EL ERROR ESTA ACA \n"); yyerrok; } */
     ;
 
 sentencia
-    : sentCompuesta { printf("Sentencia compuesta reconocida\n"); }
-    | sentExpresion { printf("Sentencia expresion reconocida\n"); }
-    | sentSeleccion { printf("Sentencia seleccion reconocida\n"); }
-    | sentIteracion { printf("Sentencia iteracion reconocida\n"); }
-    | sentEtiquetadas { printf("Sentencia etiquetada reconocida\n"); }
-    | sentSalto { printf("Sentencia de salto reconocida\n"); }
+    : sentCompuesta 
+    | sentExpresion 
+    | sentSeleccion 
+    | sentIteracion 
+    | sentEtiquetadas 
+    | sentSalto
     | '\n'
     ;
 
@@ -338,12 +343,12 @@ unidadTraduccion
     ;
 
 declaracionExterna
-    : definicionFuncion     { printf("Se ha definido una funcion\n"); }
-    | declaracion
+    : definicionFuncion    
+    | declaracion           
     ;
 
 definicionFuncion
-    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta { add_function($<string_type>3, "definicion");}
+    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta
     ;
 
 declaracion
@@ -362,8 +367,8 @@ especificadorDeclaracion
     ;
 
 listaDeclaradores
-    : declarador 
-    | listaDeclaradores ',' declarador
+    : declarador { add_node(&variable, data_variable, sizeof(t_variable));}
+    | listaDeclaradores ',' declarador { add_node(&variable, data_variable, sizeof(t_variable));}
     ;
 
 listaDeclaracionOp
@@ -473,7 +478,10 @@ listaCalificadoresTipo
     ;
 
 declaradorDirecto
-    : IDENTIFICADOR {add_variable($<string_type>1);}
+    : IDENTIFICADOR { 
+        data_variable->variable = strdup($<string_type>1);
+        data_variable->line = yylloc.first_line;  // Guardar la línea donde fue declarada
+    }
     | '(' decla ')'
     | declaradorDirecto continuacionDeclaradorDirecto
     ;
