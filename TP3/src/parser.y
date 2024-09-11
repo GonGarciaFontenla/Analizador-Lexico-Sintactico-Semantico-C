@@ -10,7 +10,9 @@ void yyerror(const char*);
 
 //-------- Declaracion de variables --------//
 GenericNode* variable = NULL;
+GenericNode* function = NULL;
 t_variable* data_variable = NULL;
+t_function* data_function = NULL;
 
 %}
 
@@ -346,7 +348,7 @@ declaracionExterna
     ;
 
 definicionFuncion
-    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta
+    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta { add_function($<string_type>3, "definicion");}
     ;
 
 declaracion

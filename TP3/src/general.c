@@ -37,6 +37,13 @@ void init_structures() { // Iniciar todas las estructuras
     }
     data_variable->line = 0;
 
+    data_function = (t_function*)malloc(sizeof(t_function));
+    if (data_function == NULL) {
+        printf("Error al asignar memoria para data_function\n");
+        exit(EXIT_FAILURE);
+    }
+    data_function->line = 0;
+
 }
 
 void add_node(GenericNode** list, void* new_data, size_t data_size) { // Agregar a la lista genericamente
@@ -45,9 +52,21 @@ void add_node(GenericNode** list, void* new_data, size_t data_size) { // Agregar
 
     memcpy(new_node->data, new_data, data_size);
 
-    new_node->next = *list;
-    *list = new_node;
+    new_node->next = NULL; // El nodo se agrega al final, segun orden de aparicion
+
+    if (*list == NULL) {
+        *list = new_node;
+        return;
+    }
+
+    GenericNode* current = *list;
+    while (current->next != NULL) {
+        current = current->next; 
+    }
+
+    current->next = new_node;
 }
+
 
 void add_variable(char* variable_name) {
     data_variable->variable = strdup(variable_name);
@@ -56,6 +75,16 @@ void add_variable(char* variable_name) {
 
     // Agregar la variable a la lista
     add_node(&variable, data_variable, sizeof(t_variable));
+}
+
+void add_function(char* function_name, char* function_type) {
+    data_function->name = strdup(function_name);
+    data_function->type = strdup(function_type); 
+    data_function->line = yylloc.first_line;  // Corregir, guarda la linea donde cierra el }
+    // parametros
+    data_function->return_type = strdup(function_type);
+
+    add_node(&function, data_function, sizeof(t_function));
 }
 
 void free_list(GenericNode** list) {
@@ -91,6 +120,15 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
         while(aux) {
             t_variable* temp = (t_variable*)aux->data;
             printf("%s: %s, linea %i\n", temp->variable, temp->type, temp->line);
+            aux = aux->next;
+        }
+    }
+
+    if(function) {
+        GenericNode* aux = function;
+        while(aux) {
+            t_function* temp = (t_function*)aux->data;
+            printf("%s: %s, input ... retorna: %s, linea %i\n", temp->name, temp->type, temp->return_type, temp->line);
             aux = aux->next;
         }
     }

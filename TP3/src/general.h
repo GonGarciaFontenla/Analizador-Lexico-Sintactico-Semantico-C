@@ -33,9 +33,11 @@ typedef struct {
 } t_variable;
 
 typedef struct {
-    int linea;
+    char* name;
+    int line;
     char* type; // Si es declaracion o definicion
     char** parameters; // Es una sublista (array de parametros, guardar como string el tipo y el ID)
+    char* return_type;
 } t_function;
 
 typedef struct {
@@ -91,7 +93,9 @@ typedef struct GenericNode { // Estructura para reducir lógica repetida en los 
 // extern Nodo* symbols;
 extern GenericNode* statements_list;
 extern GenericNode* variable;
+extern GenericNode* function;
 extern t_variable* data_variable;
+extern t_function* data_function;
 
 void pausa(void);
 void inicializarUbicacion(void);
@@ -103,6 +107,7 @@ void init_structures();
    add_node(&function, function_data, sizeof(t_function)); */ 
 void add_node(GenericNode** list, void* new_data, size_t data_size); // Agregar a la lista de manera genérica //
 void add_variable(char* variable_name);
+void add_function(char* function_name, char* function_type);
 void free_list(GenericNode** list);
 //void print_statements_list();
 
