@@ -15,6 +15,7 @@ t_function* data_function;
 GenericNode* function;
 
 int in_function_params = 0;
+int is_in_declaracion = 0;
 
 %}
 
@@ -219,7 +220,7 @@ opcionExp
 
 expAsignacion
     : expCondicional 
-    | expUnaria operAsignacion expAsignacion {add_node(&variable, data_variable, sizeof(t_variable));}
+    | expUnaria operAsignacion expAsignacion {printf("Asignacion\n");}
     ;
 
 operAsignacion
@@ -351,13 +352,17 @@ declaracionExterna
     ;
 
 definicionFuncion
-    : especificadorDeclaracion decla especificadorDeclaracionOp sentCompuesta {printf("No entra por aqui\n"); }
+    : especificadorDeclaracion decla especificadorDeclaracionOp sentCompuesta 
     ;
 
 declaracion
-    : especificadorDeclaracion listaDeclaradores ';' { printf("Entra por aqui\n");}
+    : activadorFlagDeclaracion {is_in_declaracion = 1; }
     ;
-    
+
+activadorFlagDeclaracion
+    : especificadorDeclaracion listaDeclaradores ';'  {is_in_declaracion = 0;}
+    ;
+
 especificadorDeclaracionOp
     : %empty
     | especificadorDeclaracion
@@ -371,12 +376,12 @@ especificadorDeclaracion
 
 listaDeclaradores
     : declarador { 
-        if (in_function_params) {
+        if (!is_in_declaracion) {
             add_node(&variable, data_variable, sizeof(t_variable));
         }
     }
     | listaDeclaradores ',' declarador { 
-        if (in_function_params) {
+        if (!is_in_declaracion) {
             add_node(&variable, data_variable, sizeof(t_variable));
         }
     }
@@ -490,7 +495,8 @@ listaCalificadoresTipo
 
 declaradorDirecto
     : IDENTIFICADOR {
-        if (!in_function_params) {
+        if(!is_in_declaracion){
+            printf("flag = 1\n");
             data_variable->variable = strdup($<string_type>1);
             data_variable->line = yylloc.first_line;  // Guardar la línea donde fue declarada
         }
@@ -502,7 +508,7 @@ declaradorDirecto
 
 continuacionDeclaradorDirecto
     : '[' expConstanteOp ']' 
-    | '(' { in_function_params = 1; } listaTiposParametrosOp ')' { in_function_params = 0; }
+    | '('listaTiposParametrosOp ')' 
     | '(' listaIdentificadoresOp ')'
     | '(' TIPO_DATO ')'
     ;
