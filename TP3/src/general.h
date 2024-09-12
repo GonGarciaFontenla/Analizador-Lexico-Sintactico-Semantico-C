@@ -11,7 +11,7 @@
 
 extern FILE *yyin;
 
-extern char* type;
+extern char* current_type;
 
 typedef struct YYLTYPE
 {
@@ -107,6 +107,7 @@ void init_structures();
    add_node(&function, function_data, sizeof(t_function)); */ 
 void add_node(GenericNode** list, void* new_data, size_t data_size); // Agregar a la lista de manera genérica //
 void add_variable(char* variable_name);
+void free_data_variable(t_variable* variable);
 void add_function(char* function_name, char* function_type);
 void free_list(GenericNode** list);
 //void print_statements_list();
