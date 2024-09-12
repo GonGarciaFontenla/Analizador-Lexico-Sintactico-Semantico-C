@@ -1,144 +1,261 @@
-/* En los archivos (*.c) se pueden poner tanto DECLARACIONES como DEFINICIONES de C, así como directivas de preprocesador */
-/* Recordar solamente indicar archivos *.h en las directivas de preprocesador #include, nunca archivos *.c */
+%{
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-
 #include "general.h"
 
-extern YYLTYPE yylloc;
-GenericNode* statements_list = NULL;
-// Nodo* symbols = NULL;
+#include "parser.tab.h"
 
-void pausa(void)
-{
-    printf("Presione ENTER para continuar...\n");
-    getchar();
+#define LINEA_INICIAL 1
+#define COLUMNA_INICIAL 1
+
+int inicializar = 1;
+
+%}
+
+%pointer
+%option noyywrap
+%x tokenNoReconocido
+
+SUFIJO_ENTERO ([uU]?[lL]{0,2}|[lL]{0,2}[uU]?)?
+SUFIJO_REAL ([eE][+-]?[0-9]+)?[fFlL]?
+DIGITO_DECIMAL [0-9]
+DIGITO_OCTAL [0-7]
+DIGITO_HEXA [0-9a-fA-F]
+ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
+
+%%
+    
+    if(inicializar == 1){
+        inicializarUbicacion();
+        inicializar = -1;
+    }
+    reinicializarUbicacion();
+
+[1-9]{DIGITO_DECIMAL}*{SUFIJO_ENTERO} {
+    yylloc.last_column += yyleng;
+    yylval.int_type = strtoul(yytext, NULL, 0); 
+    return ENTERO;
+}
+0{DIGITO_OCTAL}*{SUFIJO_ENTERO} {
+    yylloc.last_column += yyleng;
+    yylval.int_type = (int) strtoul(yytext, NULL, 0); 
+    return ENTERO;
+}
+0[xX]{DIGITO_HEXA}+{SUFIJO_ENTERO} {
+    yylloc.last_column += yyleng;
+    yylval.int_type = (int) strtoul(yytext, NULL, 0); 
+    return ENTERO;
+}
+[0-9]+\.[0-9]*{SUFIJO_REAL} {
+    yylloc.last_column += yyleng;
+    yylval.double_type = strtod(yytext, NULL); 
+    return NUM; 
+}
+\.[0-9]+{SUFIJO_REAL} {
+    yylloc.last_column += yyleng;
+    yylval.double_type = strtod(yytext, NULL); 
+    return NUM; 
+}
+[0-9]+{SUFIJO_REAL} {
+    yylloc.last_column += yyleng;
+    yylval.double_type = strtod(yytext, NULL); 
+    return NUM; 
 }
 
-void inicializarUbicacion(void)
-{
-    yylloc.first_line = yylloc.last_line = INICIO_CONTEO_LINEA;
+int|float|double|char|void|short|long|unsigned|signed {
+    yylval.string_type = strdup(yytext);  // Asigna el valor del token reconocido
+    yylloc.last_column += yyleng;
+    return TIPO_DATO;
+}
+
+"unsigned int"|"signed int"|"short int"|"signed short int"|"unsigned short int"|"long int"|"signed long int" {
+    yylval.string_type = yytext; 
+    yylloc.last_column += yyleng;
+    return TIPO_DATO;
+}
+
+return  {
+    yylloc.last_column += yyleng;
+    return RETURN;
+}
+
+if  {
+    yylloc.last_column += yyleng;
+    return IF;
+}
+
+else  {
+    yylloc.last_column += yyleng;
+    return ELSE;
+}
+
+while  {
+    yylloc.last_column += yyleng;
+    return WHILE;
+}
+
+do  {
+    yylloc.last_column += yyleng;
+    return DO;
+}
+
+for  {
+    yylloc.last_column += yyleng;
+    return FOR;
+}
+
+case  {
+    yylloc.last_column += yyleng;
+    return CASE;
+}
+
+default  {
+    yylloc.last_column += yyleng;
+    return DEFAULT;
+}
+
+switch {
+    yylloc.last_column += yyleng;
+    return SWITCH;
+}
+
+sizeof|break|continue|goto {
+    yylloc.last_column += yyleng;
+    return PALABRA_RESERVADA;
+}
+
+volatile|const {
+    yylloc.last_column += yyleng;
+    return TIPO_CALIFICADOR;
+}
+
+typedef|static|extern|auto|register {
+    yylloc.last_column += yyleng;
+    return TIPO_ALMACENAMIENTO;
+}
+
+union {
+    yylloc.last_column += yyleng;
+    return UNION;
+}
+
+struct {
+    yylloc.last_column += yyleng;
+    return STRUCT;
+}
+
+enum {
+    yylloc.last_column += yyleng;
+    return ENUM;
+}
+
+[_a-zA-Z][_a-zA-Z0-9]* {
+    yylloc.last_column += yyleng;
+    yylval.string_type = strdup(yytext); 
+    return IDENTIFICADOR;
+}
+
+'[^\\\']' {
+    yylloc.last_column += yyleng;
+    yylval.char_type = yytext[1];  // Almacena el carácter entre comillas
+    return CONSTANTE; 
+}
+
+'\\{ESCAPE_SIMPLE}' {
+    yylloc.last_column += yyleng;
+    yylval.char_type = yytext[1];  // Maneja el carácter de escape
+    return CONSTANTE; 
+}
+
+'\\{DIGITO_OCTAL}{1,3}' {
+    yylloc.last_column += yyleng;
+    yylval.char_type = (char)strtol(yytext+1, NULL, 8);  // Convierte de octal
+    return CONSTANTE; 
+}
+
+'\\x{DIGITO_HEXA}+' {
+    yylloc.last_column += yyleng;
+    yylval.char_type = (char)strtol(yytext+2, NULL, 16);  // Convierte de hexadecimal
+    return CONSTANTE; 
+}
+
+\"([^\\\"\n]|\\{ESCAPE_SIMPLE}|\\{DIGITO_OCTAL}{1,3}|\\x{DIGITO_HEXA}+)*\" {
+    yylloc.last_column += yyleng;
+    yylval.string_type = strdup(yytext); 
+    return LITERAL_CADENA; 
+}
+
+":" { return ':';}
+"?" { return '?';}
+"+" { return '+'; }
+"-" { return '-'; }
+"*" { return '*'; }
+"/" { return '/'; }
+"%" { return '%'; }
+"=" { return '='; }
+"+=" { return ADD_ASSIGN; }
+"-=" { return SUB_ASSIGN; }
+"*=" { return MUL_ASSIGN; }
+"/=" { return DIV_ASSIGN; }
+"%=" { return MOD_ASSIGN; }
+"==" { return EQ; }
+"!=" { return NEQ; }
+"<" { return '<'; }
+">" { return '>'; }
+"<=" { return LE; }
+">=" { return GE; }
+"&&" { return AND; }
+"||" { return OR; }
+"!" { return '!'; }
+"&" { return '&'; }
+"|" { return '|'; }
+"^" { return '^'; }
+"~" { return '~'; }
+"<<" { return LEFT_SHIFT; }
+">>" { return RIGHT_SHIFT; }
+"(" { return '('; }
+")" { return ')'; }
+"[" { return '['; }
+"]" { return ']'; }
+"{" { return '{'; }
+"}" { return '}'; }
+";" { return ';'; }
+"," { return ','; }
+"." { return '.'; }
+"->" { return PTR_OP; }
+"++" { return INC_OP; }
+"--" { return DEC_OP; }
+
+[ \t]+ {yylloc.first_column = yylloc.last_column += yyleng;}
+
+
+[\t\n\r]+ {
+    yylloc.first_line = yylloc.last_line += yyleng; 
+} /* Ignorar espacios y tabs */
+
+\n {
+    yylloc.first_line = yylloc.last_line += yyleng; 
     yylloc.first_column = yylloc.last_column = INICIO_CONTEO_COLUMNA;
-}
+    return '\n';
+  }
 
-void reinicializarUbicacion(void)
-{
-    yylloc.first_line = yylloc.last_line;
-    yylloc.first_column = yylloc.last_column;
-}
-
-void init_structures() { // Iniciar todas las estructuras
-    data_variable = (t_variable*)malloc(sizeof(t_variable));
-    if (data_variable == NULL) {
-        printf("Error al asignar memoria para data_variable\n");
-        exit(EXIT_FAILURE);
+[^ \t\n] {}
+<tokenNoReconocido>{
+    <<EOF>> {
+        fprintf(stderr, "\n");
+        BEGIN(INITIAL);
     }
-    data_variable->line = 0;
-
-    data_function = (t_function*)malloc(sizeof(t_function));
-    if (data_function == NULL) {
-        printf("Error al asignar memoria para data_function\n");
-        exit(EXIT_FAILURE);
+    " "|\t|\n {
+        yyless(0);
+        fprintf(stderr, "\n");
+        BEGIN(INITIAL);
     }
-    data_function->line = 0;
-
-}
-
-void add_node(GenericNode** list, void* new_data, size_t data_size) { // Agregar a la lista genericamente
-    GenericNode* new_node = (GenericNode*)malloc(sizeof(GenericNode)); // Reservamos memoria para cada nodo //
-    new_node->data = malloc(data_size);
-
-    memcpy(new_node->data, new_data, data_size);
-
-    new_node->next = NULL; // El nodo se agrega al final, segun orden de aparicion
-
-    if (*list == NULL) {
-        *list = new_node;
-        return;
-    }
-
-    GenericNode* current = *list;
-    while (current->next != NULL) {
-        current = current->next; 
-    }
-
-    current->next = new_node;
-}
-
-void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HACIENDO UN PRINT PARTICULAR GENERICO
-    if(variable) {
-        GenericNode* aux = variable;
-        while(aux) {
-            t_variable* temp = (t_variable*)aux->data;
-            printf("%s: %s, linea %i\n", temp->variable, temp->type, temp->line);
-            aux = aux->next;
-        }
-    }
-
-    if(function) {
-        GenericNode* aux = function;
-        while(aux) {
-            t_function* temp = (t_function*)aux->data;
-            printf("%s: %s, input ... retorna: %s, linea %i\n", temp->name, temp->type, temp->return_type, temp->line);
-            aux = aux->next;
-        }
+    [^ \t\n]+ {
+        yylloc.last_column += yyleng;
+        fprintf(stderr, "Token no reconocido: %s\n", yytext);
+        BEGIN(INITIAL);
     }
 }
 
-// void add_variable(char* variable_name) { 
-//     data_variable->variable = strdup(variable_name);
-//     data_variable->type = strdup(current_type);  // Copiar el tipo de la variable actual
-//     data_variable->line = yylloc.first_line;  // Guardar la línea donde fue declarada
-
-//     // Agregar la variable a la lista
-//     add_node(&variable, data_variable, sizeof(t_variable));
-// }
-
-void free_data_variable(t_variable* variable) {
-    if(variable) {
-        free(variable->type);
-        free(variable->variable);
-    }
-    free(variable);
-    variable = NULL;
-}
-
-void add_function(char* function_name, char* function_type) {
-    data_function->name = strdup(function_name);
-    data_function->type = strdup(function_type); 
-    data_function->line = yylloc.first_line;  // Corregir, guarda la linea donde cierra el }
-    // parametros
-    data_function->return_type = strdup(function_type);
-
-    add_node(&function, data_function, sizeof(t_function));
-}
-
-void free_list(GenericNode** list) {
-    GenericNode* nodo_actual = *list;
-    GenericNode* nodo_siguiente = NULL;
-
-    while (nodo_actual != NULL) {
-        nodo_siguiente = nodo_actual->next;
-        free(nodo_actual->data);
-        free(nodo_actual);
-        nodo_actual = nodo_siguiente;
-    }
-    *list = NULL;
-}
-
-// void print_statements_list() {
-//     StatementNode* nodo_actual = statements_list;
-//     printf("* Listado de sentencias indicando tipo, numero de linea y de columna:\n");
-//     while (nodo_actual != NULL) {
-//         t_statement* stmt = nodo_actual->statement;
-//         if (stmt != NULL) {
-//             printf("%s: linea %d, columna %d\n",stmt->type, stmt->location->line, stmt->location->column);
-//         } else {
-//             printf("Sentencia vacía.\n");
-//         }
-//         nodo_actual = nodo_actual->next;
-//     }
-// }
-
+%%
