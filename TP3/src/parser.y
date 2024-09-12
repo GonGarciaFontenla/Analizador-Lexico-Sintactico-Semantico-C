@@ -14,9 +14,9 @@ t_variable* data_variable = NULL;
 t_function* data_function;
 GenericNode* function;
 
-int in_function_params = 0;
-int is_in_declaracion = 0;
-int is_in_function = 0;
+int flag_funcion = 0;
+int flag_parametro = 0;
+
 %}
 
 %define parse.error verbose
@@ -52,8 +52,6 @@ int is_in_function = 0;
 %type <int_type> sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
 %type <string_type> unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto
 
-
-
 %start programa
 
 %%
@@ -81,7 +79,7 @@ sentencia
     ;
 
 sentCompuesta
-    : '{' opcionDeclaracion '}' 
+    : '{' opcionDeclaracion opcionSentencia '}' 
     ;
 
 opcionDeclaracion
@@ -96,7 +94,7 @@ opcionSentencia
 
 listaDeclaraciones
     : listaDeclaraciones declaracionExterna
-    | declaracionExterna 
+    | declaracionExterna
     ;
 
 listaSentencias
@@ -153,7 +151,7 @@ sentIteracion
 
         // t_statement* stament = malloc(sizeof(t_statement));
         // stament->location = malloc(sizeof(location));
-        // stament->GOlocation->line = @1.first_line;  
+        // stament->location->line = @1.first_line;  
         // stament->location->column = @1.first_column;  
         // stament->type = "for";
 
@@ -221,13 +219,9 @@ opcionExp
     ;
 
 expAsignacion
-    : segundaParteAsignacion {printf("expAsignacionCACA\n");}
-    | expCondicional {printf("expAsignacion\n"); is_in_declaracion = 0;}
-    | expCondicional ',' listaDeclaradores {printf("expAsignacion Declaracion\n"); is_in_declaracion = 0;}
+    : expCondicional 
+    | expUnaria operAsignacion expAsignacion 
     ;
-
-segundaParteAsignacion
-    : expAsignacion operAsignacion expAsignacion
 
 operAsignacion
     : '=' 
@@ -297,7 +291,7 @@ opcionMultiplicativa
     ;
 
 expUnaria
-    : expPostfijo
+    : expPostfijo 
     | INC_OP expUnaria 
     | DEC_OP expUnaria 
     | expUnaria INC_OP
@@ -318,27 +312,26 @@ expPostfijo
     | expPostfijo expPrimaria
     | expPostfijo opcionPostfijo
     ;
-    
 opcionPostfijo
     : '[' expresion ']'
-    | '(' listaArgumentosOp ')' 
+    | '(' listaArgumentosOp ')'
     ;
 
 listaArgumentosOp
     : %empty
-    | listaArgumentos 
+    | listaArgumentos
     ;
 
 listaArgumentos
-    : expAsignacion
+    : expAsignacion 
     | listaArgumentos ',' expAsignacion
     ;
 
 expPrimaria
-    : id
-    | ENTERO
-    | NUM
-    | CONSTANTE
+    : IDENTIFICADOR
+    | ENTERO        
+    | NUM        
+    | CONSTANTE 
     | LITERAL_CADENA 
     | '(' expresion ')'
     ;
@@ -353,25 +346,21 @@ unidadTraduccion
     ;
 
 declaracionExterna
-    : definicionFuncion   
-    | declaracion 
+    : definicionFuncion    
+    | declaracion           
     ;
 
 definicionFuncion
-    : especificadorDeclaracion decla listaDeclaracionOp  sentCompuesta
+    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta
     ;
 
 declaracion
-    : activadorFlagDeclaracion {is_in_declaracion = 1; }
+    : especificadorDeclaracion listaDeclaradores ';' 
     ;
-
-activadorFlagDeclaracion
-    : especificadorDeclaracion listaDeclaradores ';' {is_in_declaracion = 0; }
-
-
+    
 especificadorDeclaracionOp
     : %empty
-    | especificadorDeclaracion 
+    | especificadorDeclaracion
     ;
     
 especificadorDeclaracion 
@@ -381,8 +370,22 @@ especificadorDeclaracion
     ;
 
 listaDeclaradores
-    : declarador
-    | listaDeclaradores ',' declarador
+    : declarador { 
+        if(flag_funcion == 0) {
+            add_node(&variable, data_variable, sizeof(t_variable));
+        } else {
+            free_data_variable(variable);
+            flag_funcion = 0;
+        }
+    }
+    | listaDeclaradores ',' declarador { 
+        if(flag_funcion == 0) {
+            add_node(&variable, data_variable, sizeof(t_variable));
+        } else {
+            free_data_variable(variable);
+            flag_funcion = 0;
+        }
+    }
     ;
 
 listaDeclaracionOp
@@ -392,12 +395,7 @@ listaDeclaracionOp
     
 declarador
     : decla
-    | decla '=' inicializador 
-    ;
-
-inicializador
-    : expresion {printf("inicializador\n");}
-    | '{' listaInicializadores opcionComa '}' 
+    | decla '=' inicializador
     ;
 
 opcionComa
@@ -408,6 +406,11 @@ opcionComa
 listaInicializadores
     : inicializador
     | listaInicializadores ',' inicializador
+    ;
+
+inicializador
+    : expAsignacion
+    | '{' listaInicializadores opcionComa '}' 
     ;
 
 especificadorTipo
@@ -469,7 +472,7 @@ expConstanteOp
     ;
 
 decla
-    : punteroOp declaradorDirecto
+    : punteroOp declaradorDirecto 
     ;
 
 punteroOp
@@ -492,31 +495,24 @@ listaCalificadoresTipo
     ;
 
 declaradorDirecto
-    : id
-    | '(' decla ')' 
-    | declaradorDirecto continuacionDeclaradorDirecto
-    ;
-
-id  :IDENTIFICADOR {
-        if(!is_in_declaracion){
-            printf("flag = 1\n");
-            data_variable->variable = strdup($<string_type>1);
-            data_variable->line = yylloc.first_line;  // Guardar la línea donde fue declarada
-            add_node(&variable, data_variable, sizeof(t_variable));
-        }
+    : IDENTIFICADOR {
+        data_variable->variable = strdup($<string_type>1);
+        data_variable->line = yylloc.first_line;  // Guardar la línea donde fue declarada
     }
+    | '(' decla ')'
+    | declaradorDirecto continuacionDeclaradorDirecto 
     ;
 
 continuacionDeclaradorDirecto
-    : '[' expConstanteOp ']' 
-    | '('listaTiposParametrosOp ')' 
+    : '[' expConstanteOp ']'
+    | '(' listaTiposParametrosOp ')'  
     | '(' listaIdentificadoresOp ')'
     | '(' TIPO_DATO ')'
     ;
 
 listaTiposParametrosOp 
     : %empty
-    | listaTiposParametros
+    | listaTiposParametros 
     ;
     
 listaTiposParametros
@@ -534,7 +530,7 @@ listaParametros
     ;
     
 declaracionParametro
-    : especificadorDeclaracion opcionesDecla 
+    : especificadorDeclaracion opcionesDecla {flag_funcion = 1;}
     ;
 
 opcionesDecla
