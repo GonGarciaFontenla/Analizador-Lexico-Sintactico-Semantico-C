@@ -8,7 +8,7 @@
 extern int yylex(void);
 void yyerror(const char*);
 
-//-------- Declaracion de variables --------//
+/* Declaracion de variables */
 GenericNode* variable = NULL;
 t_variable* data_variable = NULL;
 t_function* data_function;
@@ -19,7 +19,7 @@ int flag_parametro = 0;
 
 %}
 
-%define parse.error verbose
+%error-verbose
 %locations
 
 %union {
@@ -61,11 +61,11 @@ programa
     ;
 
 input
-    : %empty
+    : 
     | input expresion
     | input sentencia /* Permitir que el archivo termine con una sentencia */
     | input unidadTraduccion
-    /* | input error '\n' { printf("EL ERROR ESTA ACA \n"); yyerrok; } */
+    | input error '\n' { printf("EL ERROR ESTA ACA \n"); yyerrok; } 
     ;
 
 sentencia
@@ -83,12 +83,12 @@ sentCompuesta
     ;
 
 opcionDeclaracion
-    : %empty
+    : 
     | listaDeclaraciones
     ;
 
 opcionSentencia
-    : %empty
+    : 
     | listaSentencias
     ;
 
@@ -109,113 +109,41 @@ sentExpresion
 
 sentSeleccion
     : IF '(' expresion ')' sentencia opcionElse
-    | SWITCH //{
-
-    //     t_statement* stament = malloc(sizeof(t_statement));
-    //     stament->location = malloc(sizeof(location));
-    //     stament->location->line = @1.first_line;  
-    //     stament->location->column = @1.first_column;  
-    //     stament->type = "switch";
-
-    //     add_node(&statements_list, stament, sizeof(t_statement));}
-    | '(' expresion ')' sentencia 
+    | SWITCH '(' expresion ')' sentencia 
     ;
 
 opcionElse
-    : %empty
+    : 
     | ELSE sentencia
     ;
 
 sentIteracion
     : WHILE '(' expresion ')' sentencia
-
-    //     t_statement* stament = malloc(sizeof(t_statement));
-    //     stament->location = malloc(sizeof(location));
-    //     stament->location->line = @1.first_line;  
-    //     stament->location->column = @1.first_column;  
-    //     stament->type = "while";
-
-    //     add_node(&statements_list, stament, sizeof(t_statement));
-    // } 
     | DO sentencia WHILE '(' expresion ')' ';'
+    | FOR '(' expresionOp ';' expresionOp ';' expresionOp ')' sentencia
+    ;
 
-    //     t_statement* stament = malloc(sizeof(t_statement));
-    //     stament->location = malloc(sizeof(location));
-    //     stament->location->line = @1.first_line;  
-    //     stament->location->column = @1.first_column;  
-    //     stament->type = "do/while";
-
-    //     add_node(&statements_list, stament, sizeof(t_statement));
-    // } 
-    | FOR '('opcionExp')' sentencia
-
-        // t_statement* stament = malloc(sizeof(t_statement));
-        // stament->location = malloc(sizeof(location));
-        // stament->location->line = @1.first_line;  
-        // stament->location->column = @1.first_column;  
-        // stament->type = "for";
-
-        // add_node(&statements_list, stament, sizeof(t_statement));
-
+expresionOp
+    : 
+    | expresion
     ;
 
 sentEtiquetadas
     : IDENTIFICADOR ':' sentencia 
     | CASE  expresion ':' listaSentencias
-
-    //     t_statement* stament = malloc(sizeof(t_statement));
-    //     stament->location = malloc(sizeof(location));
-    //     stament->location->line = @1.first_line;  
-    //     stament->location->column = @1.first_column;  
-    //     stament->type = "case";
-
-    //     add_node(&statements_list, stament, sizeof(t_statement));
-    // } 
     | DEFAULT ':' listaSentencias 
-
-    //     t_statement* stament = malloc(sizeof(t_statement));
-    //     stament->location = malloc(sizeof(location));
-    //     stament->location->line = @1.first_line;  
-    //     stament->location->column = @1.first_column;  
-    //     stament->type = "default";
-
-    //     add_node(&statements_list, stament, sizeof(t_statement));
-    // }
     ;
 
 sentSalto
-    : RETURN ';' 
-
-    //     t_statement* stament = malloc(sizeof(t_statement));
-    //     stament->location = malloc(sizeof(location));
-    //     stament->location->line = @1.first_line;  
-    //     stament->location->column = @1.first_column;  
-    //     stament->type = "return";
-
-    //     add_node(&statements_list, stament, sizeof(t_statement));
-    // }
-    | RETURN expresion ';' 
-
-    //     t_statement* stament = malloc(sizeof(t_statement));
-    //     stament->location = malloc(sizeof(location));
-    //     stament->location->line = @1.first_line;  
-    //     stament->location->column = @1.first_column;  
-    //     stament->type = "return";
-
-    //     add_node(&statements_list, stament, sizeof(t_statement));
-    // } 
+    : RETURN sentExpresion
+    | CONTINUE ';'
+    | BREAK ';'
+    | GOTO IDENTIFICADOR ';'
     ;
 
 expresion
     : expAsignacion 
     | expresion ',' expAsignacion
-    ;
-
-opcionExp
-    : %empty
-    | expresion ';' 
-    | expresion ';' expresion
-    | expresion ';' expresion ';' expresion
     ;
 
 expAsignacion
@@ -262,7 +190,7 @@ expRelacional
     ;
     
 opcionRelacional
-    : %empty
+    : 
     | '<' expAditiva
     | '>' expAditiva
     | LE expAditiva
@@ -275,7 +203,7 @@ expAditiva
     ;
 
 opcionAditiva
-    : %empty
+    : 
     | '+' expMultiplicativa
     | '-' expMultiplicativa
     ;
@@ -318,7 +246,7 @@ opcionPostfijo
     ;
 
 listaArgumentosOp
-    : %empty
+    : 
     | listaArgumentos
     ;
 
@@ -359,7 +287,7 @@ declaracion
     ;
     
 especificadorDeclaracionOp
-    : %empty
+    : 
     | especificadorDeclaracion
     ;
     
@@ -389,7 +317,7 @@ listaDeclaradores
     ;
 
 listaDeclaracionOp
-    : %empty
+    : 
     | listaDeclaradores
     ;
     
@@ -399,7 +327,7 @@ declarador
     ;
 
 opcionComa
-    : %empty
+    : 
     | ','
     ;
 
@@ -429,7 +357,7 @@ cuerpoEspecificador
     ;
 
 cuerpoStructOp
-    : %empty
+    : 
     | '{' listaDeclaracionesStruct '}'
     ;
 
@@ -448,7 +376,7 @@ listaCalificadores
     ;
 
 listaCalificadoresOp
-    : %empty
+    : 
     | listaCalificadores
     ;
 
@@ -467,7 +395,7 @@ declaSi
     ;
 
 expConstanteOp
-    : %empty
+    : 
     | ':' expresion
     ;
 
@@ -476,7 +404,7 @@ decla
     ;
 
 punteroOp
-    : %empty
+    : 
     | puntero
     ;
 
@@ -485,7 +413,7 @@ puntero
     ;
 
 listaCalificadoresTipoOp
-    : %empty
+    : 
     | listaCalificadoresTipo
     ;
     
@@ -511,7 +439,7 @@ continuacionDeclaradorDirecto
     ;
 
 listaTiposParametrosOp 
-    : %empty
+    : 
     | listaTiposParametros 
     ;
     
@@ -520,7 +448,7 @@ listaTiposParametros
     ;
     
 opcionalListaParametros
-    : %empty
+    : 
     | ',' ELIPSIS
     ;
 
@@ -539,7 +467,7 @@ opcionesDecla
     ;
 
 listaIdentificadoresOp
-    : %empty
+    : 
     | listaIdentificadores
     ;
 
@@ -558,7 +486,7 @@ opcionalEspecificadorEnum
     ;
 
 opcionalListaEnumeradores
-    : %empty
+    : 
     | '{' listaEnumeradores '}'
     ;
 
@@ -572,7 +500,7 @@ enumerador
     ;
 
 opcionalEnumerador
-    : %empty
+    : 
     | '=' expresion
     ;
 
@@ -582,7 +510,7 @@ declaradorAbstracto
     ;
 
 declaradorAbstractoDirectoOp
-    : %empty
+    : 
     | declaradorAbstractoDirecto
     ;
 
@@ -597,7 +525,7 @@ postOpcionDeclaradorAbstracto
     ;
 
 listaDeclaracionSentencia
-    : %empty
+    : 
     | listaDeclaracionSentencia declaracion
     | listaDeclaracionSentencia sentencia
     ;

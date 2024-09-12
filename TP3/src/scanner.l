@@ -120,9 +120,23 @@ switch {
     return SWITCH;
 }
 
-sizeof|break|continue|goto {
+sizeof {
     yylloc.last_column += yyleng;
-    return PALABRA_RESERVADA;
+    return SIZEOF;
+}
+
+break {
+    yylloc.last_column += yyleng;
+    return BREAK;
+}
+goto {
+    yylloc.last_column += yyleng;
+    return GOTO ;
+}
+
+continue {
+    yylloc.last_column += yyleng;
+    return CONTINUE;
 }
 
 volatile|const {
