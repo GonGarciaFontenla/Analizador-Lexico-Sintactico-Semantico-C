@@ -14,11 +14,11 @@ t_variable* data_variable = NULL;
 t_function* data_function;
 GenericNode* function = NULL;
 t_parameter* data_parameter;
-GenericNode* error_list = NULL;
 
 int dentro_de_prototipo = 0;
 
 %}
+
 %error-verbose
 %locations
 
@@ -63,10 +63,10 @@ programa
 input
     : 
     | input expresion
-    | input sentencia
+    | input sentencia /* Permitir que el archivo termine con una sentencia */
     | input unidadTraduccion
+    | input error '\n' { printf("EL ERROR ESTA ACA \n"); yyerrok; } 
     ;
-
 
 sentencia
     : sentCompuesta 
@@ -76,7 +76,6 @@ sentencia
     | sentEtiquetadas 
     | sentSalto
     | '\n'
-    | error
     ;
 
 sentCompuesta
@@ -99,8 +98,7 @@ listaDeclaraciones
     ;
 
 listaSentencias
-    : error { yyerror("Error encontrado");}
-    | listaSentencias sentencia
+    : listaSentencias sentencia
     | sentencia
     ;
 
@@ -128,12 +126,11 @@ sentIteracion
 expresionOp
     : 
     | expresion
-    | error { yyerror("Error encontrado");}
     ;
 
 sentEtiquetadas
     : IDENTIFICADOR ':' sentencia 
-    | CASE expresion ':' listaSentencias
+    | CASE  expresion ':' listaSentencias
     | DEFAULT ':' listaSentencias 
     ;
 
@@ -147,14 +144,13 @@ sentSalto
 expresion
     : expAsignacion 
     | expresion ',' expAsignacion
+    | error { printf("ERROR: falta guardarlo \n"); }
     ;
 
 expAsignacion
     : expCondicional 
     | expUnaria operAsignacion expAsignacion 
-    | error
     ;
-
 
 operAsignacion
     : '=' 
@@ -298,9 +294,14 @@ definicionFuncion
 
 declaracion
     : especificadorDeclaracion listaDeclaradores ';'
-    | especificadorDeclaracion decla ';'  
+    | especificadorDeclaracion decla ';' { 
+        dentro_de_prototipo = 1;  // Estamos en un prototipo, evitar añadir parámetros a la lista de variables
+        data_function->return_type = strdup($<string_type>1);
+        data_function->name = strdup($<string_type>2);
+        data_function->type = "declaracion"; 
+        add_node(&function, data_function, sizeof(t_function));
+    }
     ;
-
     
 especificadorDeclaracionOp
     : 

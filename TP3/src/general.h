@@ -92,14 +92,6 @@ typedef struct GenericNode { // Estructura para reducir lógica repetida en los 
     struct GenericNode* next;
 } GenericNode;
 
-typedef struct {
-    int line;
-    char* message;
-    int col_start;
-    int col_end;
-} t_error;
-
-
 #define INICIO_CONTEO_LINEA 1
 #define INICIO_CONTEO_COLUMNA 1
 
@@ -107,7 +99,6 @@ typedef struct {
 extern GenericNode* statements_list;
 extern GenericNode* variable;
 extern GenericNode* function;
-extern GenericNode* error_list;
 extern t_variable* data_variable;
 extern t_function* data_function;
 extern t_parameter* data_parameter;
@@ -126,9 +117,7 @@ void free_data_variable(t_variable* variable);
 void add_function(char* function_name, char* function_type);
 void free_list(GenericNode** list);
 void free_parameters(t_parameter* param);
-void yyerror(const char* s);
 //void print_statements_list();
-
 
 void print_lists();
 // void free_lists(); TODO: hacer una funcion que free a todas las listas!
