@@ -12,7 +12,7 @@ void yyerror(const char*);
 GenericNode* variable = NULL;
 t_variable* data_variable = NULL;
 t_function* data_function;
-GenericNode* function;
+GenericNode* function = NULL;
 t_parameter* data_parameter;
 
 int dentro_de_prototipo = 0;
@@ -144,6 +144,7 @@ sentSalto
 expresion
     : expAsignacion 
     | expresion ',' expAsignacion
+    | error { printf("ERROR: falta guardarlo \n"); }
     ;
 
 expAsignacion
@@ -286,6 +287,7 @@ definicionFuncion
         data_function->return_type = strdup($<string_type>1);
         data_function->name = strdup($<string_type>2);
         data_function->type = "definicion"; 
+        data_function->line = @1.first_line ;
         add_node(&function, data_function, sizeof(t_function));
     }
     ;
@@ -425,7 +427,6 @@ declaradorDirecto
         $<string_type>$ = strdup($<string_type>1);
         data_variable->variable = strdup($<string_type>1);
         data_variable->line = yylloc.first_line;
-        data_function->line = yylloc.first_line;
     }
     | '(' decla ')'
     | declaradorDirecto continuacionDeclaradorDirecto  
@@ -553,10 +554,11 @@ int main(int argc, char *argv[]) {
         }
         yyin = file;
     }
-
+    
     init_structures();
-
+    
     yyparse();
+
     // print_statements_list();
     print_lists();
 

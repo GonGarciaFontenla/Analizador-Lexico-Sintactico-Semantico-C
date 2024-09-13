@@ -36,14 +36,19 @@ void init_structures() { // Iniciar todas las estructuras
         exit(EXIT_FAILURE);
     }
     data_variable->line = 0;
+    data_variable->type = NULL;      
+    data_variable->variable = NULL;
 
     data_function = (t_function*)malloc(sizeof(t_function));
     if (data_function == NULL) {
         printf("Error al asignar memoria para data_function\n");
         exit(EXIT_FAILURE);
     }
+    data_function->name = NULL;      
     data_function->line = 0;
-
+    data_function->type = NULL;
+    data_function->parameters = NULL;
+    data_function->return_type = NULL;
 }
 
 void add_node(GenericNode** list, void* new_data, size_t data_size) { // Agregar a la lista genericamente
