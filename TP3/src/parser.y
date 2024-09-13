@@ -287,14 +287,20 @@ definicionFuncion
         data_function->return_type = strdup($<string_type>1);
         data_function->name = strdup($<string_type>2);
         data_function->type = "definicion"; 
-        data_function->line = @1.first_line ;
+        //data_function->line = @1.first_line ;
         add_node(&function, data_function, sizeof(t_function));
     }
     ;
 
 declaracion
     : especificadorDeclaracion listaDeclaradores ';'
-    | especificadorDeclaracion decla ';'
+    | especificadorDeclaracion decla ';' { 
+        dentro_de_prototipo = 1;  // Estamos en un prototipo, evitar añadir parámetros a la lista de variables
+        data_function->return_type = strdup($<string_type>1);
+        data_function->name = strdup($<string_type>2);
+        data_function->type = "declaracion"; 
+        add_node(&function, data_function, sizeof(t_function));
+    }
     ;
     
 especificadorDeclaracionOp
@@ -430,15 +436,19 @@ declaradorDirecto
         data_variable->line = yylloc.first_line;
     }
     | '(' decla ')'
-    | declaradorDirecto continuacionDeclaradorDirecto  
+    | declaradorDirecto continuacionDeclaradorDirecto { data_function->line = yylloc.first_line;}
     ;
 
 continuacionDeclaradorDirecto
     : '[' expConstanteOp ']'
     | '(' listaTiposParametrosOp ')'
-
     | '(' listaIdentificadoresOp ')' 
-    | '(' TIPO_DATO ')'
+    | '(' TIPO_DATO ')' { 
+        data_parameter->type = strdup($<string_type>2);
+        data_parameter->name = NULL;
+        t_parameter temp_parameter = *data_parameter;
+        add_node(&(data_function->parameters), &temp_parameter, sizeof(t_parameter));
+        }
     ;
 
 listaTiposParametrosOp 

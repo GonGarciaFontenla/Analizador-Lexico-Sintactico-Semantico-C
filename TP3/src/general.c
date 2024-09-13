@@ -93,8 +93,10 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
                     t_parameter* param = (t_parameter*)aux2->data;
                     if (param->type && param->name) {
                         printf("%s %s", param->type, param->name);
+                    } else if (param->type){
+                        printf("%s", param->type);
                     } else {
-                        printf("Tipo o nombre de parámetro nulo");
+                        printf("Tipo de parametro nulo");
                     }
                     aux2 = aux2->next;
                     
@@ -103,7 +105,7 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
                     }
                 }
             } else {
-                printf("Ningún parámetro");
+                printf("Ningun parametro");
             }
             printf(", retorna: %s, linea %i\n", temp->return_type, temp->line);
             aux = aux->next;
