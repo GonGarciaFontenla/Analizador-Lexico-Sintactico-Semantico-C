@@ -8,6 +8,11 @@
 #include "general.h"
 
 extern YYLTYPE yylloc;
+extern int yylineno;
+extern char *yytext; 
+
+extern int yyleng;
+
 GenericNode* statements_list = NULL;
 // Nodo* symbols = NULL;
 
@@ -36,14 +41,19 @@ void init_structures() { // Iniciar todas las estructuras
         exit(EXIT_FAILURE);
     }
     data_variable->line = 0;
+    data_variable->type = NULL;      
+    data_variable->variable = NULL;
 
     data_function = (t_function*)malloc(sizeof(t_function));
     if (data_function == NULL) {
         printf("Error al asignar memoria para data_function\n");
         exit(EXIT_FAILURE);
     }
+    data_function->name = NULL;      
     data_function->line = 0;
-
+    data_function->type = NULL;
+    data_function->parameters = NULL;
+    data_function->return_type = NULL;
 }
 
 void add_node(GenericNode** list, void* new_data, size_t data_size) { // Agregar a la lista genericamente
@@ -66,6 +76,37 @@ void add_node(GenericNode** list, void* new_data, size_t data_size) { // Agregar
 
     current->next = new_node;
 }
+
+void yyerror(const char *msg) {
+    t_error *new_error = (t_error *)malloc(sizeof(t_error));
+    if (!new_error) {
+        perror("Error allocating memory");
+        exit(EXIT_FAILURE);
+    }
+
+    // Asigna la línea y las columnas
+    new_error->line = yylloc.first_line;
+    new_error->col_start = yylloc.first_column;
+    new_error->col_end = yylloc.last_column;
+
+    // Copia el mensaje del texto actual
+    size_t length = yyleng;  // Usa yyleng para obtener la longitud del token actual
+    new_error->message = (char *)malloc(length + 1);
+    if (!new_error->message) {
+        perror("Error allocating memory");
+        free(new_error);
+        exit(EXIT_FAILURE);
+    }
+
+    // Copia el texto del token directamente desde yytext
+    strncpy(new_error->message, yytext, length);
+    new_error->message[length] = '\0';  // Asegura la cadena nula al final
+
+    // Agrega el nuevo error a la lista de errores
+    add_node(&error_list, new_error, sizeof(t_error));
+}
+
+
 
 void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HACIENDO UN PRINT PARTICULAR GENERICO
     if(variable) {
@@ -104,6 +145,18 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
             aux = aux->next;
         }
     }
+
+    if (error_list) {
+        GenericNode* temp = error_list;
+        printf("Errores sintácticos encontrados:\n");
+        while (temp) {
+            t_error* err = (t_error*) temp->data;
+            printf("Error en la línea %d: %s\n", err->line, err->message);
+            temp = temp->next;
+        }
+    } else {
+        printf("No se encontraron errores sintácticos.\n");
+    }  
 }
 
 // void add_variable(char* variable_name) { 
