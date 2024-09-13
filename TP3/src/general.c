@@ -124,6 +124,15 @@ void free_data_variable(t_variable* variable) {
     variable = NULL;
 }
 
+void free_parameters(t_parameter* param) {
+    if (param) {
+        free(param->type);
+        free(param->name);
+        free(param);
+    }
+}
+
+
 //void add_function(char* function_name, char* function_type) {
 //    data_function->name = strdup(function_name);
 //    data_function->type = strdup(function_type); 

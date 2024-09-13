@@ -281,7 +281,7 @@ declaracionExterna
     ;          
 
 definicionFuncion
-    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta   { 
+    : especificadorDeclaracion decla /*listaDeclaracionOp*/ sentCompuesta   { 
         //printf("decla: %s, listaDeclaracionOp: %s", $<string_type>2, $<string_type>3);
         data_function->return_type = strdup($<string_type>1);
         data_function->name = strdup($<string_type>2);
@@ -467,12 +467,24 @@ opcionalListaParametros
 
 listaParametros
     : declaracionParametro  {
-        t_parameter temp_parameter = *data_parameter;
-        add_node(&(data_function->parameters), &temp_parameter, sizeof(t_parameter));
+        t_parameter* temp_parameter = (t_parameter*)malloc(sizeof(t_parameter));
+        temp_parameter->type = strdup(data_parameter->type);
+        temp_parameter->name = strdup(data_parameter->name);
+
+        add_node(&(data_function->parameters), temp_parameter, sizeof(t_parameter));
+
+        free_parameters(data_parameter);
+        data_parameter = NULL;
     }
     | listaParametros ',' declaracionParametro {
-        t_parameter temp_parameter = *data_parameter;
-        add_node(&(data_function->parameters), &temp_parameter, sizeof(t_parameter));
+        t_parameter* temp_parameter = (t_parameter*)malloc(sizeof(t_parameter));
+        temp_parameter->type = strdup(data_parameter->type);
+        temp_parameter->name = strdup(data_parameter->name);
+
+        add_node(&(data_function->parameters), temp_parameter, sizeof(t_parameter));
+
+        free_parameters(data_parameter);
+        data_parameter = NULL;
     }
     ;
     

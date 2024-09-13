@@ -116,6 +116,7 @@ void add_variable(char* variable_name);
 void free_data_variable(t_variable* variable);
 void add_function(char* function_name, char* function_type);
 void free_list(GenericNode** list);
+void free_parameters(t_parameter* param);
 //void print_statements_list();
 
 void print_lists();
