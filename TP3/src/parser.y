@@ -12,13 +12,13 @@ void yyerror(const char*);
 GenericNode* variable = NULL;
 t_variable* data_variable = NULL;
 t_function* data_function;
-GenericNode* function;
+GenericNode* function = NULL;
 t_parameter* data_parameter;
+GenericNode* error_list = NULL;
 
 int dentro_de_prototipo = 0;
 
 %}
-
 %error-verbose
 %locations
 
@@ -63,10 +63,10 @@ programa
 input
     : 
     | input expresion
-    | input sentencia /* Permitir que el archivo termine con una sentencia */
+    | input sentencia
     | input unidadTraduccion
-    | input error '\n' { printf("EL ERROR ESTA ACA \n"); yyerrok; } 
     ;
+
 
 sentencia
     : sentCompuesta 
@@ -76,6 +76,7 @@ sentencia
     | sentEtiquetadas 
     | sentSalto
     | '\n'
+    | error
     ;
 
 sentCompuesta
@@ -98,7 +99,8 @@ listaDeclaraciones
     ;
 
 listaSentencias
-    : listaSentencias sentencia
+    : error { yyerror("Error encontrado");}
+    | listaSentencias sentencia
     | sentencia
     ;
 
@@ -126,11 +128,12 @@ sentIteracion
 expresionOp
     : 
     | expresion
+    | error { yyerror("Error encontrado");}
     ;
 
 sentEtiquetadas
     : IDENTIFICADOR ':' sentencia 
-    | CASE  expresion ':' listaSentencias
+    | CASE expresion ':' listaSentencias
     | DEFAULT ':' listaSentencias 
     ;
 
@@ -149,7 +152,9 @@ expresion
 expAsignacion
     : expCondicional 
     | expUnaria operAsignacion expAsignacion 
+    | error
     ;
+
 
 operAsignacion
     : '=' 
@@ -282,18 +287,20 @@ declaracionExterna
     ;        
 
 definicionFuncion
-    : especificadorDeclaracion decla sentCompuesta {
+    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta {
         data_function->return_type = strdup($<string_type>1);
         data_function->name = strdup($<string_type>2);
         data_function->type = "definicion"; 
+        data_function->line = @1.first_line ;
         add_node(&function, data_function, sizeof(t_function));
     }
     ;
 
 declaracion
     : especificadorDeclaracion listaDeclaradores ';'
-    | especificadorDeclaracion decla ';'
+    | especificadorDeclaracion decla ';'  
     ;
+
     
 especificadorDeclaracionOp
     : 
@@ -426,7 +433,6 @@ declaradorDirecto
         $<string_type>$ = strdup($<string_type>1);
         data_variable->variable = strdup($<string_type>1);
         data_variable->line = yylloc.first_line;
-        data_function->line = yylloc.first_line;
     }
     | '(' decla ')'
     | declaradorDirecto continuacionDeclaradorDirecto  
@@ -435,6 +441,7 @@ declaradorDirecto
 continuacionDeclaradorDirecto
     : '[' expConstanteOp ']'
     | '(' listaTiposParametrosOp ')'
+
     | '(' listaIdentificadoresOp ')' 
     | '(' TIPO_DATO ')'
     ;
@@ -553,10 +560,11 @@ int main(int argc, char *argv[]) {
         }
         yyin = file;
     }
-
+    
     init_structures();
-
+    
     yyparse();
+
     // print_statements_list();
     print_lists();
 
