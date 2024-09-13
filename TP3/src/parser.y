@@ -15,8 +15,7 @@ t_function* data_function;
 GenericNode* function;
 t_parameter* data_parameter;
 
-int flag_funcion = 0;
-int flag_parametro = 0;
+int dentro_de_funcion = 0;
 
 %}
 
@@ -281,17 +280,17 @@ declaracionExterna
     ;          
 
 definicionFuncion
-    : especificadorDeclaracion decla /*listaDeclaracionOp*/ sentCompuesta   { 
-        //printf("decla: %s, listaDeclaracionOp: %s", $<string_type>2, $<string_type>3);
+    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta {
+        dentro_de_funcion = 1;
         data_function->return_type = strdup($<string_type>1);
         data_function->name = strdup($<string_type>2);
         data_function->type = "definicion"; 
         add_node(&function, data_function, sizeof(t_function));
-        }
+    }
     ;
 
 declaracion
-    : especificadorDeclaracion listaDeclaradores ';' 
+    : especificadorDeclaracion listaDeclaradores ';' {dentro_de_funcion = 0;}
     ;
     
 especificadorDeclaracionOp
@@ -307,21 +306,13 @@ especificadorDeclaracion
 
 listaDeclaradores
     : declarador { 
-        
-        if(flag_funcion == 0) {
-            add_node(&variable, data_variable, sizeof(t_variable));
-        } //else {
-            //free_data_variable(variable);
-            //flag_funcion = 0;
-        //}
+        // if (dentro_de_funcion == 0) {
+        //     add_node(&variable, data_variable, sizeof(t_variable));
     }
-    | listaDeclaradores ',' declarador { 
-        if(flag_funcion == 0) {
-            add_node(&variable, data_variable, sizeof(t_variable));
-        } //else {
-            //free_data_variable(variable);
-            //flag_funcion = 0;
-        //}
+    | listaDeclaradores ',' declarador {
+        // if(dentro_de_funcion == 0) {
+        //     add_node(&variable, data_variable, sizeof(t_variable));
+        // } 
     }
     ;
 
@@ -331,8 +322,14 @@ listaDeclaracionOp
     ;
     
 declarador
-    : decla
-    | decla '=' inicializador
+    : decla { 
+        if (dentro_de_funcion == 0) {
+            add_node(&variable, data_variable, sizeof(t_variable));
+        }
+    }
+    | decla '=' inicializador {
+
+    }
     ;
 
 opcionComa
@@ -346,7 +343,11 @@ listaInicializadores
     ;
 
 inicializador
-    : expAsignacion
+    : expAsignacion {
+        if (dentro_de_funcion == 0) {
+            add_node(&variable, data_variable, sizeof(t_variable));
+        }
+    }
     | '{' listaInicializadores opcionComa '}' 
     ;
 
@@ -445,9 +446,8 @@ declaradorDirecto
 continuacionDeclaradorDirecto
     : '[' expConstanteOp ']'
     | '(' listaTiposParametrosOp ')'
+
     | '(' listaIdentificadoresOp ')' 
-    | '(' listaTiposParametrosOp ')'
-    | '(' listaIdentificadoresOp ')'
     | '(' TIPO_DATO ')'
     ;
 
@@ -467,30 +467,17 @@ opcionalListaParametros
 
 listaParametros
     : declaracionParametro  {
-        t_parameter* temp_parameter = (t_parameter*)malloc(sizeof(t_parameter));
-        temp_parameter->type = strdup(data_parameter->type);
-        temp_parameter->name = strdup(data_parameter->name);
-
-        add_node(&(data_function->parameters), temp_parameter, sizeof(t_parameter));
-
-        free_parameters(data_parameter);
-        data_parameter = NULL;
+        t_parameter temp_parameter = *data_parameter;
+        add_node(&(data_function->parameters), &temp_parameter, sizeof(t_parameter));
     }
     | listaParametros ',' declaracionParametro {
-        t_parameter* temp_parameter = (t_parameter*)malloc(sizeof(t_parameter));
-        temp_parameter->type = strdup(data_parameter->type);
-        temp_parameter->name = strdup(data_parameter->name);
-
-        add_node(&(data_function->parameters), temp_parameter, sizeof(t_parameter));
-
-        free_parameters(data_parameter);
-        data_parameter = NULL;
+        t_parameter temp_parameter = *data_parameter;
+        add_node(&(data_function->parameters), &temp_parameter, sizeof(t_parameter));
     }
     ;
     
 declaracionParametro
     : especificadorDeclaracion opcionesDecla {
-        flag_funcion = 1;
         data_parameter->type = strdup($<string_type>1);
         }
     ;
