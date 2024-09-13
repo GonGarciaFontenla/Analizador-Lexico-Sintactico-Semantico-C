@@ -277,7 +277,7 @@ unidadTraduccion
 
 declaracionExterna
     : definicionFuncion    
-    | especificadorDeclaracion decla ';' { 
+    | declaracion { 
         dentro_de_prototipo = 1;  // Estamos en un prototipo, evitar añadir parámetros a la lista de variables
     }
     ;        
@@ -294,6 +294,7 @@ definicionFuncion
 
 declaracion
     : especificadorDeclaracion listaDeclaradores ';'
+    | especificadorDeclaracion decla ';'
     ;
     
 especificadorDeclaracionOp
