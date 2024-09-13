@@ -240,6 +240,7 @@ enum {
 "->" { return PTR_OP; }
 "++" { return INC_OP; }
 "--" { return DEC_OP; }
+"..." { return ELIPSIS; }
 
 [ \t]+ {yylloc.first_column = yylloc.last_column += yyleng;}
 

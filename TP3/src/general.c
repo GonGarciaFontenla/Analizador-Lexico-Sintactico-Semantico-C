@@ -81,7 +81,26 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
         GenericNode* aux = function;
         while(aux) {
             t_function* temp = (t_function*)aux->data;
-            printf("%s: %s, input ... retorna: %s, linea %i\n", temp->name, temp->type, temp->return_type, temp->line);
+            printf("%s: %s, input: ", temp->name, temp->type);
+            if (temp->parameters) {
+                GenericNode* aux2 = temp->parameters;
+                while (aux2) {
+                    t_parameter* param = (t_parameter*)aux2->data;
+                    if (param->type && param->name) {
+                        printf("%s %s", param->type, param->name);
+                    } else {
+                        printf("Tipo o nombre de parámetro nulo");
+                    }
+                    aux2 = aux2->next;
+                    
+                    if (aux2) {
+                        printf(", ");
+                    }
+                }
+            } else {
+                printf("Ningún parámetro");
+            }
+            printf(", retorna: %s, linea %i\n", temp->return_type, temp->line);
             aux = aux->next;
         }
     }
@@ -105,15 +124,15 @@ void free_data_variable(t_variable* variable) {
     variable = NULL;
 }
 
-void add_function(char* function_name, char* function_type) {
-    data_function->name = strdup(function_name);
-    data_function->type = strdup(function_type); 
-    data_function->line = yylloc.first_line;  // Corregir, guarda la linea donde cierra el }
-    // parametros
-    data_function->return_type = strdup(function_type);
+//void add_function(char* function_name, char* function_type) {
+//    data_function->name = strdup(function_name);
+//    data_function->type = strdup(function_type); 
+//    data_function->line = yylloc.first_line;  // Corregir, guarda la linea donde cierra el }
+//    // parametros
+//    data_function->return_type = strdup(function_type);
 
-    add_node(&function, data_function, sizeof(t_function));
-}
+//    add_node(&function, data_function, sizeof(t_function));
+//}
 
 void free_list(GenericNode** list) {
     GenericNode* nodo_actual = *list;

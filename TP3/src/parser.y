@@ -13,6 +13,7 @@ GenericNode* variable = NULL;
 t_variable* data_variable = NULL;
 t_function* data_function;
 GenericNode* function;
+t_parameter* data_parameter;
 
 int flag_funcion = 0;
 int flag_parametro = 0;
@@ -93,8 +94,8 @@ opcionSentencia
     ;
 
 listaDeclaraciones
-    : listaDeclaraciones declaracionExterna
-    | declaracionExterna
+    : listaDeclaraciones declaracion
+    | declaracion
     ;
 
 listaSentencias
@@ -279,7 +280,13 @@ declaracionExterna
     ;
 
 definicionFuncion
-    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta
+    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta   { 
+        //printf("decla: %s, listaDeclaracionOp: %s", $<string_type>2, $<string_type>3);
+        data_function->return_type = strdup($<string_type>1);
+        data_function->name = strdup($<string_type>2);
+        data_function->type = "definicion"; 
+        add_node(&function, data_function, sizeof(t_function));
+        }
     ;
 
 declaracion
@@ -301,24 +308,24 @@ listaDeclaradores
     : declarador { 
         if(flag_funcion == 0) {
             add_node(&variable, data_variable, sizeof(t_variable));
-        } else {
-            free_data_variable(variable);
-            flag_funcion = 0;
-        }
+        } //else {
+            //free_data_variable(variable);
+            //flag_funcion = 0;
+        //}
     }
     | listaDeclaradores ',' declarador { 
         if(flag_funcion == 0) {
             add_node(&variable, data_variable, sizeof(t_variable));
-        } else {
-            free_data_variable(variable);
-            flag_funcion = 0;
-        }
+        } //else {
+            //free_data_variable(variable);
+            //flag_funcion = 0;
+        //}
     }
     ;
 
 listaDeclaracionOp
     : 
-    | listaDeclaradores
+    | listaDeclaraciones
     ;
     
 declarador
@@ -342,7 +349,7 @@ inicializador
     ;
 
 especificadorTipo
-    : TIPO_DATO { data_variable -> type = strdup($<string_type>1);}
+    : TIPO_DATO { data_variable->type = strdup($<string_type>1);}
     | especificadorStructUnion
     | especificadorEnum
     ;
@@ -400,7 +407,7 @@ expConstanteOp
     ;
 
 decla
-    : punteroOp declaradorDirecto 
+    : punteroOp declaradorDirecto { $<string_type>$ = strdup($<string_type>2);}
     ;
 
 punteroOp
@@ -424,8 +431,10 @@ listaCalificadoresTipo
 
 declaradorDirecto
     : IDENTIFICADOR {
+        $<string_type>$ = strdup($<string_type>1);
         data_variable->variable = strdup($<string_type>1);
         data_variable->line = yylloc.first_line;  // Guardar la línea donde fue declarada
+        data_function->line = yylloc.first_line;
     }
     | '(' decla ')'
     | declaradorDirecto continuacionDeclaradorDirecto 
@@ -433,7 +442,7 @@ declaradorDirecto
 
 continuacionDeclaradorDirecto
     : '[' expConstanteOp ']'
-    | '(' listaTiposParametrosOp ')'  
+    | '(' listaTiposParametrosOp ')'
     | '(' listaIdentificadoresOp ')'
     | '(' TIPO_DATO ')'
     ;
@@ -453,16 +462,28 @@ opcionalListaParametros
     ;
 
 listaParametros
-    : declaracionParametro
-    | listaParametros ',' declaracionParametro
+    : declaracionParametro  {
+        t_parameter temp_parameter = *data_parameter;
+        add_node(&(data_function->parameters), &temp_parameter, sizeof(t_parameter));
+    }
+    | listaParametros ',' declaracionParametro {
+        t_parameter temp_parameter = *data_parameter;
+        add_node(&(data_function->parameters), &temp_parameter, sizeof(t_parameter));
+    }
     ;
     
 declaracionParametro
-    : especificadorDeclaracion opcionesDecla {flag_funcion = 1;}
+    : especificadorDeclaracion opcionesDecla {
+        flag_funcion = 1;
+        data_parameter->type = strdup($<string_type>1);
+        }
     ;
 
 opcionesDecla
-    : decla
+    : decla { 
+        data_parameter = (t_parameter*)malloc(sizeof(t_parameter));
+        data_parameter->name = strdup($<string_type>1); 
+        }
     | declaradorAbstracto
     ;
 

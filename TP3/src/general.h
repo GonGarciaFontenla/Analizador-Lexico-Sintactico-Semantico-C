@@ -33,10 +33,15 @@ typedef struct {
 } t_variable;
 
 typedef struct {
+    char* type;
+    char* name;
+} t_parameter;
+
+typedef struct {
     char* name;
     int line;
     char* type; // Si es declaracion o definicion
-    char** parameters; // Es una sublista (array de parametros, guardar como string el tipo y el ID)
+    t_parameter* parameters; // Es una sublista (array de parametros, guardar como string el tipo y el ID)
     char* return_type;
 } t_function;
 
@@ -96,6 +101,7 @@ extern GenericNode* variable;
 extern GenericNode* function;
 extern t_variable* data_variable;
 extern t_function* data_function;
+extern t_parameter* data_parameter;
 
 void pausa(void);
 void inicializarUbicacion(void);
