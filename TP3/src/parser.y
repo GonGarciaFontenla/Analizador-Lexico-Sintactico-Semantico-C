@@ -237,7 +237,7 @@ operUnario
     ;
 
 expPostfijo
-    : expPrimaria
+    : expPrimaria 
     | expPostfijo expPrimaria
     | expPostfijo opcionPostfijo
     ;
@@ -263,6 +263,7 @@ expPrimaria
     | CONSTANTE 
     | LITERAL_CADENA 
     | '(' expresion ')'
+    | PALABRA_RESERVADA
     ;
 
 nombreTipo
@@ -276,8 +277,8 @@ unidadTraduccion
 
 declaracionExterna
     : definicionFuncion    
-    | declaracion           
-    ;
+    | declaracion 
+    ;          
 
 definicionFuncion
     : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta   { 
@@ -306,6 +307,7 @@ especificadorDeclaracion
 
 listaDeclaradores
     : declarador { 
+        
         if(flag_funcion == 0) {
             add_node(&variable, data_variable, sizeof(t_variable));
         } //else {
@@ -437,11 +439,13 @@ declaradorDirecto
         data_function->line = yylloc.first_line;
     }
     | '(' decla ')'
-    | declaradorDirecto continuacionDeclaradorDirecto 
+    | declaradorDirecto continuacionDeclaradorDirecto  
     ;
 
 continuacionDeclaradorDirecto
     : '[' expConstanteOp ']'
+    | '(' listaTiposParametrosOp ')'
+    | '(' listaIdentificadoresOp ')' 
     | '(' listaTiposParametrosOp ')'
     | '(' listaIdentificadoresOp ')'
     | '(' TIPO_DATO ')'
@@ -493,7 +497,7 @@ listaIdentificadoresOp
     ;
 
 listaIdentificadores
-    : IDENTIFICADOR
+    : IDENTIFICADOR 
     | listaIdentificadores ',' IDENTIFICADOR 
     ;
 
