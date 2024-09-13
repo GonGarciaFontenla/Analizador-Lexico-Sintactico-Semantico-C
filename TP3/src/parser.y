@@ -14,11 +14,11 @@ t_variable* data_variable = NULL;
 t_function* data_function;
 GenericNode* function = NULL;
 t_parameter* data_parameter;
+GenericNode* error_list = NULL;
 
 int dentro_de_prototipo = 0;
 
 %}
-
 %error-verbose
 %locations
 
@@ -63,10 +63,10 @@ programa
 input
     : 
     | input expresion
-    | input sentencia /* Permitir que el archivo termine con una sentencia */
+    | input sentencia
     | input unidadTraduccion
-    | input error '\n' { printf("EL ERROR ESTA ACA \n"); yyerrok; } 
     ;
+
 
 sentencia
     : sentCompuesta 
@@ -76,6 +76,7 @@ sentencia
     | sentEtiquetadas 
     | sentSalto
     | '\n'
+    | error
     ;
 
 sentCompuesta
@@ -98,7 +99,8 @@ listaDeclaraciones
     ;
 
 listaSentencias
-    : listaSentencias sentencia
+    : error { yyerror("Error encontrado");}
+    | listaSentencias sentencia
     | sentencia
     ;
 
@@ -126,11 +128,12 @@ sentIteracion
 expresionOp
     : 
     | expresion
+    | error { yyerror("Error encontrado");}
     ;
 
 sentEtiquetadas
     : IDENTIFICADOR ':' sentencia 
-    | CASE  expresion ':' listaSentencias
+    | CASE expresion ':' listaSentencias
     | DEFAULT ':' listaSentencias 
     ;
 
@@ -144,13 +147,14 @@ sentSalto
 expresion
     : expAsignacion 
     | expresion ',' expAsignacion
-    | error { printf("ERROR: falta guardarlo \n"); }
     ;
 
 expAsignacion
     : expCondicional 
     | expUnaria operAsignacion expAsignacion 
+    | error
     ;
+
 
 operAsignacion
     : '=' 
@@ -294,8 +298,9 @@ definicionFuncion
 
 declaracion
     : especificadorDeclaracion listaDeclaradores ';'
-    | especificadorDeclaracion decla ';'
+    | especificadorDeclaracion decla ';'  
     ;
+
     
 especificadorDeclaracionOp
     : 
