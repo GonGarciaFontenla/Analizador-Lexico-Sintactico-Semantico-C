@@ -25,8 +25,9 @@ DIGITO_HEXA [0-9a-fA-F]
 ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
 
 %%
-    
-    if(inicializar == 1){
+
+    // Inicializa las ubicaciones
+    if (inicializar == 1) {
         inicializarUbicacion();
         inicializar = -1;
     }
@@ -70,7 +71,7 @@ int|float|double|char|void|short|long|unsigned|signed {
 }
 
 "unsigned int"|"signed int"|"short int"|"signed short int"|"unsigned short int"|"long int"|"signed long int" {
-    yylval.string_type = yytext; 
+    yylval.string_type = strdup(yytext); 
     yylloc.last_column += yyleng;
     return TIPO_DATO;
 }
@@ -129,9 +130,10 @@ break {
     yylloc.last_column += yyleng;
     return BREAK;
 }
+
 goto {
     yylloc.last_column += yyleng;
-    return GOTO ;
+    return GOTO;
 }
 
 continue {
@@ -242,20 +244,15 @@ enum {
 "--" { return DEC_OP; }
 "..." { return ELIPSIS; }
 
-[ \t]+ {yylloc.first_column = yylloc.last_column += yyleng;}
-
-
-[\t\n\r]+ {
-    yylloc.first_line = yylloc.last_line += yyleng; 
-} /* Ignorar espacios y tabs */
+[ \t]+ {
+    yylloc.last_column += yyleng;
+}
 
 \n {
-    yylloc.first_line = yylloc.last_line += yyleng; 
+    yylloc.first_line = ++yylloc.last_line;
     yylloc.first_column = yylloc.last_column = INICIO_CONTEO_COLUMNA;
-    return '\n';
-  }
+}
 
-[^ \t\n] {}
 <tokenNoReconocido>{
     <<EOF>> {
         fprintf(stderr, "\n");
@@ -274,3 +271,4 @@ enum {
 }
 
 %%
+

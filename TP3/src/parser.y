@@ -15,7 +15,7 @@ t_function* data_function;
 GenericNode* function;
 t_parameter* data_parameter;
 
-int dentro_de_funcion = 0;
+int dentro_de_prototipo = 0;
 
 %}
 
@@ -276,12 +276,13 @@ unidadTraduccion
 
 declaracionExterna
     : definicionFuncion    
-    | declaracion 
-    ;          
+    | especificadorDeclaracion decla ';' { 
+        dentro_de_prototipo = 1;  // Estamos en un prototipo, evitar añadir parámetros a la lista de variables
+    }
+    ;        
 
 definicionFuncion
     : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta {
-        dentro_de_funcion = 1;
         data_function->return_type = strdup($<string_type>1);
         data_function->name = strdup($<string_type>2);
         data_function->type = "definicion"; 
@@ -290,7 +291,7 @@ definicionFuncion
     ;
 
 declaracion
-    : especificadorDeclaracion listaDeclaradores ';' {dentro_de_funcion = 0;}
+    : especificadorDeclaracion listaDeclaradores ';'
     ;
     
 especificadorDeclaracionOp
@@ -306,13 +307,10 @@ especificadorDeclaracion
 
 listaDeclaradores
     : declarador { 
-        // if (dentro_de_funcion == 0) {
-        //     add_node(&variable, data_variable, sizeof(t_variable));
+            add_node(&variable, data_variable, sizeof(t_variable));
     }
     | listaDeclaradores ',' declarador {
-        // if(dentro_de_funcion == 0) {
-        //     add_node(&variable, data_variable, sizeof(t_variable));
-        // } 
+            add_node(&variable, data_variable, sizeof(t_variable));
     }
     ;
 
@@ -322,14 +320,8 @@ listaDeclaracionOp
     ;
     
 declarador
-    : decla { 
-        if (dentro_de_funcion == 0) {
-            add_node(&variable, data_variable, sizeof(t_variable));
-        }
-    }
-    | decla '=' inicializador {
-
-    }
+    : decla
+    | decla '=' inicializador 
     ;
 
 opcionComa
@@ -343,16 +335,12 @@ listaInicializadores
     ;
 
 inicializador
-    : expAsignacion {
-        if (dentro_de_funcion == 0) {
-            add_node(&variable, data_variable, sizeof(t_variable));
-        }
-    }
+    : expAsignacion 
     | '{' listaInicializadores opcionComa '}' 
     ;
 
 especificadorTipo
-    : TIPO_DATO { data_variable->type = strdup($<string_type>1);}
+    : TIPO_DATO { data_variable->type = strdup($<string_type>1); }
     | especificadorStructUnion
     | especificadorEnum
     ;
@@ -436,7 +424,7 @@ declaradorDirecto
     : IDENTIFICADOR {
         $<string_type>$ = strdup($<string_type>1);
         data_variable->variable = strdup($<string_type>1);
-        data_variable->line = yylloc.first_line;  // Guardar la línea donde fue declarada
+        data_variable->line = yylloc.first_line;
         data_function->line = yylloc.first_line;
     }
     | '(' decla ')'
@@ -569,7 +557,6 @@ int main(int argc, char *argv[]) {
     init_structures();
 
     yyparse();
-
     // print_statements_list();
     print_lists();
 
