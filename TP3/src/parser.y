@@ -276,13 +276,13 @@ unidadTraduccion
 
 declaracionExterna
     : definicionFuncion    
-    | especificadorDeclaracion listaDeclaradores ';' { 
+    | declaracion { 
         dentro_de_prototipo = 1;  // Estamos en un prototipo, evitar añadir parámetros a la lista de variables
     }
     ;        
 
 definicionFuncion
-    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta {
+    : especificadorDeclaracion decla sentCompuesta {
         data_function->return_type = strdup($<string_type>1);
         data_function->name = strdup($<string_type>2);
         data_function->type = "definicion"; 
@@ -292,6 +292,7 @@ definicionFuncion
 
 declaracion
     : especificadorDeclaracion listaDeclaradores ';'
+    | especificadorDeclaracion decla ';'
     ;
     
 especificadorDeclaracionOp
