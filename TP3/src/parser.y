@@ -276,7 +276,7 @@ unidadTraduccion
 
 declaracionExterna
     : definicionFuncion    
-    | especificadorDeclaracion decla ';' { 
+    | especificadorDeclaracion listaDeclaradores ';' { 
         dentro_de_prototipo = 1;  // Estamos en un prototipo, evitar añadir parámetros a la lista de variables
     }
     ;        
@@ -434,7 +434,6 @@ declaradorDirecto
 continuacionDeclaradorDirecto
     : '[' expConstanteOp ']'
     | '(' listaTiposParametrosOp ')'
-
     | '(' listaIdentificadoresOp ')' 
     | '(' TIPO_DATO ')'
     ;
