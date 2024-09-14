@@ -16,6 +16,7 @@ GenericNode* function = NULL;
 t_parameter* data_parameter;
 GenericNode* error_list = NULL;
 
+int flag_error = 0;
 int dentro_de_prototipo = 0;
 
 %}
@@ -99,7 +100,7 @@ listaDeclaraciones
     ;
 
 listaSentencias
-    : error { yyerror("Error encontrado");}
+    : error //{ yyerror("Error encontrado");}
     | listaSentencias sentencia
     | sentencia
     ;
@@ -128,7 +129,7 @@ sentIteracion
 expresionOp
     : 
     | expresion
-    | error { yyerror("Error encontrado");}
+    //| error '\n'//{ yyerror("Error encontrado");}
     ;
 
 sentEtiquetadas
@@ -298,8 +299,9 @@ definicionFuncion
 
 declaracion
     : especificadorDeclaracion listaDeclaradores ';'
-    | especificadorDeclaracion decla ';'  
-    ;
+    | especificadorDeclaracion decla ';'
+    | especificadorDeclaracion decla error ';' {yyerrok;}
+    
 
     
 especificadorDeclaracionOp
@@ -435,7 +437,7 @@ declaradorDirecto
         data_variable->line = yylloc.first_line;
     }
     | '(' decla ')'
-    | declaradorDirecto continuacionDeclaradorDirecto  
+    | declaradorDirecto continuacionDeclaradorDirecto
     ;
 
 continuacionDeclaradorDirecto

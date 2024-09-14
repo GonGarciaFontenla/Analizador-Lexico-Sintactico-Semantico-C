@@ -62,30 +62,6 @@ typedef struct {
     char* token;
 } t_token_unrecognised;
 
-typedef struct VariableNode {
-    t_variable* variable;
-    struct VariableNode* next;
-} VariableNode;
-
-typedef struct FunctionNode {
-    t_function* function;
-    struct FunctionNode* next;
-} FunctionNode;
-
-typedef struct StatementNode {
-    t_statement* statement;
-    struct StatementNode* next;
-} StatementNode;
-
-typedef struct UnrecognisedStructureNode {
-    t_structure_unrecognised* structure;
-    struct UnrecognisedStructureNode* next;
-} UnrecognisedStructureNode;
-
-typedef struct UnrecognisedTokenNode {
-    t_token_unrecognised* token;
-    struct UnrecognisedTokenNode* next;
-} UnrecognisedTokenNode;
 
 typedef struct GenericNode { // Estructura para reducir lógica repetida en los agregar //
     void* data;
@@ -108,6 +84,8 @@ extern GenericNode* statements_list;
 extern GenericNode* variable;
 extern GenericNode* function;
 extern GenericNode* error_list;
+extern GenericNode* intokens;
+extern t_token_unrecognised* data_intoken;
 extern t_variable* data_variable;
 extern t_function* data_function;
 extern t_parameter* data_parameter;
@@ -127,9 +105,8 @@ void add_function(char* function_name, char* function_type);
 void free_list(GenericNode** list);
 void free_parameters(t_parameter* param);
 void yyerror(const char* s);
-//void print_statements_list();
-
-
+void agregar_error_sintaxis(const char* sentencia);
+void add_unrecognised_token(const char* intoken);
 void print_lists();
 // void free_lists(); TODO: hacer una funcion que free a todas las listas!
 #endif

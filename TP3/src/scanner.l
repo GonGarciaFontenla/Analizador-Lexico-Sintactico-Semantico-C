@@ -10,12 +10,10 @@
 #define COLUMNA_INICIAL 1
 
 int inicializar = 1;
+GenericNode* intokens = NULL;
+t_token_unrecognised* data_intoken;
 
 %}
-
-%pointer
-%option noyywrap
-%x tokenNoReconocido
 
 SUFIJO_ENTERO ([uU]?[lL]{0,2}|[lL]{0,2}[uU]?)?
 SUFIJO_REAL ([eE][+-]?[0-9]+)?[fFlL]?
@@ -24,9 +22,13 @@ DIGITO_OCTAL [0-7]
 DIGITO_HEXA [0-9a-fA-F]
 ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
 
+%pointer
+%option noyywrap
+%x tokenNoReconocido
+
 %%
 
-    // Inicializa las ubicaciones
+ // Inicializa las ubicaciones
     if (inicializar == 1) {
         inicializarUbicacion();
         inicializar = -1;
@@ -202,73 +204,75 @@ enum {
     return LITERAL_CADENA; 
 }
 
-":" { return ':';}
-"?" { return '?';}
-"+" { return '+'; }
-"-" { return '-'; }
-"*" { return '*'; }
-"/" { return '/'; }
-"%" { return '%'; }
-"=" { return '='; }
-"+=" { return ADD_ASSIGN; }
-"-=" { return SUB_ASSIGN; }
-"*=" { return MUL_ASSIGN; }
-"/=" { return DIV_ASSIGN; }
-"%=" { return MOD_ASSIGN; }
-"==" { return EQ; }
-"!=" { return NEQ; }
-"<" { return '<'; }
-">" { return '>'; }
-"<=" { return LE; }
-">=" { return GE; }
-"&&" { return AND; }
-"||" { return OR; }
-"!" { return '!'; }
-"&" { return '&'; }
-"|" { return '|'; }
-"^" { return '^'; }
-"~" { return '~'; }
-"<<" { return LEFT_SHIFT; }
-">>" { return RIGHT_SHIFT; }
-"(" { return '('; }
-")" { return ')'; }
-"[" { return '['; }
-"]" { return ']'; }
-"{" { return '{'; }
-"}" { return '}'; }
-";" { return ';'; }
-"," { return ','; }
-"." { return '.'; }
-"->" { return PTR_OP; }
-"++" { return INC_OP; }
-"--" { return DEC_OP; }
-"..." { return ELIPSIS; }
+":" { yylloc.last_column += yyleng; return ':'; }
+"?" { yylloc.last_column += yyleng; return '?';}
+"+" { yylloc.last_column += yyleng; return '+'; }
+"-" { yylloc.last_column += yyleng; return '-'; }
+"*" { yylloc.last_column += yyleng; return '*'; }
+"/" { yylloc.last_column += yyleng; return '/'; }
+"%" { yylloc.last_column += yyleng; return '%'; }
+"=" { yylloc.last_column += yyleng; return '='; }
+"+=" { yylloc.last_column += yyleng; return ADD_ASSIGN; }
+"-=" { yylloc.last_column += yyleng; return SUB_ASSIGN; }
+"*=" { yylloc.last_column += yyleng; return MUL_ASSIGN; }
+"/=" { yylloc.last_column += yyleng; return DIV_ASSIGN; }
+"%=" { yylloc.last_column += yyleng; return MOD_ASSIGN; }
+"==" { yylloc.last_column += yyleng; return EQ; }
+"!=" { yylloc.last_column += yyleng; return NEQ; }
+"<" { yylloc.last_column += yyleng; return '<'; }
+">" { yylloc.last_column += yyleng; return '>'; }
+"<=" { yylloc.last_column += yyleng; return LE; }
+">=" { yylloc.last_column += yyleng; return GE; }
+"&&" { yylloc.last_column += yyleng; return AND; }
+"||" { yylloc.last_column += yyleng; return OR; }
+"!" { yylloc.last_column += yyleng; return '!'; }
+"&" { yylloc.last_column += yyleng; return '&'; }
+"|" { yylloc.last_column += yyleng; return '|'; }
+"^" { yylloc.last_column += yyleng; return '^'; }
+"~" { yylloc.last_column += yyleng; return '~'; }
+"<<" { yylloc.last_column += yyleng; return LEFT_SHIFT; }
+">>" { yylloc.last_column += yyleng; return RIGHT_SHIFT; }
+"(" { yylloc.last_column += yyleng; return '('; }
+")" { yylloc.last_column += yyleng; return ')'; }
+"[" { yylloc.last_column += yyleng; return '['; }
+"]" { yylloc.last_column += yyleng; return ']'; }
+"{" { yylloc.last_column += yyleng; return '{'; }
+"}" { yylloc.last_column += yyleng; return '}'; }
+";" { yylloc.last_column += yyleng; return ';'; }
+"," { yylloc.last_column += yyleng; return ','; }
+"." { yylloc.last_column += yyleng; return '.'; }
+"->" { yylloc.last_column += yyleng; return PTR_OP; }
+"++" { yylloc.last_column += yyleng; return INC_OP; }
+"--" { yylloc.last_column += yyleng; return DEC_OP; }
+"..." { yylloc.last_column += yyleng; return ELIPSIS; }
 
 [ \t]+ {
     yylloc.last_column += yyleng;
+    yylloc.first_column += yyleng;
 }
 
 \n {
     yylloc.first_line = ++yylloc.last_line;
-    yylloc.first_column = yylloc.last_column = INICIO_CONTEO_COLUMNA;
+    yylloc.first_column = yylloc.last_column = 1;
+}
+
+[^ \r\t\n] {
+    yyless(0);
+    BEGIN(tokenNoReconocido);
 }
 
 <tokenNoReconocido>{
     <<EOF>> {
-        fprintf(stderr, "\n");
-        BEGIN(INITIAL);
+        BEGIN(INITIAL);  
     }
-    " "|\t|\n {
+    [ \r\t\n] { 
         yyless(0);
-        fprintf(stderr, "\n");
-        BEGIN(INITIAL);
+        BEGIN(INITIAL); 
     }
-    [^ \t\n]+ {
-        yylloc.last_column += yyleng;
-        fprintf(stderr, "Token no reconocido: %s\n", yytext);
-        BEGIN(INITIAL);
+    [^ \r\t\n]+ {
+        add_unrecognised_token(yytext); 
+        BEGIN(INITIAL); 
     }
 }
 
 %%
-
