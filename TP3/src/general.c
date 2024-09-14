@@ -175,7 +175,7 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
                         found = 1;
                     } else {
                         printf("Tipo o nombre de parámetro nulo");
-                    }
+                    } 
                     aux2 = aux2->next;
                     
                     if (aux2) {
