@@ -62,35 +62,17 @@ typedef struct {
     char* token;
 } t_token_unrecognised;
 
-typedef struct VariableNode {
-    t_variable* variable;
-    struct VariableNode* next;
-} VariableNode;
-
-typedef struct FunctionNode {
-    t_function* function;
-    struct FunctionNode* next;
-} FunctionNode;
-
-typedef struct StatementNode {
-    t_statement* statement;
-    struct StatementNode* next;
-} StatementNode;
-
-typedef struct UnrecognisedStructureNode {
-    t_structure_unrecognised* structure;
-    struct UnrecognisedStructureNode* next;
-} UnrecognisedStructureNode;
-
-typedef struct UnrecognisedTokenNode {
-    t_token_unrecognised* token;
-    struct UnrecognisedTokenNode* next;
-} UnrecognisedTokenNode;
-
 typedef struct GenericNode { // Estructura para reducir lógica repetida en los agregar //
     void* data;
     struct GenericNode* next;
 } GenericNode;
+
+typedef struct {
+    char* type;
+    int line;
+    int column;
+} t_sent;
+
 
 #define INICIO_CONTEO_LINEA 1
 #define INICIO_CONTEO_COLUMNA 1
@@ -99,26 +81,28 @@ typedef struct GenericNode { // Estructura para reducir lógica repetida en los 
 extern GenericNode* statements_list;
 extern GenericNode* variable;
 extern GenericNode* function;
+extern GenericNode* error_list;
+extern GenericNode* intokens;
+extern GenericNode* sentencias;
+extern t_token_unrecognised* data_intoken;
 extern t_variable* data_variable;
 extern t_function* data_function;
 extern t_parameter* data_parameter;
+extern t_sent* data_sent;
 
 void pausa(void);
 void inicializarUbicacion(void);
 void reinicializarUbicacion(void);
 void init_structures();
 
-/* Ejemplo: GenericNode* function = NULL (Para la lista que queremos); t_function* function_data = NULL; (Para los datos que queremos guardar)
-   Agregamos datos a cada miembro de la estructura t_function de "function_data"
-   add_node(&function, function_data, sizeof(t_function)); */ 
 void add_node(GenericNode** list, void* new_data, size_t data_size); // Agregar a la lista de manera genérica //
 void add_variable(char* variable_name);
 void free_data_variable(t_variable* variable);
 void add_function(char* function_name, char* function_type);
 void free_list(GenericNode** list);
 void free_parameters(t_parameter* param);
-//void print_statements_list();
-
+void add_sent(const char* tipo_sentencia);
+void add_unrecognised_token(const char* intoken);
 void print_lists();
 // void free_lists(); TODO: hacer una funcion que free a todas las listas!
 #endif

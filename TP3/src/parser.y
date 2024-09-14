@@ -14,6 +14,8 @@ t_variable* data_variable = NULL;
 t_function* data_function;
 GenericNode* function = NULL;
 t_parameter* data_parameter;
+GenericNode* sentencias = NULL;
+t_sent* data_sent = NULL;
 
 int dentro_de_prototipo = 0;
 
@@ -108,8 +110,8 @@ sentExpresion
     ;
 
 sentSeleccion
-    : IF '(' expresion ')' sentencia opcionElse
-    | SWITCH '(' expresion ')' sentencia 
+    : IF {add_sent($<string_type>1);} '(' expresion ')' sentencia opcionElse
+    | SWITCH {add_sent($<string_type>1);} '(' expresion ')' sentencia 
     ;
 
 opcionElse
@@ -118,9 +120,9 @@ opcionElse
     ;
 
 sentIteracion
-    : WHILE '(' expresion ')' sentencia
-    | DO sentencia WHILE '(' expresion ')' ';'
-    | FOR '(' expresionOp ';' expresionOp ';' expresionOp ')' sentencia
+    : WHILE {add_sent($<string_type>1);} '(' expresion ')' sentencia
+    | DO {add_sent($<string_type>1);} sentencia WHILE '(' expresion ')' ';'
+    | FOR {add_sent($<string_type>1);} '(' expresionOp ';' expresionOp ';' expresionOp ')' sentencia
     ;
 
 expresionOp
@@ -130,15 +132,15 @@ expresionOp
 
 sentEtiquetadas
     : IDENTIFICADOR ':' sentencia 
-    | CASE  expresion ':' listaSentencias
-    | DEFAULT ':' listaSentencias 
+    | CASE {add_sent($<string_type>1);} expresion ':' listaSentencias
+    | DEFAULT {add_sent($<string_type>1);} ':' listaSentencias 
     ;
 
 sentSalto
-    : RETURN sentExpresion
-    | CONTINUE ';'
-    | BREAK ';'
-    | GOTO IDENTIFICADOR ';'
+    : RETURN {add_sent($<string_type>1);} sentExpresion
+    | CONTINUE {add_sent($<string_type>1);} ';'
+    | BREAK {add_sent($<string_type>1);} ';'
+    | GOTO {add_sent($<string_type>1);} IDENTIFICADOR ';'
     ;
 
 expresion
