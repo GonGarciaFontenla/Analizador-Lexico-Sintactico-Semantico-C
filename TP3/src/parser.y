@@ -14,6 +14,7 @@ t_variable* data_variable = NULL;
 t_function* data_function;
 GenericNode* function = NULL;
 t_parameter* data_parameter;
+GenericNode* error_list = NULL;
 GenericNode* sentencias = NULL;
 t_sent* data_sent = NULL;
 
@@ -54,6 +55,7 @@ int dentro_de_prototipo = 0;
 %type <int_type> sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
 %type <string_type> unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto
 
+
 %start programa
 
 %%
@@ -67,7 +69,7 @@ input
     | input expresion
     | input sentencia /* Permitir que el archivo termine con una sentencia */
     | input unidadTraduccion
-    | input error '\n' { printf("EL ERROR ESTA ACA \n"); yyerrok; } 
+    | input error '\n' 
     ;
 
 sentencia
@@ -106,23 +108,21 @@ listaSentencias
 
 sentExpresion
     : ';' 
-    | expresion ';' 
+    | expresion ';'
+    | error ';' 
     ;
 
 sentSeleccion
-    : IF {add_sent($<string_type>1);} '(' expresion ')' sentencia opcionElse
-    | SWITCH {add_sent($<string_type>1);} '(' expresion ')' sentencia 
+    : IF '(' expresion ')' sentencia { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);} 
+    | IF '(' expresion ')' sentencia ELSE sentencia  {int column = @1.first_column; int line = @1.first_line; add_sent("if/else", line, column);} 
+    | SWITCH '(' expresion ')' sentencia { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
     ;
 
-opcionElse
-    : 
-    | ELSE sentencia
-    ;
 
 sentIteracion
-    : WHILE {add_sent($<string_type>1);} '(' expresion ')' sentencia
-    | DO {add_sent($<string_type>1);} sentencia WHILE '(' expresion ')' ';'
-    | FOR {add_sent($<string_type>1);} '(' expresionOp ';' expresionOp ';' expresionOp ')' sentencia
+    : WHILE '(' expresion ')' sentencia { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
+    | DO sentencia WHILE '(' expresion ')' ';' { int column = @1.first_column; int line = @1.first_line; add_sent("do/while", line, column);} 
+    | FOR '(' expresionOp ';' expresionOp ';' expresionOp ')' sentencia { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
     ;
 
 expresionOp
@@ -132,15 +132,15 @@ expresionOp
 
 sentEtiquetadas
     : IDENTIFICADOR ':' sentencia 
-    | CASE {add_sent($<string_type>1);} expresion ':' listaSentencias
-    | DEFAULT {add_sent($<string_type>1);} ':' listaSentencias 
+    | CASE expresion ':' listaSentencias { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
+    | DEFAULT ':' listaSentencias { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
     ;
 
 sentSalto
-    : RETURN {add_sent($<string_type>1);} sentExpresion
-    | CONTINUE {add_sent($<string_type>1);} ';'
-    | BREAK {add_sent($<string_type>1);} ';'
-    | GOTO {add_sent($<string_type>1);} IDENTIFICADOR ';'
+    : RETURN sentExpresion { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
+    | CONTINUE ';' { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
+    | BREAK ';' { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
+    | GOTO IDENTIFICADOR ';'{ int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
     ;
 
 expresion
@@ -290,7 +290,7 @@ definicionFuncion
         data_function->name = strdup($<string_type>2);
         data_function->type = "definicion"; 
         //data_function->line = @1.first_line ;
-        add_node(&function, data_function, sizeof(t_function));
+        add_node(&function, data_function, sizeof(t_function), compare_lines_columns);
     }
     ;
 
@@ -301,7 +301,7 @@ declaracion
         data_function->return_type = strdup($<string_type>1);
         data_function->name = strdup($<string_type>2);
         data_function->type = "declaracion"; 
-        add_node(&function, data_function, sizeof(t_function));
+        add_node(&function, data_function, sizeof(t_function), compare_lines_columns);
     }
     ;
     
@@ -318,10 +318,10 @@ especificadorDeclaracion
 
 listaDeclaradores
     : declarador { 
-            add_node(&variable, data_variable, sizeof(t_variable));
+            add_node(&variable, data_variable, sizeof(t_variable), compare_lines_columns);
     }
     | listaDeclaradores ',' declarador {
-            add_node(&variable, data_variable, sizeof(t_variable));
+            add_node(&variable, data_variable, sizeof(t_variable), compare_lines_columns);
     }
     ;
 
@@ -449,7 +449,7 @@ continuacionDeclaradorDirecto
         data_parameter->type = strdup($<string_type>2);
         data_parameter->name = NULL;
         t_parameter temp_parameter = *data_parameter;
-        add_node(&(data_function->parameters), &temp_parameter, sizeof(t_parameter));
+        add_node(&(data_function->parameters), &temp_parameter, sizeof(t_parameter), compare_lines_columns);
         }
     ;
 
@@ -470,11 +470,11 @@ opcionalListaParametros
 listaParametros
     : declaracionParametro  {
         t_parameter temp_parameter = *data_parameter;
-        add_node(&(data_function->parameters), &temp_parameter, sizeof(t_parameter));
+        add_node(&(data_function->parameters), &temp_parameter, sizeof(t_parameter), compare_lines_columns);
     }
     | listaParametros ',' declaracionParametro {
         t_parameter temp_parameter = *data_parameter;
-        add_node(&(data_function->parameters), &temp_parameter, sizeof(t_parameter));
+        add_node(&(data_function->parameters), &temp_parameter, sizeof(t_parameter), compare_lines_columns);
     }
     ;
     

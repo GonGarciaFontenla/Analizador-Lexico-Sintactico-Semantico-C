@@ -73,6 +73,12 @@ typedef struct {
     int column;
 } t_sent;
 
+typedef struct {
+    int line;
+    char* message;
+    int col_start;
+    int col_end;
+} t_error;
 
 #define INICIO_CONTEO_LINEA 1
 #define INICIO_CONTEO_COLUMNA 1
@@ -95,14 +101,16 @@ void inicializarUbicacion(void);
 void reinicializarUbicacion(void);
 void init_structures();
 
-void add_node(GenericNode** list, void* new_data, size_t data_size); // Agregar a la lista de manera genérica //
 void add_variable(char* variable_name);
 void free_data_variable(t_variable* variable);
 void add_function(char* function_name, char* function_type);
 void free_list(GenericNode** list);
 void free_parameters(t_parameter* param);
-void add_sent(const char* tipo_sentencia);
+void add_sent(const char* tipo_sentencia, int line, int column);
 void add_unrecognised_token(const char* intoken);
+void yyerror(const char* s);
 void print_lists();
+int compare_lines_columns(const void* a, const void* b);
+void add_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*));
 // void free_lists(); TODO: hacer una funcion que free a todas las listas!
 #endif
