@@ -11,9 +11,9 @@ void yyerror(const char*);
 /* Declaracion de variables */
 GenericNode* variable = NULL;
 t_variable* data_variable = NULL;
-t_function* data_function;
+t_function* data_function = NULL;
 GenericNode* function = NULL;
-t_parameter* data_parameter;
+t_parameter data_parameter;
 GenericNode* error_list = NULL;
 GenericNode* sentencias = NULL;
 t_sent* data_sent = NULL;
@@ -278,28 +278,28 @@ unidadTraduccion
 declaracionExterna
     : definicionFuncion    
     | declaracion { 
-        dentro_de_prototipo = 1;  // Estamos en un prototipo, evitar añadir parámetros a la lista de variables
+        //dentro_de_prototipo = 1;  // Estamos en un prototipo, evitar añadir parámetros a la lista de variables
     }
     ;        
 
 definicionFuncion
     : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta {
         data_function->return_type = strdup($<string_type>1);
-        data_function->name = strdup($<string_type>2);
+        data_function->name = strdup($<string_type>2); 
         data_function->type = "definicion"; 
-        //data_function->line = @1.first_line ;
         add_node(&function, data_function, sizeof(t_function), compare_lines_columns);
+        data_function->parameters = NULL;
     }
     ;
 
 declaracion
     : especificadorDeclaracion listaDeclaradores ';'
-    | especificadorDeclaracion decla ';' { 
-        dentro_de_prototipo = 1;  // Estamos en un prototipo, evitar añadir parámetros a la lista de variables
+    | especificadorDeclaracion decla ';' {
         data_function->return_type = strdup($<string_type>1);
         data_function->name = strdup($<string_type>2);
         data_function->type = "declaracion"; 
         add_node(&function, data_function, sizeof(t_function), compare_lines_columns);
+        data_function->parameters = NULL;
     }
     ;
     
@@ -444,10 +444,9 @@ continuacionDeclaradorDirecto
     | '(' listaTiposParametrosOp ')'
     | '(' listaIdentificadoresOp ')' 
     | '(' TIPO_DATO ')' { 
-        data_parameter->type = strdup($<string_type>2);
-        data_parameter->name = NULL;
-        t_parameter temp_parameter = *data_parameter;
-        add_node(&(data_function->parameters), &temp_parameter, sizeof(t_parameter), compare_lines_columns);
+        data_parameter.type = strdup($<string_type>2);
+        data_parameter.name = NULL;
+        add_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter), compare_lines_columns);
         }
     ;
 
@@ -467,25 +466,22 @@ opcionalListaParametros
 
 listaParametros
     : declaracionParametro  {
-        t_parameter temp_parameter = *data_parameter;
-        add_node(&(data_function->parameters), &temp_parameter, sizeof(t_parameter), compare_lines_columns);
+        add_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter), compare_lines_columns);
     }
     | listaParametros ',' declaracionParametro {
-        t_parameter temp_parameter = *data_parameter;
-        add_node(&(data_function->parameters), &temp_parameter, sizeof(t_parameter), compare_lines_columns);
+        add_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter), compare_lines_columns);
     }
     ;
     
 declaracionParametro
     : especificadorDeclaracion opcionesDecla {
-        data_parameter->type = strdup($<string_type>1);
+        data_parameter.type = strdup($<string_type>1);
         }
     ;
 
 opcionesDecla
     : decla { 
-        data_parameter = (t_parameter*)malloc(sizeof(t_parameter));
-        data_parameter->name = strdup($<string_type>1); 
+        data_parameter.name = strdup($<string_type>1); 
         }
     | declaradorAbstracto
     ;

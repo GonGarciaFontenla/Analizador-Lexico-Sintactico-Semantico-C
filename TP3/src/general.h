@@ -92,7 +92,7 @@ extern GenericNode* sentencias;
 extern t_token_unrecognised* data_intoken;
 extern t_variable* data_variable;
 extern t_function* data_function;
-extern t_parameter* data_parameter;
+extern t_parameter data_parameter;
 extern t_sent* data_sent;
 
 void pausa(void);
