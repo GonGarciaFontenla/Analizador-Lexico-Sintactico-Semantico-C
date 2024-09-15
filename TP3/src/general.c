@@ -258,14 +258,6 @@ void free_data_variable(t_variable* variable) {
     variable = NULL;
 }
 
-void free_parameters(t_parameter* param) {
-    if (param) {
-        free(param->type);
-        free(param->name);
-        free(param);
-    }
-}
-
 void free_list(GenericNode** list) {
     GenericNode* nodo_actual = *list;
     GenericNode* nodo_siguiente = NULL;
