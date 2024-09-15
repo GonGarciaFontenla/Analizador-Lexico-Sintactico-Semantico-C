@@ -75,10 +75,9 @@ typedef struct {
 
 typedef struct {
     int line;
-    char* message;
-    int col_start;
-    int col_end;
+    char *message;  // Campo para el mensaje del error
 } t_error;
+
 
 #define INICIO_CONTEO_LINEA 1
 #define INICIO_CONTEO_COLUMNA 1
@@ -108,7 +107,7 @@ void free_list(GenericNode** list);
 void free_parameters(t_parameter* param);
 void add_sent(const char* tipo_sentencia, int line, int column);
 void add_unrecognised_token(const char* intoken);
-void yyerror(const char* s);
+void yerror(int columnaInicial, int columnaFinal);
 void print_lists();
 int compare_lines_columns(const void* a, const void* b);
 void add_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*));

@@ -69,18 +69,17 @@ input
     | input expresion
     | input sentencia /* Permitir que el archivo termine con una sentencia */
     | input unidadTraduccion
-    | input error '\n' 
     ;
 
 sentencia
     : sentCompuesta 
-    | sentExpresion 
+    | sentExpresion
     | sentSeleccion 
     | sentIteracion 
     | sentEtiquetadas 
     | sentSalto
-    | '\n'
     ;
+
 
 sentCompuesta
     : '{' opcionDeclaracion opcionSentencia '}' 
@@ -98,18 +97,18 @@ opcionSentencia
 
 listaDeclaraciones
     : listaDeclaraciones declaracion
-    | declaracion
+    | declaracion 
     ;
 
 listaSentencias
-    : listaSentencias sentencia
+    : listaSentencias sentencia 
     | sentencia
+    | error
     ;
 
 sentExpresion
     : ';' 
-    | expresion ';'
-    | error ';' 
+    | expresion ';' 
     ;
 
 sentSeleccion
@@ -144,18 +143,17 @@ sentSalto
     ;
 
 expresion
-    : expAsignacion 
+    : expAsignacion
     | expresion ',' expAsignacion
-    | error { printf("ERROR: falta guardarlo \n"); }
     ;
 
 expAsignacion
     : expCondicional 
-    | expUnaria operAsignacion expAsignacion 
+    | expUnaria operAsignacion expAsignacion
     ;
 
 operAsignacion
-    : '=' 
+    : '='
     | ADD_ASSIGN 
     | SUB_ASSIGN 
     | MUL_ASSIGN 
@@ -259,7 +257,7 @@ listaArgumentos
     ;
 
 expPrimaria
-    : IDENTIFICADOR
+    : IDENTIFICADOR 
     | ENTERO        
     | NUM        
     | CONSTANTE 
@@ -332,7 +330,7 @@ listaDeclaracionOp
     
 declarador
     : decla
-    | decla '=' inicializador 
+    | decla '=' inicializador
     ;
 
 opcionComa

@@ -110,34 +110,30 @@ void add_node(GenericNode** list, void* new_data, size_t data_size, int (*compar
     current->next = new_node;
 }
 
-void yyerror(const char *msg) {
+void yerror(int columnaInicial, int columnaFinal) {
     t_error *new_error = (t_error *)malloc(sizeof(t_error));
     if (!new_error) {
-        perror("Error allocating memory");
+        perror("Error al asignar memoria para el nuevo error");
         exit(EXIT_FAILURE);
     }
 
-    // Asigna la línea y las columnas
-    new_error->line = yylloc.first_line;
-    new_error->col_start = yylloc.first_column;
-    new_error->col_end = yylloc.last_column;
+    new_error->line = yylloc.first_line; 
 
-    // Copia el mensaje del texto actual
-    size_t length = yyleng;  // Usa yyleng para obtener la longitud del token actual
+    size_t length = columnaFinal - columnaInicial; //Calculo el length del mensaje
+    
     new_error->message = (char *)malloc(length + 1);
     if (!new_error->message) {
-        perror("Error allocating memory");
+        perror("Error al asignar memoria para el mensaje del error");
         free(new_error);
         exit(EXIT_FAILURE);
     }
 
-    // Copia el texto del token directamente desde yytext
-    strncpy(new_error->message, yytext, length);
-    new_error->message[length] = '\0';  // Asegura la cadena nula al final
-
-    // Agrega el nuevo error a la lista de errores
+    strncpy(new_error->message, yytext + (columnaInicial - yylloc.first_column), length);
+    new_error->message[length] = '\0'; //Aseguro cadena nula
+    
     add_node(&error_list, new_error, sizeof(t_error), compare_lines_columns);
 }
+
 
 void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HACIENDO UN PRINT PARTICULAR GENERICO
     int found = 0;
