@@ -183,6 +183,7 @@ enum {
 }
 
 [_a-zA-Z][_a-zA-Z0-9]* {
+    append_token(yytext);
     yylloc.last_column += yyleng;
     yylval.string_type = strdup(yytext); 
     return IDENTIFICADOR;
@@ -225,7 +226,7 @@ enum {
 "*" { yylloc.last_column += yyleng; return '*'; }
 "/" { yylloc.last_column += yyleng; return '/'; }
 "%" { yylloc.last_column += yyleng; return '%'; }
-"=" { yylloc.last_column += yyleng; return '='; }
+"=" { append_token("="); yylloc.last_column += yyleng; return '='; }
 "+=" { yylloc.last_column += yyleng; return ADD_ASSIGN; }
 "-=" { yylloc.last_column += yyleng; return SUB_ASSIGN; }
 "*=" { yylloc.last_column += yyleng; return MUL_ASSIGN; }

@@ -13,6 +13,28 @@ extern char *yytext;
 
 extern int yyleng;
 
+
+char token_buffer[1024];  // Buffer para almacenar los tokens involucrados
+int token_buffer_pos = 0; // Posición actual en el buffer
+
+void reset_token_buffer() {
+    token_buffer[0] = '\0';  // Resetea el buffer
+    token_buffer_pos = 0;
+}
+
+void append_token(const char* token) {
+    int len = strlen(token);
+    if (token_buffer_pos + len < sizeof(token_buffer)) {
+        if(token_buffer[0] != '\0'){ // Esto es solo para que se guarde con espacios y no quede tipo "j=a"
+            strcat(token_buffer, " ");
+            token_buffer_pos ++;
+        }
+        strcat(token_buffer, token);
+        token_buffer_pos += len;
+    }
+
+}
+
 void inicializarUbicacion(void)
 {
     yylloc.first_line = yylloc.last_line = INICIO_CONTEO_LINEA;
@@ -110,26 +132,41 @@ void add_node(GenericNode** list, void* new_data, size_t data_size, int (*compar
     current->next = new_node;
 }
 
-void yerror(int columnaInicial, int columnaFinal) {
+// void yerror(int columnaInicial, int columnaFinal) {
+//     t_error *new_error = (t_error *)malloc(sizeof(t_error));
+//     if (!new_error) {
+//         perror("Error al asignar memoria para el nuevo error");
+//         exit(EXIT_FAILURE);
+//     }
+
+//     new_error->line = yylloc.first_line; 
+
+//     size_t length = columnaFinal - columnaInicial; //Calculo el length del mensaje
+    
+//     new_error->message = (char *)malloc(length + 1);
+//     if (!new_error->message) {
+//         perror("Error al asignar memoria para el mensaje del error");
+//         free(new_error);
+//         exit(EXIT_FAILURE);
+//     }
+
+//     strncpy(new_error->message, yytext + (columnaInicial - yylloc.first_column), length);
+//     new_error->message[length] = '\0'; //Aseguro cadena nula
+    
+//     add_node(&error_list, new_error, sizeof(t_error), compare_lines_columns);
+// }
+
+void yerror(){
     t_error *new_error = (t_error *)malloc(sizeof(t_error));
     if (!new_error) {
         perror("Error al asignar memoria para el nuevo error");
         exit(EXIT_FAILURE);
     }
 
-    new_error->line = yylloc.first_line; 
+    new_error->line = yylloc.first_line - 1;
+    new_error->message = (char*)malloc(sizeof(token_buffer));
 
-    size_t length = columnaFinal - columnaInicial; //Calculo el length del mensaje
-    
-    new_error->message = (char *)malloc(length + 1);
-    if (!new_error->message) {
-        perror("Error al asignar memoria para el mensaje del error");
-        free(new_error);
-        exit(EXIT_FAILURE);
-    }
-
-    strncpy(new_error->message, yytext + (columnaInicial - yylloc.first_column), length);
-    new_error->message[length] = '\0'; //Aseguro cadena nula
+    strncpy(new_error->message, token_buffer, token_buffer_pos + 1);
     
     add_node(&error_list, new_error, sizeof(t_error), compare_lines_columns);
 }
@@ -218,7 +255,8 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
         GenericNode* temp = error_list;
         while (temp) {
             t_error* err = (t_error*) temp->data;
-            printf("Error en la línea %d: %s\n", err->line, err->message);
+            printf("\"%s\": linea: %d \n", err->message, err->line);
+            // printf("Error en la linea %d: %s\n", err->line, err->message);
             temp = temp->next;
             found = 1;
         }

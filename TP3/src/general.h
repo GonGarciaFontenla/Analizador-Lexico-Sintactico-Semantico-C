@@ -94,6 +94,7 @@ extern t_variable* data_variable;
 extern t_function* data_function;
 extern t_parameter data_parameter;
 extern t_sent* data_sent;
+extern char token_buffer[];
 
 void pausa(void);
 void inicializarUbicacion(void);
@@ -107,9 +108,15 @@ void free_list(GenericNode** list);
 void free_parameters(t_parameter* param);
 void add_sent(const char* tipo_sentencia, int line, int column);
 void add_unrecognised_token(const char* intoken);
-void yerror(int columnaInicial, int columnaFinal);
+void yerror();
 void print_lists();
 int compare_lines_columns(const void* a, const void* b);
 void add_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*));
 // void free_lists(); TODO: hacer una funcion que free a todas las listas!
+
+
+void reset_token_buffer();
+void append_token(const char* token);
+
+
 #endif

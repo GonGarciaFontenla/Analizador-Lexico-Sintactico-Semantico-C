@@ -66,20 +66,21 @@ programa
 
 input
     : 
-    | input expresion
-    | input sentencia /* Permitir que el archivo termine con una sentencia */
-    | input unidadTraduccion
+    | input expresion {reset_token_buffer();}
+    | input sentencia {reset_token_buffer();}
+    | input unidadTraduccion {reset_token_buffer();}
     ;
 
 sentencia
-    : sentCompuesta 
-    | sentExpresion
-    | sentSeleccion 
-    | sentIteracion 
-    | sentEtiquetadas 
-    | sentSalto
+    : sentCompuesta {reset_token_buffer();}
+    | sentExpresion {reset_token_buffer();}
+    | sentSeleccion {reset_token_buffer();}
+    | sentIteracion {reset_token_buffer();}
+    | sentEtiquetadas {reset_token_buffer();}
+    | sentSalto {reset_token_buffer();}
     ;
 
+/* yerror(yylloc.first_column, yylloc.last_column ); */
 
 sentCompuesta
     : '{' opcionDeclaracion opcionSentencia '}' 
@@ -103,18 +104,19 @@ listaDeclaraciones
 listaSentencias
     : listaSentencias sentencia 
     | sentencia
-    | error
+    | error 
     ;
 
 sentExpresion
-    : ';' 
+    : ';'
     | expresion ';' 
+    | expresion { yerror();} error 
     ;
 
 sentSeleccion
     : IF '(' expresion ')' sentencia { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);} 
     | IF '(' expresion ')' sentencia ELSE sentencia  {int column = @1.first_column; int line = @1.first_line; add_sent("if/else", line, column);} 
-    | SWITCH '(' expresion ')' sentencia { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
+    | SWITCH '(' expresion ')' {reset_token_buffer();} sentencia { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
     ;
 
 
@@ -143,13 +145,13 @@ sentSalto
     ;
 
 expresion
-    : expAsignacion
+    : expAsignacion 
     | expresion ',' expAsignacion
     ;
 
 expAsignacion
-    : expCondicional 
-    | expUnaria operAsignacion expAsignacion
+    : expCondicional
+    | expUnaria operAsignacion expAsignacion 
     ;
 
 operAsignacion
