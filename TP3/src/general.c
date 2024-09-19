@@ -11,27 +11,8 @@ extern YYLTYPE yylloc;
 extern char *yytext; 
 
 extern int yyleng;
-
-
-char token_buffer[1024];  // Buffer para almacenar los tokens involucrados
-int token_buffer_pos = 0; // Posición actual en el buffer
-
-void reset_token_buffer() {
-    token_buffer[0] = '\0';  // Resetea el buffer
-    token_buffer_pos = 0;
-}
-
-void append_token(const char* token) {
-    int len = strlen(token);
-    if (token_buffer_pos + len < sizeof(token_buffer)) {
-        if(token_buffer[0] != '\0'){ // Esto es solo para que se guarde con espacios y no quede tipo "j=a"
-            strcat(token_buffer, " ");
-            token_buffer_pos ++;
-        }
-        strcat(token_buffer, token);
-        token_buffer_pos += len;
-    }
-}
+char* invalid_string;
+t_error* new_error = NULL;
 
 void inicializarUbicacion(void)
 {
@@ -43,6 +24,73 @@ void reinicializarUbicacion(void)
 {
     yylloc.first_line = yylloc.last_line;
     yylloc.first_column = yylloc.last_column;
+}
+
+char* token_buffer = NULL;  // Buffer dinámico para almacenar los tokens
+int token_buffer_pos = 0;   // Posición actual en el buffer
+int token_buffer_size = 0;  // Tamaño actual del buffer
+
+void reset_token_buffer() {
+    if (token_buffer) {
+        token_buffer[0] = '\0';  // Resetea el buffer
+    }
+    token_buffer_pos = 0;
+}
+
+// Función para agregar un token al buffer dinámico
+void append_token(const char* token) {
+    int len = strlen(token);
+
+    // Si el buffer es nulo o no hay suficiente espacio, se debe reasignar memoria
+    if (!token_buffer || token_buffer_pos + len + 2 > token_buffer_size) {
+        // Aumentar el tamaño del buffer dinámico
+        token_buffer_size = token_buffer_size + len + 2;  // +2 para el espacio y el terminador nulo
+        char* new_buffer = (char*)realloc(token_buffer, token_buffer_size);
+        if (!new_buffer) {
+            perror("Error al asignar memoria para token_buffer");
+            exit(EXIT_FAILURE);
+        }
+        token_buffer = new_buffer;
+    }
+
+    // Agregar un espacio si el buffer ya tiene contenido
+    if (token_buffer[0] != '\0') {
+        strcat(token_buffer, " ");
+        token_buffer_pos++;
+    }
+
+    // Agregar el nuevo token
+    strcat(token_buffer, token);
+    token_buffer_pos += len;
+}
+
+void yerror(YYLTYPE ubicacion) {
+    // Asignar memoria para el nuevo error
+    t_error *new_error = (t_error *)malloc(sizeof(t_error));
+    if (!new_error) {
+        perror("Error al asignar memoria para el nuevo error");
+        exit(EXIT_FAILURE);
+    }
+
+    new_error->line = ubicacion.first_line;
+
+    new_error->message = (char*)malloc(token_buffer_pos + 1);  // +1 para el terminador nulo
+    if (!new_error->message) {
+        perror("Error al asignar memoria para el mensaje de error");
+        exit(EXIT_FAILURE);
+    }
+
+    strncpy(new_error->message, token_buffer, token_buffer_pos + 1);
+
+    insert_node(&error_list, new_error, sizeof(t_error));
+}
+
+// No olvides liberar la memoria cuando termines
+void free_token_buffer() {
+    if (token_buffer) {
+        free(token_buffer);
+        token_buffer = NULL;
+    }
 }
 
 void init_structures() { // Iniciar todas las estructuras
@@ -82,6 +130,22 @@ void init_structures() { // Iniciar todas las estructuras
     }
     data_sent->column = 0;
     data_sent->line = 0;
+
+    new_error = (t_error*)malloc(sizeof(t_error));
+    if (!new_error) {
+        printf("Error al asignar memoria para el nuevo error!\n");
+        exit(EXIT_FAILURE);
+    }
+    new_error->line = 0;
+    new_error->message = NULL; // Inicializa el puntero message a NULL
+    
+    // Inicialización de invalid_string
+    invalid_string = (char*)malloc(1);
+    if (!invalid_string) {
+        printf("Error al asignar memoria para invalid_string\n");
+        return;
+    }
+    invalid_string[0] = '\0';
 }
 
 void add_unrecognised_token(const char* intoken) {
@@ -158,46 +222,6 @@ void insert_node(GenericNode** list, void* new_data, size_t data_size) {
     }
     current->next = new_node;
 }
-
-// void yerror(int columnaInicial, int columnaFinal) {
-//     t_error *new_error = (t_error *)malloc(sizeof(t_error));
-//     if (!new_error) {
-//         ("Error al asignar memoria para el nuevo error");
-//         exit(EXIT_FAILURE);
-//     }
-
-//     new_error->line = yylloc.first_line; 
-
-//     size_t length = columnaFinal - columnaInicial; //Calculo el length del mensaje
-    
-//     new_error->message = (char *)malloc(length + 1);
-//     if (!new_error->message) {
-//         ("Error al asignar memoria para el mensaje del error");
-//         free(new_error);
-//         exit(EXIT_FAILURE);
-//     }
-
-//     strncpy(new_error->message, yytext + (columnaInicial - yylloc.first_column), length);
-//     new_error->message[length] = '\0'; //Aseguro cadena nula
-    
-//     add_node(&error_list, new_error, sizeof(t_error), compare_lines_columns);
-// }
-
-void yerror(YYLTYPE ubicacion){
-    t_error *new_error = (t_error *)malloc(sizeof(t_error));
-    if (!new_error) {
-        ("Error al asignar memoria para el nuevo error");
-        exit(EXIT_FAILURE);
-    }
-
-    new_error->line = ubicacion.first_line;
-    new_error->message = (char*)malloc(sizeof(token_buffer));
-
-    strncpy(new_error->message, token_buffer, token_buffer_pos + 1);
-    
-    insert_node(&error_list, new_error, sizeof(t_error));
-}
-
 
 void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HACIENDO UN PRINT PARTICULAR GENERICO
     int found = 0;
@@ -283,7 +307,7 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
         GenericNode* temp = error_list;
         while (temp) {
             t_error* err = (t_error*) temp->data;
-            printf("\"%s\": linea: %d \n", err->message, err->line);
+            printf("\"%s\": linea: %d\n", err->message, err->line);
             // printf("Error en la linea %d: %s\n", err->line, err->message);
             temp = temp->next;
             found = 1;
@@ -315,9 +339,9 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
 
 }
 
-void free_list() {
-
-}
+// void free_lists() {
+//     if()
+// }
 
 int compare_lines(const void* a, const void* b) {
     const t_sent* sent_a = (const t_sent*)a;

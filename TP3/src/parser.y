@@ -6,7 +6,6 @@
 #include "general.h"
 
 extern int yylex(void);
-void yyerror(const char*);
 
 /* Declaracion de variables */
 GenericNode* variable = NULL;
@@ -18,8 +17,6 @@ GenericNode* error_list = NULL;
 GenericNode* sentencias = NULL;
 t_sent* data_sent = NULL;
 
-int dentro_de_prototipo = 0;
-
 %}
 
 %error-verbose
@@ -30,7 +27,6 @@ int dentro_de_prototipo = 0;
     int int_type;
     double double_type;
     char char_type;
-    unsigned long unsigned_long_type;
 }
 
 %token <string_type> IDENTIFICADOR
@@ -97,24 +93,25 @@ opcionSentencia
 listaDeclaraciones
     : listaDeclaraciones declaracion
     | declaracion 
+    | error
     ;
 
 listaSentencias
     : listaSentencias sentencia 
     | sentencia
-    | error 
+    | error
     ;
 
 sentExpresion
     : ';'
     | expresion ';' 
-    | expresion error { yerror(@1);}  
+    | expresion error { yerror(@1);}
     ;
 
 sentSeleccion
     : IF '(' expresion ')' sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column);} 
     | IF '(' expresion ')' sentencia ELSE sentencia  {add_sent("if/else", @1.first_line, @1.first_column);} 
-    | SWITCH '(' expresion ')' {reset_token_buffer();} sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column);}
+    | SWITCH '(' expresion ')' {reset_token_buffer(); } sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column); }
     ;
 
 
@@ -150,6 +147,7 @@ expresion
 expAsignacion
     : expCondicional
     | expUnaria operAsignacion expAsignacion 
+    | expUnaria operAsignacion error 
     ;
 
 operAsignacion
@@ -571,10 +569,11 @@ int main(int argc, char *argv[]) {
         fclose(yyin);
     }
 
-    free_list();
+    //free_list();
 
     return 0;
 }
 
 void yyerror(const char *s) {
+    // No hacemos nada aquí para evitar cualquier impresión o manejo
 }
