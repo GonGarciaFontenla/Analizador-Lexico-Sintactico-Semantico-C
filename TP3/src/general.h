@@ -105,19 +105,15 @@ void inicializarUbicacion(void);
 void reinicializarUbicacion(void);
 void init_structures();
 
-void add_variable(char* variable_name);
-void free_data_variable(t_variable* variable);
-void add_function(char* function_name, char* function_type);
-void free_list(GenericNode** list);
-void free_parameters(t_parameter* param);
+void free_lists(GenericNode** list);
 void add_sent(const char* tipo_sentencia, int line, int column);
 void add_unrecognised_token(const char* intoken);
 void yerror(YYLTYPE ubicacion);
 void print_lists();
-int compare_lines_columns(const void* a, const void* b);
-void add_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*));
-// void free_lists(); TODO: hacer una funcion que free a todas las listas!
-
+void insert_sorted_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*));
+void insert_node(GenericNode** list, void* new_data, size_t data_size);
+void add_sent(const char* tipo_sentencia, int line, int column);
+int compare_lines(const void* a, const void* b);
 
 void reset_token_buffer();
 void append_token(const char* token);

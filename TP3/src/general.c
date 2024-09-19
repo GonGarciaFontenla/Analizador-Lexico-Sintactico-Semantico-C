@@ -8,7 +8,6 @@
 #include "general.h"
 
 extern YYLTYPE yylloc;
-extern int yylineno;
 extern char *yytext; 
 
 extern int yyleng;
@@ -32,7 +31,6 @@ void append_token(const char* token) {
         strcat(token_buffer, token);
         token_buffer_pos += len;
     }
-
 }
 
 void inicializarUbicacion(void)
@@ -79,7 +77,7 @@ void init_structures() { // Iniciar todas las estructuras
 
     data_sent = (t_sent*)malloc(sizeof(t_sent));
     if (!data_sent) {
-        perror("Error al asignar memoria para data_sent");
+        ("Error al asignar memoria para data_sent");
         exit(EXIT_FAILURE);
     }
     data_sent->column = 0;
@@ -90,29 +88,29 @@ void add_unrecognised_token(const char* intoken) {
     data_intoken -> token = strdup(intoken);
     data_intoken -> line = yylloc.first_line;
     data_intoken -> column = yylloc.first_column;
-    add_node(&intokens, data_intoken, sizeof(t_token_unrecognised), compare_lines_columns);
+    insert_node(&intokens, data_intoken, sizeof(t_token_unrecognised));
 }
 
 void add_sent(const char* tipo_sentencia, int line, int column) {
     data_sent->type = strdup(tipo_sentencia);
     if (!data_sent->type) {
-        perror("Error al asignar memoria para el tipo de sentencia");
+        ("Error al asignar memoria para el tipo de sentencia");
         exit(EXIT_FAILURE);
     }
     data_sent->line = line;
     data_sent->column = column;
-    add_node(&sentencias, data_sent, sizeof(t_sent), compare_lines_columns);
+    insert_sorted_node(&sentencias, data_sent, sizeof(t_sent), compare_lines);
 }
 
-void add_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*)) {
+void insert_sorted_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*)) {
     GenericNode* new_node = (GenericNode*)malloc(sizeof(GenericNode));
     if (!new_node) {
-        perror("Error al asignar memoria para el nuevo nodo");
+        ("Error al asignar memoria para el nuevo nodo");
         exit(EXIT_FAILURE);
     }
     new_node->data = malloc(data_size);
     if (!new_node->data) {
-        perror("Error al asignar memoria para los datos del nuevo nodo");
+        ("Error al asignar memoria para los datos del nuevo nodo");
         exit(EXIT_FAILURE);
     }
     memcpy(new_node->data, new_data, data_size);
@@ -130,12 +128,41 @@ void add_node(GenericNode** list, void* new_data, size_t data_size, int (*compar
     }
     new_node->next = current->next;
     current->next = new_node;
+} 
+
+
+void insert_node(GenericNode** list, void* new_data, size_t data_size) {
+    GenericNode* new_node = (GenericNode*)malloc(sizeof(GenericNode));
+    if (!new_node) {
+        ("Error al asignar memoria para el nuevo nodo");
+        exit(EXIT_FAILURE);
+    }
+
+    new_node->data = malloc(data_size);
+    if (!new_node->data) {
+        ("Error al asignar memoria para los datos del nodo");
+        free(new_node);
+        exit(EXIT_FAILURE);
+    }
+    memcpy(new_node->data, new_data, data_size);
+    new_node->next = NULL;
+
+    if (!(*list)) {
+        *list = new_node;
+        return;
+    }
+
+    GenericNode* current = *list;
+    while (current->next) {
+        current = current->next;
+    }
+    current->next = new_node;
 }
 
 // void yerror(int columnaInicial, int columnaFinal) {
 //     t_error *new_error = (t_error *)malloc(sizeof(t_error));
 //     if (!new_error) {
-//         perror("Error al asignar memoria para el nuevo error");
+//         ("Error al asignar memoria para el nuevo error");
 //         exit(EXIT_FAILURE);
 //     }
 
@@ -145,7 +172,7 @@ void add_node(GenericNode** list, void* new_data, size_t data_size, int (*compar
     
 //     new_error->message = (char *)malloc(length + 1);
 //     if (!new_error->message) {
-//         perror("Error al asignar memoria para el mensaje del error");
+//         ("Error al asignar memoria para el mensaje del error");
 //         free(new_error);
 //         exit(EXIT_FAILURE);
 //     }
@@ -159,7 +186,7 @@ void add_node(GenericNode** list, void* new_data, size_t data_size, int (*compar
 void yerror(YYLTYPE ubicacion){
     t_error *new_error = (t_error *)malloc(sizeof(t_error));
     if (!new_error) {
-        perror("Error al asignar memoria para el nuevo error");
+        ("Error al asignar memoria para el nuevo error");
         exit(EXIT_FAILURE);
     }
 
@@ -168,7 +195,7 @@ void yerror(YYLTYPE ubicacion){
 
     strncpy(new_error->message, token_buffer, token_buffer_pos + 1);
     
-    add_node(&error_list, new_error, sizeof(t_error), compare_lines_columns);
+    insert_node(&error_list, new_error, sizeof(t_error));
 }
 
 
@@ -288,43 +315,13 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
 
 }
 
-void free_data_variable(t_variable* variable) {
-    if(variable) {
-        free(variable->type);
-        free(variable->variable);
-    }
-    free(variable);
-    variable = NULL;
+void free_list() {
+
 }
 
-void free_list(GenericNode** list) {
-    GenericNode* nodo_actual = *list;
-    GenericNode* nodo_siguiente = NULL;
-
-    while (nodo_actual != NULL) {
-        nodo_siguiente = nodo_actual->next;
-        free(nodo_actual->data);
-        free(nodo_actual);
-        nodo_actual = nodo_siguiente;
-    }
-    *list = NULL;
-}
-
-int compare_lines_columns(const void* a, const void* b) {
+int compare_lines(const void* a, const void* b) {
     const t_sent* sent_a = (const t_sent*)a;
     const t_sent* sent_b = (const t_sent*)b;
 
-    if (sent_a->line < sent_b->line) {
-        return -1;
-    } else if (sent_a->line > sent_b->line) {
-        return 1;
-    }
-
-    if (sent_a->column < sent_b->column) {
-        return -1; 
-    } else if (sent_a->column > sent_b->column) {
-        return 1; 
-    }
-
-    return 0; 
+    return sent_a->line - sent_b->line;
 }

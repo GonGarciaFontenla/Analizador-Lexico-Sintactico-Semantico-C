@@ -112,16 +112,16 @@ sentExpresion
     ;
 
 sentSeleccion
-    : IF '(' expresion ')' sentencia { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);} 
-    | IF '(' expresion ')' sentencia ELSE sentencia  {int column = @1.first_column; int line = @1.first_line; add_sent("if/else", line, column);} 
-    | SWITCH '(' expresion ')' {reset_token_buffer();} sentencia { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
+    : IF '(' expresion ')' sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column);} 
+    | IF '(' expresion ')' sentencia ELSE sentencia  {add_sent("if/else", @1.first_line, @1.first_column);} 
+    | SWITCH '(' expresion ')' {reset_token_buffer();} sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column);}
     ;
 
 
 sentIteracion
-    : WHILE '(' expresion ')' sentencia { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
-    | DO sentencia WHILE '(' expresion ')' ';' { int column = @1.first_column; int line = @1.first_line; add_sent("do/while", line, column);} 
-    | FOR '(' expresionOp ';' expresionOp ';' expresionOp ')' sentencia { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
+    : WHILE '(' expresion ')' sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column);}
+    | DO sentencia WHILE '(' expresion ')' ';' {add_sent("do/while", @1.first_line, @1.first_column);} 
+    | FOR '(' expresionOp ';' expresionOp ';' expresionOp ')' sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column);}
     ;
 
 expresionOp
@@ -131,15 +131,15 @@ expresionOp
 
 sentEtiquetadas
     : IDENTIFICADOR ':' sentencia 
-    | CASE expresion ':' listaSentencias { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
-    | DEFAULT ':' listaSentencias { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
+    | CASE expresion ':' listaSentencias {add_sent($<string_type>1, @1.first_line, @1.first_column);}
+    | DEFAULT ':' listaSentencias {add_sent($<string_type>1, @1.first_line, @1.first_column);}
     ;
 
 sentSalto
-    : RETURN sentExpresion { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
-    | CONTINUE ';' { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
-    | BREAK ';' { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
-    | GOTO IDENTIFICADOR ';'{ int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
+    : RETURN sentExpresion {add_sent($<string_type>1, @1.first_line, @1.first_column);}
+    | CONTINUE ';' {add_sent($<string_type>1, @1.first_line, @1.first_column);}
+    | BREAK ';' {add_sent($<string_type>1, @1.first_line, @1.first_column);}
+    | GOTO IDENTIFICADOR ';'{add_sent($<string_type>1, @1.first_line, @1.first_column);}
     ;
 
 expresion
@@ -277,9 +277,7 @@ unidadTraduccion
 
 declaracionExterna
     : definicionFuncion    
-    | declaracion { 
-        //dentro_de_prototipo = 1;  // Estamos en un prototipo, evitar añadir parámetros a la lista de variables
-    }
+    | declaracion
     ;        
 
 definicionFuncion
@@ -287,7 +285,7 @@ definicionFuncion
         data_function->return_type = strdup($<string_type>1);
         data_function->name = strdup($<string_type>2); 
         data_function->type = "definicion"; 
-        add_node(&function, data_function, sizeof(t_function), compare_lines_columns);
+        insert_node(&function, data_function, sizeof(t_function));
         data_function->parameters = NULL;
     }
     ;
@@ -298,7 +296,7 @@ declaracion
         data_function->return_type = strdup($<string_type>1);
         data_function->name = strdup($<string_type>2);
         data_function->type = "declaracion"; 
-        add_node(&function, data_function, sizeof(t_function), compare_lines_columns);
+        insert_node(&function, data_function, sizeof(t_function));
         data_function->parameters = NULL;
     }
     ;
@@ -316,10 +314,10 @@ especificadorDeclaracion
 
 listaDeclaradores
     : declarador { 
-            add_node(&variable, data_variable, sizeof(t_variable), compare_lines_columns);
+            insert_node(&variable, data_variable, sizeof(t_variable));
     }
     | listaDeclaradores ',' declarador {
-            add_node(&variable, data_variable, sizeof(t_variable), compare_lines_columns);
+            insert_node(&variable, data_variable, sizeof(t_variable));
     }
     ;
 
@@ -446,7 +444,7 @@ continuacionDeclaradorDirecto
     | '(' TIPO_DATO ')' { 
         data_parameter.type = strdup($<string_type>2);
         data_parameter.name = NULL;
-        add_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter), compare_lines_columns);
+        insert_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter));
         }
     ;
 
@@ -466,10 +464,10 @@ opcionalListaParametros
 
 listaParametros
     : declaracionParametro  {
-        add_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter), compare_lines_columns);
+        insert_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter));
     }
     | listaParametros ',' declaracionParametro {
-        add_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter), compare_lines_columns);
+        insert_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter));
     }
     ;
     
@@ -557,7 +555,7 @@ int main(int argc, char *argv[]) {
     if (argc > 1) {
         FILE *file = fopen(argv[1], "r");
         if (!file) {
-            perror("Error abriendo el archivo de entrada");
+            printf("Error abriendo el archivo de entrada");
             return 1;
         }
         yyin = file;
@@ -567,14 +565,13 @@ int main(int argc, char *argv[]) {
     
     yyparse();
 
-    // print_statements_list();
     print_lists();
 
     if (yyin && yyin != stdin) {
         fclose(yyin);
     }
 
-    //free_lists();
+    free_list();
 
     return 0;
 }
