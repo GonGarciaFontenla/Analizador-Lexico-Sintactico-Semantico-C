@@ -175,7 +175,8 @@ void yerror(YYLTYPE ubicacion){
 void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HACIENDO UN PRINT PARTICULAR GENERICO
     int found = 0;
 
-    printf("* Listado de variables declaradas (tipo de dato y numero de linea):\n");
+    printf("* Listado de variables declaradas (tipo de dato y numero de linea): \n");
+
     if(variable) {
         GenericNode* aux = variable;
         while(aux) {
@@ -200,7 +201,7 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
             t_function* temp = (t_function*)aux->data;
             printf("%s: %s, input: ", temp->name, temp->type);
             if (temp->parameters) {
-                GenericNode* aux2 = temp->parameters;
+                GenericNode* aux2 = (GenericNode*) temp->parameters;
                 while (aux2) {
                     t_parameter* param = (t_parameter*)aux2->data;
                     if (param->type && param->name) {
