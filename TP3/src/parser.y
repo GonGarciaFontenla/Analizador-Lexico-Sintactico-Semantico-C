@@ -61,7 +61,7 @@ int dentro_de_prototipo = 0;
 %%
 
 programa
-    : input { printf("Programa reconocido\n"); }
+    : input { printf("\n"); }
     ;
 
 input
@@ -79,8 +79,6 @@ sentencia
     | sentEtiquetadas {reset_token_buffer();}
     | sentSalto {reset_token_buffer();}
     ;
-
-/* yerror(yylloc.first_column, yylloc.last_column ); */
 
 sentCompuesta
     : '{' opcionDeclaracion opcionSentencia '}' 
@@ -110,7 +108,7 @@ listaSentencias
 sentExpresion
     : ';'
     | expresion ';' 
-    | expresion { yerror();} error 
+    | expresion error { yerror(@1);}  
     ;
 
 sentSeleccion
@@ -554,6 +552,7 @@ listaDeclaracionSentencia
 
 %%
 
+
 int main(int argc, char *argv[]) {
     if (argc > 1) {
         FILE *file = fopen(argv[1], "r");
@@ -578,4 +577,7 @@ int main(int argc, char *argv[]) {
     //free_lists();
 
     return 0;
+}
+
+void yyerror(const char *s) {
 }

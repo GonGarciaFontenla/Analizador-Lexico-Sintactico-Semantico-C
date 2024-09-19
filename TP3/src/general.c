@@ -156,14 +156,14 @@ void add_node(GenericNode** list, void* new_data, size_t data_size, int (*compar
 //     add_node(&error_list, new_error, sizeof(t_error), compare_lines_columns);
 // }
 
-void yerror(){
+void yerror(YYLTYPE ubicacion){
     t_error *new_error = (t_error *)malloc(sizeof(t_error));
     if (!new_error) {
         perror("Error al asignar memoria para el nuevo error");
         exit(EXIT_FAILURE);
     }
 
-    new_error->line = yylloc.first_line - 1;
+    new_error->line = ubicacion.first_line;
     new_error->message = (char*)malloc(sizeof(token_buffer));
 
     strncpy(new_error->message, token_buffer, token_buffer_pos + 1);

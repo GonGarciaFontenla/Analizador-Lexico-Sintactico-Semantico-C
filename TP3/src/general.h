@@ -108,7 +108,7 @@ void free_list(GenericNode** list);
 void free_parameters(t_parameter* param);
 void add_sent(const char* tipo_sentencia, int line, int column);
 void add_unrecognised_token(const char* intoken);
-void yerror();
+void yerror(YYLTYPE ubicacion);
 void print_lists();
 int compare_lines_columns(const void* a, const void* b);
 void add_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*));
