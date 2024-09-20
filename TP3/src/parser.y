@@ -57,7 +57,7 @@ t_sent* data_sent = NULL;
 %%
 
 programa
-    : input { printf("\n"); }
+    : input
     ;
 
 input
@@ -297,6 +297,7 @@ declaracion
         insert_node(&function, data_function, sizeof(t_function));
         data_function->parameters = NULL;
     }
+    | especificadorDeclaracion error {yerror(@2);}
     ;
     
 especificadorDeclaracionOp

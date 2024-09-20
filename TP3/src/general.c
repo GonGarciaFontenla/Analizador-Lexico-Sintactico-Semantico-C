@@ -226,7 +226,7 @@ void insert_node(GenericNode** list, void* new_data, size_t data_size) {
 void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HACIENDO UN PRINT PARTICULAR GENERICO
     int found = 0;
 
-    printf("* Listado de variables declaradas (tipo de dato y numero de linea): \n");
+    printf("* Listado de variables declaradas (tipo de dato y numero de linea):\n");
 
     if(variable) {
         GenericNode* aux = variable;
@@ -302,12 +302,12 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
     
     found = 0;
     printf("\n");
-    printf("* Listado de estructuras sintacticas no reconocidas:\n");
+    printf("* Listado de estructuras sintácticas no reconocidas:\n");
     if (error_list) {
         GenericNode* temp = error_list;
         while (temp) {
             t_error* err = (t_error*) temp->data;
-            printf("\"%s\": linea: %d\n", err->message, err->line);
+            printf("\"%s\": linea %d\n", err->message, err->line);
             // printf("Error en la linea %d: %s\n", err->line, err->message);
             temp = temp->next;
             found = 1;
