@@ -1,0 +1,586 @@
+<<<<<<< HEAD
+=======
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+#include "general.h"
+
+extern int yylex(void);
+void yyerror(const char*);
+
+/* Declaracion de variables */
+GenericNode* variable = NULL;
+t_variable* data_variable = NULL;
+t_function* data_function = NULL;
+GenericNode* function = NULL;
+t_parameter data_parameter;
+GenericNode* error_list = NULL;
+GenericNode* sentencias = NULL;
+t_sent* data_sent = NULL;
+
+int dentro_de_prototipo = 0;
+
+%}
+
+%error-verbose
+%locations
+
+%union {
+    char* string_type;
+    int int_type;
+    double double_type;
+    char char_type;
+    unsigned long unsigned_long_type;
+}
+
+%token <string_type> IDENTIFICADOR
+%token <string_type> LITERAL_CADENA
+%token <string_type> PALABRA_RESERVADA
+%token CONSTANTE
+%token <string_type> TIPO_DATO
+%token <string_type> TIPO_ALMACENAMIENTO TIPO_CALIFICADOR ENUM STRUCT UNION
+%token <string_type> RETURN IF ELSE WHILE DO FOR DEFAULT CASE  
+%token <string_type> CONTINUE BREAK GOTO SWITCH SIZEOF
+%token <int_type> ENTERO
+%token <double_type> NUM
+
+%token ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
+%token EQ NEQ LE GE AND OR
+%token LEFT_SHIFT RIGHT_SHIFT
+%token PTR_OP INC_OP DEC_OP
+%token ELIPSIS
+
+%type <int_type> expresion expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expMultiplicativa expUnaria expPostfijo
+%type <int_type> operAsignacion operUnario nombreTipo listaArgumentos expPrimaria
+%type <int_type> sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
+%type <string_type> unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto
+
+
+%start programa
+
+%%
+
+programa
+    : input { printf("\n"); }
+    ;
+
+input
+    : 
+    | input expresion {reset_token_buffer();}
+    | input sentencia {reset_token_buffer();}
+    | input unidadTraduccion {reset_token_buffer();}
+    ;
+
+sentencia
+    : sentCompuesta {reset_token_buffer();}
+    | sentExpresion {reset_token_buffer();}
+    | sentSeleccion {reset_token_buffer();}
+    | sentIteracion {reset_token_buffer();}
+    | sentEtiquetadas {reset_token_buffer();}
+    | sentSalto {reset_token_buffer();}
+    ;
+
+sentCompuesta
+    : '{' opcionDeclaracion opcionSentencia '}' 
+    ;
+
+opcionDeclaracion
+    : 
+    | listaDeclaraciones
+    ;
+
+opcionSentencia
+    : 
+    | listaSentencias
+    ;
+
+listaDeclaraciones
+    : listaDeclaraciones declaracion
+    | declaracion 
+    ;
+
+listaSentencias
+    : listaSentencias sentencia 
+    | sentencia
+    | error 
+    ;
+
+sentExpresion
+    : ';'
+    | expresion ';' 
+    | expresion error { yerror(@1);}  
+    ;
+
+sentSeleccion
+    : IF '(' expresion ')' sentencia { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);} 
+    | IF '(' expresion ')' sentencia ELSE sentencia  {int column = @1.first_column; int line = @1.first_line; add_sent("if/else", line, column);} 
+    | SWITCH '(' expresion ')' {reset_token_buffer();} sentencia { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
+    ;
+
+
+sentIteracion
+    : WHILE '(' expresion ')' sentencia { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
+    | DO sentencia WHILE '(' expresion ')' ';' { int column = @1.first_column; int line = @1.first_line; add_sent("do/while", line, column);} 
+    | FOR '(' expresionOp ';' expresionOp ';' expresionOp ')' sentencia { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
+    ;
+
+expresionOp
+    : 
+    | expresion
+    ;
+
+sentEtiquetadas
+    : IDENTIFICADOR ':' sentencia 
+    | CASE expresion ':' listaSentencias { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
+    | DEFAULT ':' listaSentencias { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
+    ;
+
+sentSalto
+    : RETURN sentExpresion { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
+    | CONTINUE ';' { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
+    | BREAK ';' { int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
+    | GOTO IDENTIFICADOR ';'{ int column = @1.first_column; int line = @1.first_line; add_sent($<string_type>1, line, column);}
+    ;
+
+expresion
+    : expAsignacion 
+    | expresion ',' expAsignacion
+    ;
+
+expAsignacion
+    : expCondicional
+    | expUnaria operAsignacion expAsignacion 
+    ;
+
+operAsignacion
+    : '='
+    | ADD_ASSIGN 
+    | SUB_ASSIGN 
+    | MUL_ASSIGN 
+    | DIV_ASSIGN 
+    ;
+
+expCondicional
+    : expOr 
+    | expOr '?' expresion : expCondicional
+    ; 
+
+expOr
+    : expAnd
+    | expOr OR expAnd
+    ;
+
+expAnd
+    : expIgualdad 
+    | expAnd AND expIgualdad 
+    ;
+
+expIgualdad
+    : expRelacional 
+    | expIgualdad opcionIgualdad
+    ;
+
+opcionIgualdad
+    : EQ expRelacional
+    | NEQ expRelacional 
+    ;
+
+expRelacional
+    : expAditiva
+    | expRelacional opcionRelacional
+    ;
+    
+opcionRelacional
+    : 
+    | '<' expAditiva
+    | '>' expAditiva
+    | LE expAditiva
+    | GE expAditiva
+    ;
+
+expAditiva
+    : expMultiplicativa
+    | expAditiva opcionAditiva
+    ;
+
+opcionAditiva
+    : 
+    | '+' expMultiplicativa
+    | '-' expMultiplicativa
+    ;
+    
+expMultiplicativa
+    : expUnaria
+    | expMultiplicativa opcionMultiplicativa
+    ;
+opcionMultiplicativa
+    : '*' expUnaria
+    | '/' expUnaria
+    | '%' expUnaria
+    ;
+
+expUnaria
+    : expPostfijo 
+    | INC_OP expUnaria 
+    | DEC_OP expUnaria 
+    | expUnaria INC_OP
+    | expUnaria DEC_OP
+    | operUnario expUnaria 
+    | SIZEOF '(' nombreTipo ')' 
+    ;
+
+operUnario
+    : '&' 
+    | '*' 
+    | '-' 
+    | '!' 
+    ;
+
+expPostfijo
+    : expPrimaria 
+    | expPostfijo expPrimaria
+    | expPostfijo opcionPostfijo
+    ;
+opcionPostfijo
+    : '[' expresion ']'
+    | '(' listaArgumentosOp ')'
+    ;
+
+listaArgumentosOp
+    : 
+    | listaArgumentos
+    ;
+
+listaArgumentos
+    : expAsignacion 
+    | listaArgumentos ',' expAsignacion
+    ;
+
+expPrimaria
+    : IDENTIFICADOR 
+    | ENTERO        
+    | NUM        
+    | CONSTANTE 
+    | LITERAL_CADENA 
+    | '(' expresion ')'
+    | PALABRA_RESERVADA
+    ;
+
+nombreTipo
+    : TIPO_DATO 
+    ;
+
+unidadTraduccion
+    : declaracionExterna 
+    | unidadTraduccion declaracionExterna
+    ;
+
+declaracionExterna
+    : definicionFuncion    
+    | declaracion { 
+        //dentro_de_prototipo = 1;  // Estamos en un prototipo, evitar añadir parámetros a la lista de variables
+    }
+    ;        
+
+definicionFuncion
+    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta {
+        data_function->return_type = strdup($<string_type>1);
+        data_function->name = strdup($<string_type>2); 
+        data_function->type = "definicion"; 
+        add_node(&function, data_function, sizeof(t_function), compare_lines_columns);
+        data_function->parameters = NULL;
+    }
+    ;
+
+declaracion
+    : especificadorDeclaracion listaDeclaradores ';'
+    | especificadorDeclaracion decla ';' {
+        data_function->return_type = strdup($<string_type>1);
+        data_function->name = strdup($<string_type>2);
+        data_function->type = "declaracion"; 
+        add_node(&function, data_function, sizeof(t_function), compare_lines_columns);
+        data_function->parameters = NULL;
+    }
+    ;
+    
+especificadorDeclaracionOp
+    : 
+    | especificadorDeclaracion
+    ;
+    
+especificadorDeclaracion 
+    : TIPO_ALMACENAMIENTO especificadorDeclaracionOp
+    | especificadorTipo especificadorDeclaracionOp
+    | TIPO_CALIFICADOR especificadorDeclaracionOp 
+    ;
+
+listaDeclaradores
+    : declarador { 
+            add_node(&variable, data_variable, sizeof(t_variable), compare_lines_columns);
+    }
+    | listaDeclaradores ',' declarador {
+            add_node(&variable, data_variable, sizeof(t_variable), compare_lines_columns);
+    }
+    ;
+
+listaDeclaracionOp
+    : 
+    | listaDeclaraciones
+    ;
+    
+declarador
+    : decla
+    | decla '=' inicializador
+    ;
+
+opcionComa
+    : 
+    | ','
+    ;
+
+listaInicializadores
+    : inicializador
+    | listaInicializadores ',' inicializador
+    ;
+
+inicializador
+    : expAsignacion 
+    | '{' listaInicializadores opcionComa '}' 
+    ;
+
+especificadorTipo
+    : TIPO_DATO { data_variable->type = strdup($<string_type>1); }
+    | especificadorStructUnion
+    | especificadorEnum
+    ;
+
+especificadorStructUnion
+    : STRUCT cuerpoEspecificador
+    ;
+
+cuerpoEspecificador
+    : '{' listaDeclaracionesStruct '}'
+    | IDENTIFICADOR cuerpoStructOp
+    ;
+
+cuerpoStructOp
+    : 
+    | '{' listaDeclaracionesStruct '}'
+    ;
+
+listaDeclaracionesStruct
+    : declaracionStruct
+    | listaDeclaracionesStruct declaracionStruct
+    ;
+
+declaracionStruct
+    : listaCalificadores declaradoresStruct ';'
+    ;
+
+listaCalificadores
+    : especificadorTipo listaCalificadoresOp
+    | TIPO_CALIFICADOR listaCalificadoresOp
+    ;
+
+listaCalificadoresOp
+    : 
+    | listaCalificadores
+    ;
+
+declaradoresStruct
+    : declaStruct
+    | declaradoresStruct ',' declaStruct
+    ;
+
+declaStruct     
+    : declaSi
+    | ':' expresion
+    ;
+
+declaSi
+    : decla expConstanteOp
+    ;
+
+expConstanteOp
+    : 
+    | ':' expresion
+    ;
+
+decla
+    : punteroOp declaradorDirecto { $<string_type>$ = strdup($<string_type>2);}
+    ;
+
+punteroOp
+    : 
+    | puntero
+    ;
+
+puntero
+    : '*' listaCalificadoresTipoOp punteroOp
+    ;
+
+listaCalificadoresTipoOp
+    : 
+    | listaCalificadoresTipo
+    ;
+    
+listaCalificadoresTipo
+    : TIPO_CALIFICADOR
+    | listaCalificadoresTipo TIPO_CALIFICADOR
+    ;
+
+declaradorDirecto
+    : IDENTIFICADOR {
+        $<string_type>$ = strdup($<string_type>1);
+        data_variable->variable = strdup($<string_type>1);
+        data_variable->line = yylloc.first_line;
+    }
+    | '(' decla ')'
+    | declaradorDirecto continuacionDeclaradorDirecto { data_function->line = yylloc.first_line;}
+    ;
+
+continuacionDeclaradorDirecto
+    : '[' expConstanteOp ']'
+    | '(' listaTiposParametrosOp ')'
+    | '(' listaIdentificadoresOp ')' 
+    | '(' TIPO_DATO ')' { 
+        data_parameter.type = strdup($<string_type>2);
+        data_parameter.name = NULL;
+        add_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter), compare_lines_columns);
+        }
+    ;
+
+listaTiposParametrosOp 
+    : 
+    | listaTiposParametros 
+    ;
+    
+listaTiposParametros
+    : listaParametros opcionalListaParametros
+    ;
+    
+opcionalListaParametros
+    : 
+    | ',' ELIPSIS
+    ;
+
+listaParametros
+    : declaracionParametro  {
+        add_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter), compare_lines_columns);
+    }
+    | listaParametros ',' declaracionParametro {
+        add_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter), compare_lines_columns);
+    }
+    ;
+    
+declaracionParametro
+    : especificadorDeclaracion opcionesDecla {
+        data_parameter.type = strdup($<string_type>1);
+        }
+    ;
+
+opcionesDecla
+    : decla { 
+        data_parameter.name = strdup($<string_type>1); 
+        }
+    | declaradorAbstracto
+    ;
+
+listaIdentificadoresOp
+    : 
+    | listaIdentificadores
+    ;
+
+listaIdentificadores
+    : IDENTIFICADOR 
+    | listaIdentificadores ',' IDENTIFICADOR 
+    ;
+
+especificadorEnum
+    : ENUM opcionalEspecificadorEnum
+    ;
+
+opcionalEspecificadorEnum
+    : IDENTIFICADOR opcionalListaEnumeradores
+    | '{' listaEnumeradores '}'
+    ;
+
+opcionalListaEnumeradores
+    : 
+    | '{' listaEnumeradores '}'
+    ;
+
+listaEnumeradores
+    : enumerador
+    | listaEnumeradores ',' enumerador
+    ;
+
+enumerador
+    : IDENTIFICADOR opcionalEnumerador
+    ;
+
+opcionalEnumerador
+    : 
+    | '=' expresion
+    ;
+
+declaradorAbstracto
+    : puntero declaradorAbstractoDirectoOp
+    | declaradorAbstractoDirecto
+    ;
+
+declaradorAbstractoDirectoOp
+    : 
+    | declaradorAbstractoDirecto
+    ;
+
+declaradorAbstractoDirecto
+    : '(' declaradorAbstracto ')'
+    | declaradorAbstractoDirectoOp postOpcionDeclaradorAbstracto
+    ;
+
+postOpcionDeclaradorAbstracto
+    : '[' expresion ']'
+    | '(' listaTiposParametrosOp ')'
+    ;
+
+listaDeclaracionSentencia
+    : 
+    | listaDeclaracionSentencia declaracion
+    | listaDeclaracionSentencia sentencia
+    ;
+
+%%
+
+
+int main(int argc, char *argv[]) {
+    if (argc > 1) {
+        FILE *file = fopen(argv[1], "r");
+        if (!file) {
+            perror("Error abriendo el archivo de entrada");
+            return 1;
+        }
+        yyin = file;
+    }
+    
+    init_structures();
+    
+    yyparse();
+
+    // print_statements_list();
+    print_lists();
+
+    if (yyin && yyin != stdin) {
+        fclose(yyin);
+    }
+
+    //free_lists();
+
+    return 0;
+}
+
+void yyerror(const char *s) {
+}
+>>>>>>> TP3-Gramatica
