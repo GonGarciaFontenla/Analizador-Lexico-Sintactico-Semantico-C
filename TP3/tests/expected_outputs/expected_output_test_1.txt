@@ -32,4 +32,4 @@ if/else: linea 44, columna 5
 "j = a": linea 25
 
 * Listado de cadenas no reconocidas:
-@double: linea 28, columna 17
+@double: linea 28, columna 13
