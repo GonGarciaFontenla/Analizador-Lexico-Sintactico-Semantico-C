@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 %{
 
 #include "general.h"
@@ -286,10 +284,10 @@ enum {
         BEGIN(INITIAL); 
     }
     [^ \r\t\n]+ {
+        yylloc.last_column += yyleng;
         add_unrecognised_token(yytext); 
         BEGIN(INITIAL); 
     }
 }
 
 %%
->>>>>>> TP3-Gramatica

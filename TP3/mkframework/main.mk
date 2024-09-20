@@ -161,11 +161,7 @@ YACC_CPPFLAGS=
 LEX_CPPFLAGS=
 
 # Add here the options to be globally passed to CC, YACC, and LEX, respectively.
-<<<<<<< HEAD
-CFLAGS=-fdiagnostics-color=always -O0
-=======
 CFLAGS=-fdiagnostics-color=always -std=gnu11 -O0
->>>>>>> main
 YFLAGS=--report=state --report=itemset --report=lookahead
 LFLAGS=
 
