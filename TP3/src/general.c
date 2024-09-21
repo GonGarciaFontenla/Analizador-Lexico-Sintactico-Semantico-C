@@ -198,13 +198,13 @@ void insert_sorted_node(GenericNode** list, void* new_data, size_t data_size, in
 void insert_node(GenericNode** list, void* new_data, size_t data_size) {
     GenericNode* new_node = (GenericNode*)malloc(sizeof(GenericNode));
     if (!new_node) {
-        ("Error al asignar memoria para el nuevo nodo");
+        printf("Error al asignar memoria para el nuevo nodo");
         exit(EXIT_FAILURE);
     }
 
     new_node->data = malloc(data_size);
     if (!new_node->data) {
-        ("Error al asignar memoria para los datos del nodo");
+        printf("Error al asignar memoria para los datos del nuevo nodo");
         free(new_node);
         exit(EXIT_FAILURE);
     }
@@ -308,7 +308,6 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
         while (temp) {
             t_error* err = (t_error*) temp->data;
             printf("\"%s\": linea %d\n", err->message, err->line);
-            // printf("Error en la linea %d: %s\n", err->line, err->message);
             temp = temp->next;
             found = 1;
         }
@@ -339,9 +338,24 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
 
 }
 
-// void free_lists() {
-//     if()
-// }
+void free_list(GenericNode** head) {
+    GenericNode* temp;
+    while (*head) {
+        temp = *head;
+        *head = (*head)->next;
+        free(temp->data);
+        free(temp);
+    }
+    *head = NULL; // Evita referencias a memoria liberada
+}
+
+void free_all_lists() {
+    free_list(&variable);
+    free_list(&function);
+    free_list(&error_list);
+    free_list(&intokens);
+    free_list(&sentencias);
+}
 
 int compare_lines(const void* a, const void* b) {
     const t_sent* sent_a = (const t_sent*)a;

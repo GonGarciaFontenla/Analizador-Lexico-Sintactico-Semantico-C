@@ -438,7 +438,7 @@ declaradorDirecto
 
 continuacionDeclaradorDirecto
     : '[' expConstanteOp ']'
-    | '(' listaTiposParametrosOp ')'
+    | '(' listaTiposParametrosOp ')' 
     | '(' listaIdentificadoresOp ')' 
     | '(' TIPO_DATO ')' { 
         data_parameter.type = strdup($<string_type>2);
@@ -569,8 +569,8 @@ int main(int argc, char *argv[]) {
     if (yyin && yyin != stdin) {
         fclose(yyin);
     }
-
-    //free_list();
+    
+    free_all_lists(); 
 
     return 0;
 }

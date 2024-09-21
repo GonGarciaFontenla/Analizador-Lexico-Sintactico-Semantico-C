@@ -27,11 +27,6 @@ typedef struct YYLTYPE
 
 typedef struct {
     int line;
-    int column;
-} location;
-
-typedef struct {
-    int line;
     char* type;
     char* variable;
 } t_variable;
@@ -86,7 +81,6 @@ typedef struct {
 #define INICIO_CONTEO_LINEA 1
 #define INICIO_CONTEO_COLUMNA 1
 
-// extern Nodo* symbols;
 extern GenericNode* statements_list;
 extern GenericNode* variable;
 extern GenericNode* function;
@@ -108,17 +102,24 @@ void inicializarUbicacion(void);
 void reinicializarUbicacion(void);
 void init_structures();
 
-void free_lists(GenericNode** list);
+// Hay una manera de mejorar los free
+// con un struct que tenga un union y un enum, pero lo dejamos para la entrega final, muy dificil de pensar ahora 
+void free_list(GenericNode** head);
+void free_all_lists(void);
+
 void add_sent(const char* tipo_sentencia, int line, int column);
 void add_unrecognised_token(const char* intoken);
-void print_lists();
+void add_sent(const char* tipo_sentencia, int line, int column);
+void append_token(const char* token);
 void insert_sorted_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*));
 void insert_node(GenericNode** list, void* new_data, size_t data_size);
-void add_sent(const char* tipo_sentencia, int line, int column);
-int compare_lines(const void* a, const void* b);
-void reset_token_buffer();
-void append_token(const char* token);
-void yerror(YYLTYPE string);
 
+void print_lists();
+
+int compare_lines(const void* a, const void* b);
+
+void reset_token_buffer();
+
+void yerror(YYLTYPE string);
 
 #endif
