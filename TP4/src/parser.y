@@ -297,18 +297,18 @@ declaracion
         insert_node(&function, data_function, sizeof(t_function));
         data_function->parameters = NULL;
     }
-    | especificadorDeclaracion error {yerror(@2);}
+    /* | especificadorDeclaracion error {yerror(@2);} comentario a sacar */
+    ;
+
+especificadorDeclaracion 
+    : TIPO_ALMACENAMIENTO especificadorDeclaracionOp
+    | especificadorTipo especificadorDeclaracionOp 
+    | TIPO_CALIFICADOR especificadorDeclaracionOp 
     ;
     
 especificadorDeclaracionOp
     : 
     | especificadorDeclaracion
-    ;
-    
-especificadorDeclaracion 
-    : TIPO_ALMACENAMIENTO especificadorDeclaracionOp
-    | especificadorTipo especificadorDeclaracionOp
-    | TIPO_CALIFICADOR especificadorDeclaracionOp 
     ;
 
 listaDeclaradores
@@ -346,7 +346,7 @@ inicializador
     ;
 
 especificadorTipo
-    : TIPO_DATO { data_variable->type = strdup($<string_type>1); }
+    : TIPO_DATO { data_variable->type = strdup($<string_type>1) ;}
     | especificadorStructUnion
     | especificadorEnum
     ;
@@ -431,6 +431,7 @@ declaradorDirecto
         $<string_type>$ = strdup($<string_type>1);
         data_variable->variable = strdup($<string_type>1);
         data_variable->line = yylloc.first_line;
+        data_variable->column = yylloc.first_column;
     }
     | '(' decla ')'
     | declaradorDirecto continuacionDeclaradorDirecto { data_function->line = yylloc.first_line;}
@@ -477,7 +478,8 @@ declaracionParametro
     ;
 
 opcionesDecla
-    : decla { 
+    :  {data_parameter.name = "";}
+    | decla { 
         data_parameter.name = strdup($<string_type>1); 
         }
     | declaradorAbstracto

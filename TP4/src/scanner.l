@@ -71,7 +71,7 @@ int|float|double|char|void|short|long|unsigned|signed {
     return TIPO_DATO;
 }
 
-"unsigned int"|"signed int"|"short int"|"signed short int"|"unsigned short int"|"long int"|"signed long int" {
+"unsigned int"|"unsigned long"|"signed int"|"short int"|"signed short int"|"unsigned short int"|"long int"|"signed long int"|"const float" {
     yylval.string_type = strdup(yytext); 
     yylloc.last_column += yyleng;
     return TIPO_DATO;

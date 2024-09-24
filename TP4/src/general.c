@@ -232,7 +232,7 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
         GenericNode* aux = variable;
         while(aux) {
             t_variable* temp = (t_variable*)aux->data;
-            printf("%s: %s, linea %i\n", temp->variable, temp->type, temp->line);
+            printf("%s: %s, linea %i, columna %i \n", temp->variable, temp->type, temp->line, temp->column);
             aux = aux->next;
             found = 1;
         }
@@ -256,7 +256,7 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
                 while (aux2) {
                     t_parameter* param = (t_parameter*)aux2->data;
                     if (param->type && param->name) {
-                        printf("%s %s", param->type, param->name);
+                        printf(strcmp(param->name, "") == 0 ? "%s" : "%s %s", param->type, param->name);
                     } else if (param->type){
                         printf("%s", param->type);
                     } else {
@@ -269,9 +269,9 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
                     }
                 }
             } else {
-                printf("Ningun parametro");
+                printf("void");
             }
-            printf(", retorna: %s, linea %i\n", temp->return_type, temp->line);
+            printf(", retorna: %s, linea %i \n", temp->return_type, temp->line);
             aux = aux->next;
             found = 1;
         }
@@ -284,25 +284,28 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
     printf("\n");
     found = 0;
 
-    printf("* Listado de sentencias indicando tipo, numero de linea y de columna:\n");
-    if(sentencias) {
-        GenericNode* aux = sentencias;
-        while (aux)
-        {
-            t_sent* temp = (t_sent*)aux->data;
-            printf("%s: linea %i, columna %i\n", temp->type, temp->line, temp->column);
-            aux = aux->next;
-            found = 1;
-        }
-    }
 
-    if(!found) {
-        printf("-\n");
-    }
+    printf("* Listado de errores semanticos:\n");
+
+    // printf("* Listado de sentencias indicando tipo, numero de linea y de columna:\n");
+    // if(sentencias) {
+    //     GenericNode* aux = sentencias;
+    //     while (aux)
+    //     {
+    //         t_sent* temp = (t_sent*)aux->data;
+    //         printf("%s: linea %i, columna %i\n", temp->type, temp->line, temp->column);
+    //         aux = aux->next;
+    //         found = 1;
+    //     }
+    // }
+
+    // if(!found) {
+    //     printf("-\n");
+    // }
     
     found = 0;
     printf("\n");
-    printf("* Listado de estructuras sintácticas no reconocidas\n");
+    printf("* Listado de errores sintacticos:\n");
     if (error_list) {
         GenericNode* temp = error_list;
         while (temp) {
@@ -320,7 +323,7 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
     found = 0;
     printf("\n");
 
-    printf("* Listado de cadenas no reconocidas:\n");
+    printf("* Listado de errores lexicos:\n");
     if(intokens) {
         GenericNode* aux = intokens;
         while(aux) {

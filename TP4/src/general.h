@@ -27,6 +27,7 @@ typedef struct YYLTYPE
 
 typedef struct {
     int line;
+    int column;
     char* type;
     char* variable;
 } t_variable;
