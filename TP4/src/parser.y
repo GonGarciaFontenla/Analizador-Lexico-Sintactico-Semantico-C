@@ -19,7 +19,7 @@ t_sent* data_sent = NULL;
 
 char* type = NULL;
 char* loco = NULL;
-int flag = 0;
+int parameter_flag = 0;
 
 %}
 
@@ -81,7 +81,7 @@ sentencia
     ;
 
 sentCompuesta
-    : '{' opcionDeclaracion opcionSentencia '}' 
+    : '{' {parameter_flag = 0;} opcionDeclaracion opcionSentencia '}' 
     ;
 
 opcionDeclaracion
@@ -164,7 +164,7 @@ operAsignacion
 
 expCondicional
     : expOr 
-    | expOr '?' expresion : expCondicional
+    | expOr '?' expresion ':' expCondicional
     ; 
 
 expOr
@@ -275,52 +275,12 @@ nombreTipo
 unidadTraduccion
     : declaracionExterna 
     | unidadTraduccion declaracionExterna
-    ;
+    ;    
 
 declaracionExterna
     : definicionFuncion    
     | declaracion
     ;        
-
-// declaracionExterna
-//     : especificadorDeclaracion declaradorExternoAbarcativo 
-//     ;
-
-// declaradorExternoAbarcativo 
-//     : decla declaradorExterno
-//     | listaDeclaradores ';'
-
-// declaradorExterno 
-//     : definicionFuncion
-//     | declaracion
-//     ;
-
-// definicionFuncion
-//     : listaDeclaracionOp sentCompuesta {
-//         if(flag) {
-//             data_function->return_type = strdup(type);
-//             data_function->name = strdup(loco); 
-//             data_function->type = "definicion"; 
-//             insert_node(&function, data_function, sizeof(t_function));
-//             data_function->parameters = NULL;
-//             flag = 0;
-//         }
-//     }
-//     ;
-
-// declaracion
-//     : ';' {
-//         if(flag) {
-//             data_function->return_type = strdup(type);
-//             data_function->name = strdup(loco);
-//             data_function->type = "declaracion"; 
-//             insert_node(&function, data_function, sizeof(t_function));
-//             data_function->parameters = NULL;
-//             flag = 0;
-//         }
-//         else
-//             insert_node(&variable, data_variable, sizeof(t_variable));
-//     }
 
 definicionFuncion
     : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta {
@@ -333,24 +293,18 @@ definicionFuncion
     ;
 
 declaracion
-    : especificadorDeclaracion declaracionAbarcativa
-    /* | especificadorDeclaracion error {yerror(@2);} comentario a sacar */
-    ;
-
-declaracionAbarcativa
-    : listaDeclaradores ';'
-    | decla ';' { 
-            if(flag) {
-                data_function->return_type = strdup(type);
-                data_function->name = strdup($<string_type>1);
-                data_function->type = "declaracion"; 
-                insert_node(&function, data_function, sizeof(t_function));
-                data_function->parameters = NULL;
-                flag = 0;
-        }
-        else
+    : especificadorDeclaracion listaDeclaradores ';'
+    | especificadorDeclaracion decla ';' {
+        if(parameter_flag) {
+            data_function->return_type = strdup($<string_type>1);
+            data_function->name = strdup($<string_type>2);
+            data_function->type = "declaracion"; 
+            insert_node(&function, data_function, sizeof(t_function));
+            data_function->parameters = NULL;
+        } else
             insert_node(&variable, data_variable, sizeof(t_variable));
     }
+    /* | especificadorDeclaracion error {yerror(@2);} comentario a sacar */
     ;
 
 especificadorDeclaracion 
@@ -457,7 +411,7 @@ expConstanteOp
     ;
 
 decla
-    : punteroOp declaradorDirecto { $<string_type>$ = strdup($<string_type>2);  loco = strdup($<string_type>2);}
+    : punteroOp declaradorDirecto { $<string_type>$ = strdup($<string_type>2);  loco = strdup($<string_type>2); }
     ;
 
 punteroOp
@@ -487,14 +441,15 @@ declaradorDirecto
         data_variable->column = yylloc.first_column;
     }
     | '(' decla ')'
-    | declaradorDirecto continuacionDeclaradorDirecto { data_function->line = yylloc.first_line; }
+    | declaradorDirecto continuacionDeclaradorDirecto { data_function->line = yylloc.first_line; parameter_flag
+ = 1;}
     ;
 
 continuacionDeclaradorDirecto
     : '[' expConstanteOp ']'
-    | '(' listaTiposParametrosOp ')' {flag = 1;}
-    | '(' listaIdentificadoresOp ')' {flag = 1;}
-    | '(' TIPO_DATO ')' { 
+    | '(' listaTiposParametrosOp ')' 
+    | '(' listaIdentificadoresOp ')'
+    | '(' TIPO_DATO ')' {  
         data_parameter.type = strdup($<string_type>2);
         data_parameter.name = NULL;
         insert_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter));
