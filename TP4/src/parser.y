@@ -16,6 +16,8 @@ t_parameter data_parameter;
 GenericNode* error_list = NULL;
 GenericNode* sentencias = NULL;
 t_sent* data_sent = NULL;
+SemanticErrorNode* semantic_errors_list = NULL; 
+GenericNode* semantic_errors = NULL;
 
 char* type = NULL;
 char* loco = NULL;

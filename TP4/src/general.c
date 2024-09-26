@@ -82,7 +82,6 @@ void yerror(YYLTYPE ubicacion) {
     insert_node(&error_list, new_error, sizeof(t_error));
 }
 
-// No olvides liberar la memoria cuando termines
 void free_token_buffer() {
     if (token_buffer) {
         free(token_buffer);
@@ -415,3 +414,58 @@ void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_lis
     }
 }
 
+
+// Función para validar la multiplicación binaria
+void validate_binary_multiplication(const char* operand1, const char* operand2, YYLTYPE location) {
+    char* type1 = get_type_of_identifier(operand1); // Función que retorna el tipo del identificador
+    char* type2 = get_type_of_identifier(operand2);
+
+    if (!type1 || !type2) {
+        // Al menos uno de los operandos no es un identificador válido
+        char error_message[256];
+        snprintf(error_message, sizeof(error_message), "Operando inválido para multiplicación: %s, %s", operand1, operand2);
+        yerror(location);
+        return;
+    }
+
+    // Verificar tipos compatibles para la multiplicación
+    if ((strcmp(type1, "int") != 0 && strcmp(type1, "double") != 0) ||
+        (strcmp(type2, "int") != 0 && strcmp(type2, "double") != 0)) {
+        char error_message[256];
+        snprintf(error_message, sizeof(error_message), "Tipos incompatibles para multiplicación: %s, %s", type1, type2);
+        yerror(location);
+    }
+}
+
+
+// Función para agregar un error semántico a la lista
+void add_semantic_error(t_error_type error_type, const char* identifier, YYLTYPE ubicacion) {
+    t_error* new_error = (t_error*)malloc(sizeof(t_error));
+    if (!new_error) {
+        printf("Error al asignar memoria para el nuevo error\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    new_error->error_type = error_type;
+    new_error->line = ubicacion.first_line;
+    new_error->column = ubicacion.first_column;
+    
+    char error_message[256]; //Dejo memoria estatica
+    switch (error_type) {
+        case REDECLARATION_ERROR:
+            snprintf(error_message, sizeof(error_message), "'%s' redeclarado como un tipo diferente de símbolo", identifier);
+            break;
+        case MULTIPLICATION_TYPE_ERROR:
+            snprintf(error_message, sizeof(error_message), "Tipos incompatibles para multiplicación con '%s'", identifier);
+            break;
+        
+        //Dejo para nuevo casos de errores. 
+        default:
+            snprintf(error_message, sizeof(error_message), "Error semántico desconocido");
+            break;
+    }
+
+    new_error->message = strdup(error_message); 
+
+    insert_node(&semantic_errors, new_error, sizeof(t_error));
+}

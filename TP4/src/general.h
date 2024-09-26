@@ -17,6 +17,27 @@ extern FILE *yyin;
 
 extern char* current_type;
 
+typedef enum {
+    SEMANTIC_TYPE_CHECK_BINARY_MULTIPLICATION = 1, // Control de tipos de datos simples para la operación *
+    SEMANTIC_TYPE_CHECK_OTHER_OPERATORS,            // Validación de otros operadores binarios y unarios (opcional)
+    SEMANTIC_DOUBLE_DECLARATION_SYMBOL,              // Control de doble declaración de símbolos (variables y funciones)
+    SEMANTIC_FUNCTION_DOUBLE_DECLARATION_NO_TYPE_CONFLICT, // Doble declaración de funciones sin conflicto de tipos
+    SEMANTIC_PARAMETER_IDENTIFIERS_OPTIONAL,        // Identificadores en parámetros de función son opcionales
+    SEMANTIC_NO_DOUBLE_DEFINITION,                   // Funciones y variables no pueden ser doblemente definidas
+    SEMANTIC_SYMBOL_COLLISION,                       // Colisión de símbolos en el mismo namespace
+    SEMANTIC_FUNCTION_CALL_VALIDATION,               // Validación de invocación a funciones
+    SEMANTIC_SIMPLE_ASSIGNMENT_VALIDATION,           // Validación de asignación simple
+    SEMANTIC_RETURN_STATEMENT_VALIDATION             // Validación de sentencias de salto return simples
+} SemanticErrorType;
+
+typedef struct {
+    t_error_type error_type;  // Tipo de error (enum)
+    int line;                 // Línea donde ocurrió el error
+    int column;               // Columna donde ocurrió el error
+    char* message;            // Mensaje opcional (explicación del error)
+} t_semantic_error;
+
+
 typedef struct YYLTYPE
 {
     int first_line;
@@ -79,6 +100,12 @@ typedef struct {
 } t_error;
 
 
+typedef struct SemanticErrorNode {
+    SemanticError* error;
+    struct SemanticErrorNode* next;
+} SemanticErrorNode;
+
+
 #define INICIO_CONTEO_LINEA 1
 #define INICIO_CONTEO_COLUMNA 1
 
@@ -88,6 +115,7 @@ extern GenericNode* function;
 extern GenericNode* error_list;
 extern GenericNode* intokens;
 extern GenericNode* sentencias;
+extern GenericNode* semantic_errors;
 extern t_token_unrecognised* data_intoken;
 extern t_variable* data_variable;
 extern t_function* data_function;
@@ -97,6 +125,7 @@ extern t_error* new_error;
 
 extern char* invalid_string;
 extern int first_line_error;
+
 
 typedef int (*compare_element)(void* data, char* wanted); // Es un alias para llamar en la funcion fetch y que resulte mucho mas legible
 
