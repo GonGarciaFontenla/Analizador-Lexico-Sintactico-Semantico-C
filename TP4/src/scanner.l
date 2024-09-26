@@ -243,8 +243,6 @@ enum {
 "|" { yylloc.last_column += yyleng; return '|'; }
 "^" { yylloc.last_column += yyleng; return '^'; }
 "~" { yylloc.last_column += yyleng; return '~'; }
-"<<" { yylloc.last_column += yyleng; return LEFT_SHIFT; }
-">>" { yylloc.last_column += yyleng; return RIGHT_SHIFT; }
 "(" { yylloc.last_column += yyleng; return '('; }
 ")" { yylloc.last_column += yyleng; return ')'; }
 "[" { yylloc.last_column += yyleng; return '['; }

@@ -40,14 +40,11 @@ void reset_token_buffer() {
 // Función para agregar un token al buffer dinámico
 void append_token(const char* token) {
     int len = strlen(token);
-
-    // Si el buffer es nulo o no hay suficiente espacio, se debe reasignar memoria
-    if (!token_buffer || token_buffer_pos + len + 2 > token_buffer_size) {
-        // Aumentar el tamaño del buffer dinámico
+    if (!token_buffer || token_buffer_pos + len + 2 > token_buffer_size) {  // Si el buffer es nulo o no hay suficiente espacio, se debe reasignar memoria
         token_buffer_size = token_buffer_size + len + 2;  // +2 para el espacio y el terminador nulo
         char* new_buffer = (char*)realloc(token_buffer, token_buffer_size);
         if (!new_buffer) {
-            perror("Error al asignar memoria para token_buffer");
+            printf("Error al asignar memoria para token_buffer");
             exit(EXIT_FAILURE);
         }
         token_buffer = new_buffer;
@@ -68,7 +65,7 @@ void yerror(YYLTYPE ubicacion) {
     // Asignar memoria para el nuevo error
     t_error *new_error = (t_error *)malloc(sizeof(t_error));
     if (!new_error) {
-        perror("Error al asignar memoria para el nuevo error");
+        printf("Error al asignar memoria para el nuevo error");
         exit(EXIT_FAILURE);
     }
 
@@ -76,7 +73,7 @@ void yerror(YYLTYPE ubicacion) {
 
     new_error->message = (char*)malloc(token_buffer_pos + 1);  // +1 para el terminador nulo
     if (!new_error->message) {
-        perror("Error al asignar memoria para el mensaje de error");
+        printf("Error al asignar memoria para el mensaje de error");
         exit(EXIT_FAILURE);
     }
 
@@ -91,6 +88,12 @@ void free_token_buffer() {
         free(token_buffer);
         token_buffer = NULL;
     }
+}
+
+void save_function(const char* type, const char* return_type, const char* id) {
+    data_function->return_type = strdup(return_type);
+    data_function->name = strdup(id);
+    data_function->type = type;
 }
 
 void init_structures() { // Iniciar todas las estructuras
@@ -367,7 +370,7 @@ int compare_lines(const void* a, const void* b) {
     return sent_a->line - sent_b->line;
 }
                                     
-int fetch_element(GenericNode* list, char* wanted, compare_element cmp) {
+int fetch_element(GenericNode* list, void* wanted, compare_element cmp) {
     GenericNode* aux = list;
     while (aux) {
         if (cmp(aux->data, wanted) == 1) { 
@@ -378,24 +381,36 @@ int fetch_element(GenericNode* list, char* wanted, compare_element cmp) {
     return 0;
 }
 
-int compare_ID_variable(void* data, char* wanted) {
-    t_variable* var_data = (t_variable*)data; 
-    return strcmp(var_data->variable, wanted) == 0;
+int compare_ID_variable(void* data, void* wanted) {
+    t_variable* var_data = (t_variable*)data;
+    t_variable* data_wanted = (t_variable*)wanted;
+    return strcmp(var_data->variable, data_wanted->variable) == 0;
 }
 
-int compare_ID_function(void* data, char* wanted) {
+int compare_ID_function(void* data, void* wanted) { // Si existe otro ID con el mismo nombre (error semantico)
     t_function* function_var = (t_function*)data;
-    return strcmp(function_var->name, wanted) == 0;
+    t_variable* data_wanted = (t_variable*)wanted;
+    return strcmp(function_var->name, data_wanted->variable) == 0;
 }
 
-int compare_type_function(void* data, char* wanted) {
+int compare_def_dec_functions(void* data, void* wanted) { // Si existe una decla o definición del mismo ID (error semantico)
     t_function* function_var = (t_function*)data;
-    return strcmp(function_var->type, wanted) == 0;
+    t_function* data_wanted = (t_function*)wanted;
+    return (strcmp(function_var->type, data_wanted->type) == 0 && 
+            strcmp(function_var->name, data_wanted->name) == 0);
+}
+
+int compare_types(void* data, void* wanted) { // Si son mismo nombre pero distinto tipo (error semantico)
+    t_function* function_var = (t_function*)data;
+    t_function* data_wanted = (t_function*)wanted;
+    if(strcmp(data_wanted->name, function_var->name) == 0 && strcmp(data_wanted->return_type, function_var->return_type) != 0) 
+        return 1;
+    return 0;
 }
 
 void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_list, t_variable* data_variable) {
-    if (!fetch_element(*variable_list, data_variable->variable, compare_ID_variable) &&
-        !fetch_element(function_list, data_variable->variable, compare_ID_function)) {
+    if (!fetch_element(*variable_list, data_variable, compare_ID_variable) &&
+        !fetch_element(function_list, data_variable, compare_ID_function)) {
         insert_node(variable_list, data_variable, sizeof(t_variable));
     }
 }

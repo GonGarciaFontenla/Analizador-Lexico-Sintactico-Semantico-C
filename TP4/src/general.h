@@ -114,12 +114,15 @@ void add_sent(const char* tipo_sentencia, int line, int column);
 void add_unrecognised_token(const char* intoken);
 void add_sent(const char* tipo_sentencia, int line, int column);
 void append_token(const char* token);
+void save_function(const char* type, const char* return_type, const char* id);
+
 void insert_sorted_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*));
 void insert_node(GenericNode** list, void* new_data, size_t data_size);
-int fetch_element(GenericNode* list, char* wanted, compare_element cmp);
-int compare_ID_variable(void* data, char* wanted);
-int compare_ID_function(void* data, char* wanted);
-int compare_type_function(void* data, char* wanted);
+int fetch_element(GenericNode* list, void* wanted, compare_element cmp);
+int compare_ID_variable(void* data, void* wanted);
+int compare_ID_function(void* data, void* wanted);
+int compare_def_dec_functions(void* data, void* wanted);
+int compare_types(void* data, void* wanted);
 void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_list, t_variable* data_variable);
 
 void print_lists();

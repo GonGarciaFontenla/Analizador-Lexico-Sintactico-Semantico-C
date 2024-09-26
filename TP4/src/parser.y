@@ -46,14 +46,13 @@ int parameter_flag = 0;
 
 %token ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
 %token EQ NEQ LE GE AND OR
-%token LEFT_SHIFT RIGHT_SHIFT
 %token PTR_OP INC_OP DEC_OP
 %token ELIPSIS
 
 %type <int_type> expresion expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expMultiplicativa expUnaria expPostfijo
 %type <int_type> operAsignacion operUnario nombreTipo listaArgumentos expPrimaria
 %type <int_type> sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
-%type <string_type> unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto declaradorExterno declaracionAbarcativa
+%type <string_type> unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto  
 
 
 %start programa
@@ -159,7 +158,8 @@ operAsignacion
     | ADD_ASSIGN 
     | SUB_ASSIGN 
     | MUL_ASSIGN 
-    | DIV_ASSIGN 
+    | DIV_ASSIGN
+    | MOD_ASSIGN
     ;
 
 expCondicional
@@ -284,12 +284,8 @@ declaracionExterna
 
 definicionFuncion
     : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta {
-        if (!fetch_element(variable, $<string_type>2, compare_ID_variable) && // No está como variable
-            (!fetch_element(function, $<string_type>2, compare_ID_function) || // No está como función ya definida o declarada
-            !fetch_element(function, "definicion", compare_type_function))) { // No se ha definido ya la función con el mismo ID
-            data_function->return_type = strdup($<string_type>1);
-            data_function->name = strdup($<string_type>2); 
-            data_function->type = "definicion"; 
+        save_function("definicion", $<string_type>1, $<string_type>2);
+        if(!fetch_element(function, data_function, compare_def_dec_functions) && !fetch_element(function, data_function, compare_types)) {
             insert_node(&function, data_function, sizeof(t_function));
             data_function->parameters = NULL;
         }
@@ -300,15 +296,11 @@ declaracion
     : especificadorDeclaracion listaDeclaradores ';'
     | especificadorDeclaracion decla ';' {
         if (parameter_flag) {
-            if (!fetch_element(variable, $<string_type>2, compare_ID_variable) && // No está como variable
-                (!fetch_element(function, $<string_type>2, compare_ID_function) || // No está como función ya definida o declarada
-                !fetch_element(function, "declaracion", compare_type_function))) { // No se ha declarado ya la función con el mismo ID
-                data_function->return_type = strdup($<string_type>1);
-                data_function->name = strdup($<string_type>2);
-                data_function->type = "declaracion"; 
+            save_function("declaracion", $<string_type>1, $<string_type>2);
+            if(!fetch_element(function, data_function, compare_def_dec_functions) && !fetch_element(function, data_function, compare_types)) {
                 insert_node(&function, data_function, sizeof(t_function));
                 data_function->parameters = NULL;
-            }
+        }
         } else {
             insert_node(&variable, data_variable, sizeof(t_variable));
         }
