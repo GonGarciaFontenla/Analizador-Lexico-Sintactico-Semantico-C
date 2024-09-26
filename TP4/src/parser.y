@@ -284,27 +284,35 @@ declaracionExterna
 
 definicionFuncion
     : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta {
-        data_function->return_type = strdup($<string_type>1);
-        data_function->name = strdup($<string_type>2); 
-        data_function->type = "definicion"; 
-        insert_node(&function, data_function, sizeof(t_function));
-        data_function->parameters = NULL;
+        if (!fetch_element(variable, $<string_type>2, compare_ID_variable) && // No está como variable
+            (!fetch_element(function, $<string_type>2, compare_ID_function) || // No está como función ya definida o declarada
+            !fetch_element(function, "definicion", compare_type_function))) { // No se ha definido ya la función con el mismo ID
+            data_function->return_type = strdup($<string_type>1);
+            data_function->name = strdup($<string_type>2); 
+            data_function->type = "definicion"; 
+            insert_node(&function, data_function, sizeof(t_function));
+            data_function->parameters = NULL;
+        }
     }
     ;
 
 declaracion
     : especificadorDeclaracion listaDeclaradores ';'
     | especificadorDeclaracion decla ';' {
-        if(parameter_flag) {
-            data_function->return_type = strdup($<string_type>1);
-            data_function->name = strdup($<string_type>2);
-            data_function->type = "declaracion"; 
-            insert_node(&function, data_function, sizeof(t_function));
-            data_function->parameters = NULL;
-        } else
+        if (parameter_flag) {
+            if (!fetch_element(variable, $<string_type>2, compare_ID_variable) && // No está como variable
+                (!fetch_element(function, $<string_type>2, compare_ID_function) || // No está como función ya definida o declarada
+                !fetch_element(function, "declaracion", compare_type_function))) { // No se ha declarado ya la función con el mismo ID
+                data_function->return_type = strdup($<string_type>1);
+                data_function->name = strdup($<string_type>2);
+                data_function->type = "declaracion"; 
+                insert_node(&function, data_function, sizeof(t_function));
+                data_function->parameters = NULL;
+            }
+        } else {
             insert_node(&variable, data_variable, sizeof(t_variable));
+        }
     }
-    /* | especificadorDeclaracion error {yerror(@2);} comentario a sacar */
     ;
 
 especificadorDeclaracion 
@@ -320,10 +328,10 @@ especificadorDeclaracionOp
 
 listaDeclaradores
     : declarador { 
-            insert_node(&variable, data_variable, sizeof(t_variable));
+        insert_if_not_exists(&variable, function, data_variable);
     }
     | listaDeclaradores ',' declarador {
-            insert_node(&variable, data_variable, sizeof(t_variable));
+        insert_if_not_exists(&variable, function, data_variable);
     }
     ;
 

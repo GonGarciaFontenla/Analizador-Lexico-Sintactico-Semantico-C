@@ -98,6 +98,8 @@ extern t_error* new_error;
 extern char* invalid_string;
 extern int first_line_error;
 
+typedef int (*compare_element)(void* data, char* wanted); // Es un alias para llamar en la funcion fetch y que resulte mucho mas legible
+
 void pausa(void);
 void inicializarUbicacion(void);
 void reinicializarUbicacion(void);
@@ -114,6 +116,11 @@ void add_sent(const char* tipo_sentencia, int line, int column);
 void append_token(const char* token);
 void insert_sorted_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*));
 void insert_node(GenericNode** list, void* new_data, size_t data_size);
+int fetch_element(GenericNode* list, char* wanted, compare_element cmp);
+int compare_ID_variable(void* data, char* wanted);
+int compare_ID_function(void* data, char* wanted);
+int compare_type_function(void* data, char* wanted);
+void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_list, t_variable* data_variable);
 
 void print_lists();
 

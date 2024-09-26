@@ -366,3 +366,37 @@ int compare_lines(const void* a, const void* b) {
 
     return sent_a->line - sent_b->line;
 }
+                                    
+int fetch_element(GenericNode* list, char* wanted, compare_element cmp) {
+    GenericNode* aux = list;
+    while (aux) {
+        if (cmp(aux->data, wanted) == 1) { 
+            return 1;
+        }
+        aux = aux->next;
+    }
+    return 0;
+}
+
+int compare_ID_variable(void* data, char* wanted) {
+    t_variable* var_data = (t_variable*)data; 
+    return strcmp(var_data->variable, wanted) == 0;
+}
+
+int compare_ID_function(void* data, char* wanted) {
+    t_function* function_var = (t_function*)data;
+    return strcmp(function_var->name, wanted) == 0;
+}
+
+int compare_type_function(void* data, char* wanted) {
+    t_function* function_var = (t_function*)data;
+    return strcmp(function_var->type, wanted) == 0;
+}
+
+void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_list, t_variable* data_variable) {
+    if (!fetch_element(*variable_list, data_variable->variable, compare_ID_variable) &&
+        !fetch_element(function_list, data_variable->variable, compare_ID_function)) {
+        insert_node(variable_list, data_variable, sizeof(t_variable));
+    }
+}
+
