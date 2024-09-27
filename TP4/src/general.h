@@ -160,7 +160,7 @@ void yerror(YYLTYPE string);
 void validate_binary_multiplication(const char* operand1, const char* operand2, YYLTYPE location); 
 void add_semantic_error(t_error_type error_type, const char* identifier, YYLTYPE ubicacion); 
 const char* get_type_of_identifier(const char* identifier);
-int is_identifier(const char* operand) ;
+int is_identifier(const char* operand);
 
 
 #endif
