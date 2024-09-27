@@ -287,23 +287,29 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
     found = 0;
 
 
-    printf("* Listado de errores semanticos:\n");
-
-    // printf("* Listado de sentencias indicando tipo, numero de linea y de columna:\n");
-    // if(sentencias) {
-    //     GenericNode* aux = sentencias;
-    //     while (aux)
-    //     {
-    //         t_sent* temp = (t_sent*)aux->data;
-    //         printf("%s: linea %i, columna %i\n", temp->type, temp->line, temp->column);
-    //         aux = aux->next;
-    //         found = 1;
-    //     }
-    // }
-
-    // if(!found) {
-    //     printf("-\n");
-    // }
+    printf("* Listado de errores semánticos:\n");
+    if (semantic_errors) {
+        GenericNode* aux = semantic_errors;
+        while (aux) {
+            t_semantic_error* temp = (t_semantic_error*)aux->data;
+            switch (temp->error_type) { 
+                case SEMANTIC_TYPE_CHECK_BINARY_MULTIPLICATION:
+                    printf("%i:%i, Error semántico en la utilización del operador '*' para operaciones binarias.\n", 
+                            temp->line, temp->column);
+                    break;
+            
+                // Dejo para nuevos casos de errores. 
+                default:
+                    printf("Error semantico sin implementar\n");
+                    break;
+            }
+            aux = aux->next;
+            found = 1; 
+        }
+    }
+    if(!found) {
+        printf("-\n");
+    }
     
     found = 0;
     printf("\n");
@@ -417,55 +423,49 @@ void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_lis
 
 // Función para validar la multiplicación binaria
 void validate_binary_multiplication(const char* operand1, const char* operand2, YYLTYPE location) {
-    char* type1 = get_type_of_identifier(operand1); // Función que retorna el tipo del identificador
-    char* type2 = get_type_of_identifier(operand2);
-
-    if (!type1 || !type2) {
-        // Al menos uno de los operandos no es un identificador válido
-        char error_message[256];
-        snprintf(error_message, sizeof(error_message), "Operando inválido para multiplicación: %s, %s", operand1, operand2);
-        yerror(location);
-        return;
+    if(is_identifier(operand1) && !is_identifier(operand2)){
+        char* type = get_type_of_identifier(operand1); // Función que retorna el tipo del identificador
+        if ((strcmp(type1, "int") == 0 && "double" == 0)||
+            (strcmp(type1, "double") == 0 && "int" == 0)){
+            add_semantic_error(SEMANTIC_TYPE_CHECK_BINARY_MULTIPLICATION, operand1, location);
+        }
     }
-
-    // Verificar tipos compatibles para la multiplicación
-    if ((strcmp(type1, "int") != 0 && strcmp(type1, "double") != 0) ||
-        (strcmp(type2, "int") != 0 && strcmp(type2, "double") != 0)) {
-        char error_message[256];
-        snprintf(error_message, sizeof(error_message), "Tipos incompatibles para multiplicación: %s, %s", type1, type2);
-        yerror(location);
+    else if(!is_identifier(operand1) && is_identifier(operand2)) {
     }
 }
 
 
 // Función para agregar un error semántico a la lista
 void add_semantic_error(t_error_type error_type, const char* identifier, YYLTYPE ubicacion) {
-    t_error* new_error = (t_error*)malloc(sizeof(t_error));
-    if (!new_error) {
+    t_semantic_error* new_semantic_error = (t_semantic_error*)malloc(sizeof(t_semantic_error));
+    if (!new_semantic_error) {
         printf("Error al asignar memoria para el nuevo error\n");
         exit(EXIT_FAILURE);
     }
     
-    new_error->error_type = error_type;
-    new_error->line = ubicacion.first_line;
-    new_error->column = ubicacion.first_column;
-    
-    char error_message[256]; //Dejo memoria estatica
-    switch (error_type) {
-        case REDECLARATION_ERROR:
-            snprintf(error_message, sizeof(error_message), "'%s' redeclarado como un tipo diferente de símbolo", identifier);
-            break;
-        case MULTIPLICATION_TYPE_ERROR:
-            snprintf(error_message, sizeof(error_message), "Tipos incompatibles para multiplicación con '%s'", identifier);
-            break;
-        
-        //Dejo para nuevo casos de errores. 
-        default:
-            snprintf(error_message, sizeof(error_message), "Error semántico desconocido");
-            break;
+    new_semantic_error->error_type = error_type;
+    new_semantic_error->line = ubicacion.first_line;
+    new_semantic_error->column = ubicacion.first_column;
+
+    insert_node(&semantic_errors, new_semantic_error, sizeof(t_semantic_error));
+}
+
+const char* get_type_of_identifier(const char* identifier) {
+    if (fetch_element(variable, identifier, compare_ID_variable)) {
+        t_variable* var = (t_variable*)variable->data;
+        return var->type;
+    } else if (fetch_element(function, identifier, compare_ID_function)) {
+        t_function* func = (t_function*)function->data;
+        return func->return_type;
+    } else {
+        return invalid_string;
     }
+}
 
-    new_error->message = strdup(error_message); 
-
-    insert_node(&semantic_errors, new_error, sizeof(t_error));
+int is_identifier(const char* operand) {
+    if (fetch_element(variable, operand, compare_ID_variable) || 
+        fetch_element(function, operand, compare_ID_function)) {
+        return 1;
+    }
+    return 0; 
 }

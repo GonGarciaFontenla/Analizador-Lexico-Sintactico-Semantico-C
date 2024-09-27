@@ -28,13 +28,12 @@ typedef enum {
     SEMANTIC_FUNCTION_CALL_VALIDATION,               // Validación de invocación a funciones
     SEMANTIC_SIMPLE_ASSIGNMENT_VALIDATION,           // Validación de asignación simple
     SEMANTIC_RETURN_STATEMENT_VALIDATION             // Validación de sentencias de salto return simples
-} SemanticErrorType;
+} t_error_type;
 
 typedef struct {
     t_error_type error_type;  // Tipo de error (enum)
     int line;                 // Línea donde ocurrió el error
     int column;               // Columna donde ocurrió el error
-    char* message;            // Mensaje opcional (explicación del error)
 } t_semantic_error;
 
 
@@ -100,11 +99,6 @@ typedef struct {
 } t_error;
 
 
-typedef struct SemanticErrorNode {
-    SemanticError* error;
-    struct SemanticErrorNode* next;
-} SemanticErrorNode;
-
 
 #define INICIO_CONTEO_LINEA 1
 #define INICIO_CONTEO_COLUMNA 1
@@ -122,6 +116,7 @@ extern t_function* data_function;
 extern t_parameter data_parameter;
 extern t_sent* data_sent;
 extern t_error* new_error;
+extern t_semantic_error* new_semantic_error;
 
 extern char* invalid_string;
 extern int first_line_error;
@@ -161,5 +156,11 @@ int compare_lines(const void* a, const void* b);
 void reset_token_buffer();
 
 void yerror(YYLTYPE string);
+
+void validate_binary_multiplication(const char* operand1, const char* operand2, YYLTYPE location); 
+void add_semantic_error(t_error_type error_type, const char* identifier, YYLTYPE ubicacion); 
+const char* get_type_of_identifier(const char* identifier);
+int is_identifier(const char* operand) ;
+
 
 #endif

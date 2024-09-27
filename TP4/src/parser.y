@@ -16,8 +16,9 @@ t_parameter data_parameter;
 GenericNode* error_list = NULL;
 GenericNode* sentencias = NULL;
 t_sent* data_sent = NULL;
-SemanticErrorNode* semantic_errors_list = NULL; 
+
 GenericNode* semantic_errors = NULL;
+t_semantic_error* new_semantic_error = NULL; 
 
 char* type = NULL;
 char* loco = NULL;
@@ -215,12 +216,9 @@ opcionAditiva
     
 expMultiplicativa
     : expUnaria
-    | expMultiplicativa opcionMultiplicativa
-    ;
-opcionMultiplicativa
-    : '*' expUnaria
-    | '/' expUnaria
-    | '%' expUnaria
+    | expMultiplicativa '*' expUnaria {validate_binary_multiplication($1, $3, @1);}
+    | expMultiplicativa '/' expUnaria
+    | expMultiplicativa '%' expUnaria
     ;
 
 expUnaria
