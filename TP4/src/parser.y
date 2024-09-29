@@ -20,8 +20,7 @@ t_sent* data_sent = NULL;
 GenericNode* semantic_errors = NULL;
 t_semantic_error* new_semantic_error = NULL; 
 
-char* type = NULL;
-char* loco = NULL;
+int is_string = 0;
 int parameter_flag = 0;
 
 %}
@@ -216,7 +215,7 @@ opcionAditiva
     
 expMultiplicativa
     : expUnaria
-    | expMultiplicativa '*' expUnaria {validate_binary_multiplication($1, $3, @1);}
+    | expMultiplicativa '*' expUnaria { printf("SAPE: %i", $1); is_string = 0;}
     | expMultiplicativa '/' expUnaria
     | expMultiplicativa '%' expUnaria
     ;
@@ -263,7 +262,7 @@ expPrimaria
     | ENTERO        
     | NUM        
     | CONSTANTE 
-    | LITERAL_CADENA 
+    | LITERAL_CADENA { is_string = 1;}
     | '(' expresion ')'
     | PALABRA_RESERVADA
     ;
@@ -353,7 +352,7 @@ inicializador
     ;
 
 especificadorTipo
-    : TIPO_DATO { data_variable->type = strdup($<string_type>1); type = strdup($<string_type>1);}
+    : TIPO_DATO { data_variable->type = strdup($<string_type>1);}
     | especificadorStructUnion
     | especificadorEnum
     ;
@@ -411,7 +410,7 @@ expConstanteOp
     ;
 
 decla
-    : punteroOp declaradorDirecto { $<string_type>$ = strdup($<string_type>2);  loco = strdup($<string_type>2); }
+    : punteroOp declaradorDirecto { $<string_type>$ = strdup($<string_type>2);}
     ;
 
 punteroOp
