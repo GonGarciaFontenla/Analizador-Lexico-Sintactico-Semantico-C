@@ -422,71 +422,92 @@ void print_semantic_errors(GenericNode* list) {
         
         switch (error->error_type) { // Segun el tipo de error ...
             case BINARY_OPERAND_TYPE_ERROR:
-                printf("Error en línea %d, columna %d: Tipos de datos en conflicto para la operación binaria.\n", error->line, error->column);
                 break;
             case UNDECLARED_ID:
-                printf("Error en línea %d, columna %d: Identificador no declarado.\n", error->line, error->column);
                 break;
             case DOUBLE_DECLARATION_DIFF_SYMBOLS:
-                printf("Error en línea %d, columna %d: Doble declaración de símbolos con el mismo ID en una función y en una variable.\n", error->line, error->column);
                 break;
             case DOUBLE_DECLARATION_DIFF_TYPES:
-                printf("Error en línea %d, columna %d: Doble declaración de funciones con tipos de retorno conflictivos.\n", error->line, error->column);
                 break;
             case DOUBLE_DECLARATION:
-                printf("Error en línea %d, columna %d: Doble declaración del mismo tipo y símbolo.\n", error->line, error->column);
                 break;
             case INEXISTENT_ID_FUNCTION:
-                printf("Error en línea %d, columna %d: Llamada a una función que no está declarada.\n", error->line, error->column);
                 break;
             case INVALID_USE_FUNCTION:
-                printf("Error en línea %d, columna %d: Uso de una variable como si fuera una función.\n", error->line, error->column);
                 break;
             case INSUFFICIENT_ARGUMENTS:
-                printf("Error en línea %d, columna %d: Se pasaron menos argumentos de los necesarios.\n", error->line, error->column);
                 break;
             case TOO_MANY_ARGUMENTS:
-                printf("Error en línea %d, columna %d: Se pasaron más argumentos de los necesarios.\n", error->line, error->column);
                 break;
             case CONFLICTING_TYPE_ARGUMENTS:
-                printf("Error en línea %d, columna %d: Tipos de argumentos que no coinciden con los de la función.\n", error->line, error->column);
                 break;
             case RETURN_IN_VOID_FUCTION:
-                printf("Error en línea %d, columna %d: Retorno en una función de tipo void.\n", error->line, error->column);
                 break;
             case CONFLICTING_TYPES_ASSIGNATION:
-                printf("Error en línea %d, columna %d: Asignación que no corresponde al tipo de dato.\n", error->line, error->column);
                 break;
             case DOUBLE_ASSIGNATION_CONST_VAR:
-                printf("Error en línea %d, columna %d: Reasignación a un objeto de tipo 'const'.\n", error->line, error->column);
                 break;
             case INVALID_L_VALUE_MODIFIER:
-                printf("Error en línea %d, columna %d: Modificador L-value no válido.\n", error->line, error->column);
                 break;
             case INEXISTENT_RETURN:
-                printf("Error en línea %d, columna %d: Se requiere un retorno en la función, pero no se ha retornado.\n", error->line, error->column);
                 break;
             case CONFLICTING_TYPES_RETURN_FUNCTION:
-                printf("Error en línea %d, columna %d: El valor retornado no coincide con el tipo de la función.\n", error->line, error->column);
                 break;
             default:
-                printf("Error en línea %d, columna %d: Tipo de error semántico desconocido.\n", error->line, error->column);
                 break;
         }
         aux = aux->next; // Moverse al siguiente nodo
     }
 }
 
-void add_semantic_error(SEMANTIC_ERROR_TYPE semantic_error, const char* identifier, YYLTYPE ubicacion) {
-    t_semantic_error* new_error = (t_semantic_error*)malloc(sizeof(t_error));
-    if (!new_error) {
+// Función para validar la multiplicación binaria
+void validate_binary_multiplication(const char* operand1, const char* operand2, YYLTYPE location) {
+    if(is_identifier(operand1) && !is_identifier(operand2)){
+        char* type = get_type_of_identifier(operand1); // Función que retorna el tipo del identificador
+        if ((strcmp(type, "int") == 0 && "double" == 0)|| // ToDo: arreglar la hardcodeada
+            (strcmp(type, "double") == 0 && "int" == 0)){
+            add_semantic_error(BINARY_OPERAND_TYPE_ERROR, operand1, location);
+        }
+    } else if(!is_identifier(operand1) && is_identifier(operand2)) {
+        char* type = get_type_of_identifier(operand1); // Función que retorna el tipo del identificador
+        if ((strcmp(type, "int") == 0 && "double" == 0)|| // ToDo: arreglar la hardcodeada
+            (strcmp(type, "double") == 0 && "int" == 0)){
+            add_semantic_error(BINARY_OPERAND_TYPE_ERROR, operand1, location);
+        }
+    }
+}
+
+// Función para agregar un error semántico a la lista
+void add_semantic_error(SEMANTIC_ERROR_TYPE error_type, const char* identifier, YYLTYPE ubicacion) {
+    t_semantic_error* new_semantic_error = (t_semantic_error*)malloc(sizeof(t_semantic_error));
+    if (!new_semantic_error) {
         printf("Error al asignar memoria para el nuevo error\n");
         exit(EXIT_FAILURE);
     }
-
-    new_error->error_type = semantic_error;
-    new_error->line = ubicacion.first_line;
-    new_error->column = ubicacion.first_column;
     
-    insert_node(&semantic_errors, new_error, sizeof(t_semantic_error));
+    new_semantic_error->error_type = error_type;
+    new_semantic_error->line = ubicacion.first_line;
+    new_semantic_error->column = ubicacion.first_column;
+
+    insert_node(&semantic_errors, new_semantic_error, sizeof(t_semantic_error));
+}
+
+const char* get_type_of_identifier(const char* identifier) {
+    if (fetch_element(variable, identifier, compare_ID_variable)) {
+        t_variable* var = (t_variable*)variable->data;
+        return var->type;
+    } else if (fetch_element(function, identifier, compare_ID_function)) {
+        t_function* func = (t_function*)function->data;
+        return func->return_type;
+    } else {
+        return invalid_string;
+    }
+}
+
+int is_identifier(const char* operand) {
+    if (fetch_element(variable, operand, compare_ID_variable) || 
+        fetch_element(function, operand, compare_ID_function)) {
+        return 1;
+    }
+    return 0; 
 }

@@ -164,7 +164,7 @@ void reset_token_buffer();
 void yerror(YYLTYPE string);
 
 void validate_binary_multiplication(const char* operand1, const char* operand2, YYLTYPE location); 
-void add_semantic_error(SEMANTIC_ERROR_TYPE semantic_error, const char* identifier, YYLTYPE ubicacion);
+void add_semantic_error(SEMANTIC_ERROR_TYPE error_type, const char* identifier, YYLTYPE ubicacion); 
 const char* get_type_of_identifier(const char* identifier);
 int is_identifier(const char* operand);
 

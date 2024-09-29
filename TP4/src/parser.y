@@ -215,7 +215,7 @@ opcionAditiva
     
 expMultiplicativa
     : expUnaria
-    | expMultiplicativa '*' expUnaria { printf("SAPE: %i", $1); is_string = 0;}
+    | expMultiplicativa '*' expUnaria { validate_binary_multiplication($1, $3, @1);}
     | expMultiplicativa '/' expUnaria
     | expMultiplicativa '%' expUnaria
     ;
