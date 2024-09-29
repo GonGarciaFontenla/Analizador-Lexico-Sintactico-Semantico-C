@@ -18,7 +18,7 @@ extern FILE *yyin;
 extern char* current_type;
 
 typedef enum {
-    BINARY_OPERAND_TYPE_ERROR,               // Control de tipos de datos simples para la operación *
+    BINARY_OPERAND_TYPE_ERROR,              // Control de tipos de datos simples para la operación *
     UNDECLARED_ID,                          // Validación de otros operadores binarios y unarios (opcional)
     DOUBLE_DECLARATION_DIFF_SYMBOLS,        // Doble declaración de símbolos (mismo ID en una funcion y en una variable)
     DOUBLE_DECLARATION_DIFF_TYPES,          // Doble declaración de funciones con conflicto de tipos
@@ -40,6 +40,7 @@ typedef struct {
     SEMANTIC_ERROR_TYPE error_type;         // Tipo de error (enum)
     int line;                               // Línea donde ocurrió el error
     int column;                             // Columna donde ocurrió el error
+    // ToDo: Falta un campo que acepte todo lo necesario para el printeo, preguntar a fer
 } t_semantic_error;
 
 
@@ -73,12 +74,6 @@ typedef struct {
 
 typedef struct {
     int line;
-    int column;
-    char* type;
-} t_statement;
-
-typedef struct {
-    int line;
     char* structure;
 } t_structure_unrecognised;
 
@@ -87,11 +82,6 @@ typedef struct {
     int column;
     char* token;
 } t_token_unrecognised;
-
-typedef struct GenericNode {                // Estructura para reducir lógica repetida en los agregar //
-    void* data;
-    struct GenericNode* next;
-} GenericNode;
 
 typedef struct {
     char* type;
@@ -104,7 +94,10 @@ typedef struct {
     char *message;                          // Campo para el mensaje del error
 } t_error;
 
-
+typedef struct GenericNode {                // Estructura para reducir lógica repetida en los agregar //
+    void* data;
+    struct GenericNode* next;
+} GenericNode;
 
 #define INICIO_CONTEO_LINEA 1
 #define INICIO_CONTEO_COLUMNA 1
@@ -148,19 +141,17 @@ void save_function(const char* type, const char* return_type, const char* id);
 
 void insert_sorted_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*));
 void insert_node(GenericNode** list, void* new_data, size_t data_size);
-int fetch_element(GenericNode* list, void* wanted, compare_element cmp);
+void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_list, t_variable* data_variable);
+
+int compare_lines(const void* a, const void* b);
 int compare_ID_variable(void* data, void* wanted);
 int compare_ID_function(void* data, void* wanted);
 int compare_def_dec_functions(void* data, void* wanted);
 int compare_types(void* data, void* wanted);
-void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_list, t_variable* data_variable);
 
 void print_lists();
-
-int compare_lines(const void* a, const void* b);
-
+int fetch_element(GenericNode* list, void* wanted, compare_element cmp);
 void reset_token_buffer();
-
 void yerror(YYLTYPE string);
 
 void validate_binary_multiplication(const char* operand1, const char* operand2, YYLTYPE location); 

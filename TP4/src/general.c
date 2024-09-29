@@ -422,6 +422,7 @@ void print_semantic_errors(GenericNode* list) {
         
         switch (error->error_type) { // Segun el tipo de error ...
             case BINARY_OPERAND_TYPE_ERROR:
+                printf("%i:%i: Operandos invalidos del operador binario * (tienen '%s'y '%s')", error -> line, error -> column);
                 break;
             case UNDECLARED_ID:
                 break;
