@@ -135,7 +135,7 @@ void init_structures() { // Iniciar todas las estructuras
 
     data_sent = (t_sent*)malloc(sizeof(t_sent));
     if (!data_sent) {
-        ("Error al asignar memoria para data_sent");
+        printf("Error al asignar memoria para data_sent");
         exit(EXIT_FAILURE);
     }
     data_sent->column = 0;
@@ -167,7 +167,7 @@ void add_unrecognised_token(const char* intoken) {
 void add_sent(const char* tipo_sentencia, int line, int column) {
     data_sent->type = strdup(tipo_sentencia);
     if (!data_sent->type) {
-        ("Error al asignar memoria para el tipo de sentencia");
+        printf("Error al asignar memoria para el tipo de sentencia");
         exit(EXIT_FAILURE);
     }
     data_sent->line = line;
@@ -178,12 +178,12 @@ void add_sent(const char* tipo_sentencia, int line, int column) {
 void insert_sorted_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*)) {
     GenericNode* new_node = (GenericNode*)malloc(sizeof(GenericNode));
     if (!new_node) {
-        ("Error al asignar memoria para el nuevo nodo");
+        printf("Error al asignar memoria para el nuevo nodo");
         exit(EXIT_FAILURE);
     }
     new_node->data = malloc(data_size);
     if (!new_node->data) {
-        ("Error al asignar memoria para los datos del nuevo nodo");
+        printf("Error al asignar memoria para los datos del nuevo nodo");
         exit(EXIT_FAILURE);
     }
     memcpy(new_node->data, new_data, data_size);
@@ -432,7 +432,6 @@ int compare_ID_and_type_variable(void* data, void* wanted) {
     t_variable* var_data = (t_variable*)data;
     t_variable* data_wanted = (t_variable*)wanted;
 
-    // Comparar el nombre (identificador) y el tipo de la variable
     return strcmp(var_data->variable, data_wanted->variable) == 0 &&
            strcmp(var_data->type, data_wanted->type) == 0;
 }
@@ -441,9 +440,14 @@ int compare_ID_and_diff_type_variable(void* data, void* wanted) {
     t_variable* var_data = (t_variable*)data;
     t_variable* data_wanted = (t_variable*)wanted;
 
-    // Comparar el nombre (identificador), pero el tipo debe ser diferente
     return strcmp(var_data->variable, data_wanted->variable) == 0 &&
            strcmp(var_data->type, data_wanted->type) != 0;
+}
+
+int compare_parameter(void* data, void* wanted) {
+    t_parameter* data_param = (t_parameter*)data;
+    t_variable* data_wanted = (t_variable*)wanted;
+    return strcmp(data_param->name, data_wanted->variable) == 0;
 }
 
 void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_list, t_variable* data_variable) {

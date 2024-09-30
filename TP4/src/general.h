@@ -97,7 +97,7 @@ extern t_semantic_error* data_sem_error;
 extern char* invalid_string;
 extern int first_line_error;
 
-typedef int (*compare_element)(void* data, char* wanted); // Es un alias para llamar en la funcion fetch y que resulte mucho mas legible
+typedef int (*compare_element)(void* data, void* wanted); // Es un alias para llamar en la funcion fetch y que resulte mucho mas legible
 
 void pausa(void);
 void inicializarUbicacion(void);
@@ -127,7 +127,7 @@ int compare_types(void* data, void* wanted);
 int compare_ID_and_diff_type_variable(void* data, void* wanted);
 int compare_ID_and_type_variable(void* data, void* wanted);
 int compare_ID_fxf(void* data, void* wanted);
-
+int compare_parameter(void* data, void* wanted);
 
 void print_lists();
 void print_semantic_errors(GenericNode* list);

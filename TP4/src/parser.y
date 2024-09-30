@@ -266,7 +266,7 @@ listaArgumentos
 expPrimaria
     : IDENTIFICADOR { 
         if(!declaration_flag) {
-            if(!fetch_element(variable, data_variable, compare_ID_variable)) {
+            if(!fetch_element(variable, data_variable, compare_ID_variable) && fetch_element(data_function->parameters, &data_parameter, compare_parameter)) {
                 asprintf(&data_sem_error -> msg, "%i:%i: '%s' sin declarar", @1.first_line, @1.first_column, $<string_type>1);
                 insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
             }
