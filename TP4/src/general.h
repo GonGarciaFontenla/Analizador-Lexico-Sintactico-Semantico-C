@@ -97,7 +97,6 @@ extern t_semantic_error* data_sem_error;
 extern char* invalid_string;
 extern int first_line_error;
 
-
 typedef int (*compare_element)(void* data, char* wanted); // Es un alias para llamar en la funcion fetch y que resulte mucho mas legible
 
 void pausa(void);
@@ -133,6 +132,8 @@ void print_semantic_errors(GenericNode* list);
 
 void* get_element(GenericNode* list, void* wanted, compare_element cmp);
 int fetch_element(GenericNode* list, void* wanted, compare_element cmp);
+
+void handle_redeclaration(int redeclaration_line, int redeclaration_column, const char* identifier); 
 
 void reset_token_buffer();
 

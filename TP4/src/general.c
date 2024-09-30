@@ -447,3 +447,35 @@ void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_lis
     }
 }
 
+void handle_redeclaration(int redeclaration_line, int redeclaration_column, const char* identifier) {
+    t_function* existing_function = (t_function*)get_element(function, data_variable, compare_ID_function);
+
+    if (existing_function) {
+        asprintf(&data_sem_error->msg, "%i:%i: '%s' redeclarado como un tipo diferente de símbolo\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i", 
+                 redeclaration_line, redeclaration_column, identifier, 
+                 existing_function->name, existing_function->return_type, 
+                 existing_function->line, existing_function->column);
+        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+    }
+
+    t_variable* existing_variable = (t_variable*)get_element(variable, data_variable, compare_ID_and_type_variable);
+
+    if (existing_variable) {
+        asprintf(&data_sem_error->msg, "%i:%i: Redeclaración de '%s'\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i", 
+                 redeclaration_line, redeclaration_column, identifier,
+                 existing_variable->variable, existing_variable->type,
+                 existing_variable->line, existing_variable->column);
+        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        return;
+    }
+
+    existing_variable = (t_variable*)get_element(variable, data_variable, compare_ID_and_diff_type_variable);
+    if (existing_variable) {
+        asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la última es de tipo '%s'\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i",
+                redeclaration_line, redeclaration_column, identifier,
+                data_variable->type, existing_variable->variable, 
+                existing_variable->type, existing_variable->line, 
+                existing_variable->column);
+        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+    }
+}

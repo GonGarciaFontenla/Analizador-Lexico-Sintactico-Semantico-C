@@ -340,37 +340,7 @@ listaDeclaradores
         int redeclaration_column = data_variable->column;
 
         insert_if_not_exists(&variable, function, data_variable);
-
-        t_function* existing_function = (t_function*)get_element(function, data_variable, compare_ID_function);
-        if (existing_function) {
-            asprintf(&data_sem_error->msg, "%i:%i: '%s' redeclarado como un tipo diferente de símbolo\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i", 
-                    redeclaration_line, redeclaration_column, $<string_type>1, 
-                    existing_function->name, existing_function->return_type, 
-                    existing_function->line, existing_function->column);
-
-            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-        }
-
-        t_variable* existing_variable = (t_variable*)get_element(variable, data_variable, compare_ID_and_type_variable);
-        if(existing_variable) {
-            asprintf(&data_sem_error->msg, "%i:%i: Redeclaracion de '%s'\nNota: la declaracion previa de '%s' es de tipo '%s': %i:%i", 
-                    redeclaration_line, redeclaration_column, $<string_type>1,
-                    existing_variable->variable, existing_variable->type,
-                    existing_variable->line, existing_variable->column);
-
-            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-            return;
-        }
-
-        existing_variable = (t_variable*)get_element(variable, data_variable, compare_ID_and_diff_type_variable);
-        if(existing_variable) {
-            asprintf(&data_sem_error->msg, "%i:%i: conflicto de tipos para '%s'; la ultima es de tipo '%s'\nNota: la declaracion previa de '%s' es de tipo '%s': %i:%i", 
-                    redeclaration_line, redeclaration_column, $<string_type>1, data_variable->type,
-                    existing_variable->variable, existing_variable->type,
-                    existing_variable->line, existing_variable->column);
-
-            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-        }
+        handle_redeclaration(redeclaration_line, redeclaration_column, $<string_type>1);   
     }
     | listaDeclaradores ',' declarador {
         insert_if_not_exists(&variable, function, data_variable);
