@@ -17,32 +17,9 @@ extern FILE *yyin;
 
 extern char* current_type;
 
-typedef enum {
-    BINARY_OPERAND_TYPE_ERROR,              // Control de tipos de datos simples para la operación *
-    UNDECLARED_ID,                          // Validación de otros operadores binarios y unarios (opcional)
-    DOUBLE_DECLARATION_DIFF_SYMBOLS,        // Doble declaración de símbolos (mismo ID en una funcion y en una variable)
-    DOUBLE_DECLARATION_DIFF_TYPES,          // Doble declaración de funciones con conflicto de tipos
-    DOUBLE_DECLARATION,                     // Doble declaracion de mismo tipo y simbolo
-    INEXISTENT_ID_FUNCTION,                 // Llamar a una funcion que no esta declarada
-    INVALID_USE_FUNCTION,                   // Uso de una variable como si fuese una funcion
-    INSUFFICIENT_ARGUMENTS,                 // Pasar menos argumentos de los necesarios
-    TOO_MANY_ARGUMENTS,                     // Pasar mas argumentos de los necesarios
-    CONFLICTING_TYPE_ARGUMENTS,             // Argumentos que no coinciden con el tipo de la funcion
-    RETURN_IN_VOID_FUCTION,                 // Retornando en funciones void
-    CONFLICTING_TYPES_ASSIGNATION,          // Asignacion que no corresponde al tipo de dato 
-    DOUBLE_ASSIGNATION_CONST_VAR,           // Reasignacion a un objeto de tipo 'const'
-    INVALID_L_VALUE_MODIFIER,               // No respeta L value modificable
-    INEXISTENT_RETURN,                      // En funcion que requiere return, no se retorna
-    CONFLICTING_TYPES_RETURN_FUNCTION       // Lo que se retorna no coincide con el tipo de la funcion
-} SEMANTIC_ERROR_TYPE;
-
-typedef struct {
-    SEMANTIC_ERROR_TYPE error_type;         // Tipo de error (enum)
-    int line;                               // Línea donde ocurrió el error
-    int column;                             // Columna donde ocurrió el error
-    // ToDo: Falta un campo que acepte todo lo necesario para el printeo, preguntar a fer
+typedef struct {                            // A pesar de ser solo un campo, que podríamos haber laburado con un vector de char's, usamos una lista para seguir con la misma esencia con la que venimos trabajando
+    char* msg;                              // Mensaje de X error semántico
 } t_semantic_error;
-
 
 typedef struct YYLTYPE
 {
@@ -67,6 +44,7 @@ typedef struct {
 typedef struct {
     char* name;
     int line;
+    int column;
     char* type;                             // Si es declaracion o definicion
     t_parameter* parameters;                // Es una sublista (array de parametros, guardar como string el tipo y el ID)
     char* return_type;
@@ -102,7 +80,6 @@ typedef struct GenericNode {                // Estructura para reducir lógica r
 #define INICIO_CONTEO_LINEA 1
 #define INICIO_CONTEO_COLUMNA 1
 
-extern GenericNode* statements_list;
 extern GenericNode* variable;
 extern GenericNode* function;
 extern GenericNode* error_list;
@@ -115,7 +92,7 @@ extern t_function* data_function;
 extern t_parameter data_parameter;
 extern t_sent* data_sent;
 extern t_error* new_error;
-extern t_semantic_error* new_semantic_error;
+extern t_semantic_error* data_sem_error;
 
 extern char* invalid_string;
 extern int first_line_error;
@@ -148,16 +125,17 @@ int compare_ID_variable(void* data, void* wanted);
 int compare_ID_function(void* data, void* wanted);
 int compare_def_dec_functions(void* data, void* wanted);
 int compare_types(void* data, void* wanted);
+int compare_ID_and_diff_type_variable(void* data, void* wanted);
+int compare_ID_and_type_variable(void* data, void* wanted);
 
 void print_lists();
+void print_semantic_errors(GenericNode* list);
+
+void* get_element(GenericNode* list, void* wanted, compare_element cmp);
 int fetch_element(GenericNode* list, void* wanted, compare_element cmp);
+
 void reset_token_buffer();
+
 void yerror(YYLTYPE string);
-
-void validate_binary_multiplication(const char* operand1, const char* operand2, YYLTYPE location); 
-void add_semantic_error(SEMANTIC_ERROR_TYPE error_type, const char* identifier, YYLTYPE ubicacion); 
-const char* get_type_of_identifier(const char* identifier);
-int is_identifier(const char* operand);
-
 
 #endif

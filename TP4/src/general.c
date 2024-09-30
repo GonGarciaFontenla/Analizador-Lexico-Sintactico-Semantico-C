@@ -112,6 +112,7 @@ void init_structures() { // Iniciar todas las estructuras
     }
     data_function->name = NULL;
     data_function->line = 0;
+    data_function->column = 0;
     data_function->type = NULL;
     data_function->parameters = NULL;
     data_function->return_type = NULL;
@@ -124,6 +125,13 @@ void init_structures() { // Iniciar todas las estructuras
     data_intoken->column = 0;
     data_intoken->line = 0;
     data_intoken->token = NULL;
+
+    data_sem_error = (t_semantic_error*)malloc(sizeof(t_semantic_error));
+    if(!data_sem_error) {
+        printf("Error al asignar memoria para data_sem_error");
+        exit(EXIT_FAILURE);
+    }
+    data_sem_error->msg = NULL;
 
     data_sent = (t_sent*)malloc(sizeof(t_sent));
     if (!data_sent) {
@@ -141,7 +149,6 @@ void init_structures() { // Iniciar todas las estructuras
     new_error->line = 0;
     new_error->message = NULL; // Inicializa el puntero message a NULL
     
-    // Inicialización de invalid_string
     invalid_string = (char*)malloc(1);
     if (!invalid_string) {
         printf("Error al asignar memoria para invalid_string\n");
@@ -288,23 +295,8 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
 
 
     printf("* Listado de errores semanticos:\n");
+    print_semantic_errors(semantic_errors);
 
-    // printf("* Listado de sentencias indicando tipo, numero de linea y de columna:\n");
-    // if(sentencias) {
-    //     GenericNode* aux = sentencias;
-    //     while (aux)
-    //     {
-    //         t_sent* temp = (t_sent*)aux->data;
-    //         printf("%s: linea %i, columna %i\n", temp->type, temp->line, temp->column);
-    //         aux = aux->next;
-    //         found = 1;
-    //     }
-    // }
-
-    // if(!found) {
-    //     printf("-\n");
-    // }
-    
     found = 0;
     printf("\n");
     printf("* Listado de errores sintacticos:\n");
@@ -341,7 +333,18 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
         printf("-\n");
     }
 
-    print_semantic_errors(semantic_errors);
+}
+
+void print_semantic_errors(GenericNode* list) {
+    if(list) {
+        GenericNode* aux = list;
+        while(aux) {
+            t_semantic_error* aux_error = (t_semantic_error*)aux->data;
+            printf("%s\n", aux_error->msg);
+            aux = aux->next;
+        }
+        printf("\n");
+    }
 }
 
 void free_list(GenericNode** head) {
@@ -381,6 +384,17 @@ int fetch_element(GenericNode* list, void* wanted, compare_element cmp) {
     return 0;
 }
 
+void* get_element(GenericNode* list, void* wanted, compare_element cmp) {
+    GenericNode* current = list;
+    while (current != NULL) {
+        if (cmp(current->data, wanted) == 1) {
+            return current->data;
+        }
+        current = current->next;
+    }
+    return NULL;
+}
+
 int compare_ID_variable(void* data, void* wanted) {
     t_variable* var_data = (t_variable*)data;
     t_variable* data_wanted = (t_variable*)wanted;
@@ -408,6 +422,24 @@ int compare_types(void* data, void* wanted) { // Si son mismo nombre pero distin
     return 0;
 }
 
+int compare_ID_and_type_variable(void* data, void* wanted) {
+    t_variable* var_data = (t_variable*)data;
+    t_variable* data_wanted = (t_variable*)wanted;
+
+    // Comparar el nombre (identificador) y el tipo de la variable
+    return strcmp(var_data->variable, data_wanted->variable) == 0 &&
+           strcmp(var_data->type, data_wanted->type) == 0;
+}
+
+int compare_ID_and_diff_type_variable(void* data, void* wanted) {
+    t_variable* var_data = (t_variable*)data;
+    t_variable* data_wanted = (t_variable*)wanted;
+
+    // Comparar el nombre (identificador), pero el tipo debe ser diferente
+    return strcmp(var_data->variable, data_wanted->variable) == 0 &&
+           strcmp(var_data->type, data_wanted->type) != 0;
+}
+
 void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_list, t_variable* data_variable) {
     if (!fetch_element(*variable_list, data_variable, compare_ID_variable) &&
         !fetch_element(function_list, data_variable, compare_ID_function)) {
@@ -415,100 +447,3 @@ void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_lis
     }
 }
 
-void print_semantic_errors(GenericNode* list) {
-    GenericNode* aux = list; // Comenzar desde el nodo inicial
-    while (aux != NULL) {
-        t_semantic_error* error = (t_semantic_error*)aux->data; // Apunta a X nodo de la lista
-        
-        switch (error->error_type) { // Segun el tipo de error ...
-            case BINARY_OPERAND_TYPE_ERROR:
-                printf("%i:%i: Operandos invalidos del operador binario * (tienen '%s'y '%s')", error -> line, error -> column);
-                break;
-            case UNDECLARED_ID:
-                break;
-            case DOUBLE_DECLARATION_DIFF_SYMBOLS:
-                break;
-            case DOUBLE_DECLARATION_DIFF_TYPES:
-                break;
-            case DOUBLE_DECLARATION:
-                break;
-            case INEXISTENT_ID_FUNCTION:
-                break;
-            case INVALID_USE_FUNCTION:
-                break;
-            case INSUFFICIENT_ARGUMENTS:
-                break;
-            case TOO_MANY_ARGUMENTS:
-                break;
-            case CONFLICTING_TYPE_ARGUMENTS:
-                break;
-            case RETURN_IN_VOID_FUCTION:
-                break;
-            case CONFLICTING_TYPES_ASSIGNATION:
-                break;
-            case DOUBLE_ASSIGNATION_CONST_VAR:
-                break;
-            case INVALID_L_VALUE_MODIFIER:
-                break;
-            case INEXISTENT_RETURN:
-                break;
-            case CONFLICTING_TYPES_RETURN_FUNCTION:
-                break;
-            default:
-                break;
-        }
-        aux = aux->next; // Moverse al siguiente nodo
-    }
-}
-
-// Función para validar la multiplicación binaria
-void validate_binary_multiplication(const char* operand1, const char* operand2, YYLTYPE location) {
-    if(is_identifier(operand1) && !is_identifier(operand2)){
-        char* type = get_type_of_identifier(operand1); // Función que retorna el tipo del identificador
-        if ((strcmp(type, "int") == 0 && "double" == 0)|| // ToDo: arreglar la hardcodeada
-            (strcmp(type, "double") == 0 && "int" == 0)){
-            add_semantic_error(BINARY_OPERAND_TYPE_ERROR, operand1, location);
-        }
-    } else if(!is_identifier(operand1) && is_identifier(operand2)) {
-        char* type = get_type_of_identifier(operand1); // Función que retorna el tipo del identificador
-        if ((strcmp(type, "int") == 0 && "double" == 0)|| // ToDo: arreglar la hardcodeada
-            (strcmp(type, "double") == 0 && "int" == 0)){
-            add_semantic_error(BINARY_OPERAND_TYPE_ERROR, operand1, location);
-        }
-    }
-}
-
-// Función para agregar un error semántico a la lista
-void add_semantic_error(SEMANTIC_ERROR_TYPE error_type, const char* identifier, YYLTYPE ubicacion) {
-    t_semantic_error* new_semantic_error = (t_semantic_error*)malloc(sizeof(t_semantic_error));
-    if (!new_semantic_error) {
-        printf("Error al asignar memoria para el nuevo error\n");
-        exit(EXIT_FAILURE);
-    }
-    
-    new_semantic_error->error_type = error_type;
-    new_semantic_error->line = ubicacion.first_line;
-    new_semantic_error->column = ubicacion.first_column;
-
-    insert_node(&semantic_errors, new_semantic_error, sizeof(t_semantic_error));
-}
-
-const char* get_type_of_identifier(const char* identifier) {
-    if (fetch_element(variable, identifier, compare_ID_variable)) {
-        t_variable* var = (t_variable*)variable->data;
-        return var->type;
-    } else if (fetch_element(function, identifier, compare_ID_function)) {
-        t_function* func = (t_function*)function->data;
-        return func->return_type;
-    } else {
-        return invalid_string;
-    }
-}
-
-int is_identifier(const char* operand) {
-    if (fetch_element(variable, operand, compare_ID_variable) || 
-        fetch_element(function, operand, compare_ID_function)) {
-        return 1;
-    }
-    return 0; 
-}

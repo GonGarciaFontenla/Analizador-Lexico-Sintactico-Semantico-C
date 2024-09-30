@@ -18,9 +18,9 @@ GenericNode* sentencias = NULL;
 t_sent* data_sent = NULL;
 
 GenericNode* semantic_errors = NULL;
-t_semantic_error* new_semantic_error = NULL; 
+t_semantic_error* data_sem_error = NULL; 
 
-int is_string = 0;
+int declaration_flag = 0;
 int parameter_flag = 0;
 
 %}
@@ -144,8 +144,8 @@ sentSalto
     | GOTO IDENTIFICADOR ';'{add_sent($<string_type>1, @1.first_line, @1.first_column);}
     ;
 
-expresion
-    : expAsignacion 
+expresion 
+    : expAsignacion
     | expresion ',' expAsignacion
     ;
 
@@ -215,9 +215,11 @@ opcionAditiva
     
 expMultiplicativa
     : expUnaria
-    | expMultiplicativa '*' expUnaria { validate_binary_multiplication($1, $3, @1);}
+    | expMultiplicativa '*' expUnaria { 
+        //snprintf(new_semantic_error -> msg, sizeof(algo), "%i:%i: Operandos invalidos del operador binario * (tienen '%s'y '%s')", @1.first_line, @1.first_column)
+        } 
     | expMultiplicativa '/' expUnaria
-    | expMultiplicativa '%' expUnaria
+    | expMultiplicativa '%' expUnaria 
     ;
 
 expUnaria
@@ -238,18 +240,24 @@ operUnario
     ;
 
 expPostfijo
-    : expPrimaria 
-    | expPostfijo expPrimaria
-    | expPostfijo opcionPostfijo
+    : expPrimaria  
+    | expPostfijo expPrimaria {printf("DEA");}
+    | IDENTIFICADOR opcionPostfijo {
+        if(!fetch_element(function, $<string_type>1, compare_ID_variable)) {
+            asprintf(&data_sem_error -> msg, "%i:%i: Funcion '%s' sin declarar", @1.first_line, @1.first_column, $<string_type>1);
+            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        }
+    }
     ;
+
 opcionPostfijo
     : '[' expresion ']'
-    | '(' listaArgumentosOp ')'
+    | '(' listaArgumentosOp ')' 
     ;
 
 listaArgumentosOp
     : 
-    | listaArgumentos
+    | listaArgumentos 
     ;
 
 listaArgumentos
@@ -258,11 +266,19 @@ listaArgumentos
     ;
 
 expPrimaria
-    : IDENTIFICADOR 
+    : IDENTIFICADOR { 
+        if(!declaration_flag) {
+            if(!fetch_element(variable, $<string_type>1, compare_ID_variable)) {
+                asprintf(&data_sem_error -> msg, "%i:%i: '%s' sin declarar", @1.first_line, @1.first_column, $<string_type>1);
+                insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+            }
+        }
+        declaration_flag = 0;
+    }
     | ENTERO        
     | NUM        
     | CONSTANTE 
-    | LITERAL_CADENA { is_string = 1;}
+    | LITERAL_CADENA //{ is_string = 1;}
     | '(' expresion ')'
     | PALABRA_RESERVADA
     ;
@@ -317,9 +333,40 @@ especificadorDeclaracionOp
     | especificadorDeclaracion
     ;
 
-listaDeclaradores
+listaDeclaradores // ToDo: Simplificar y reducir lógica && considerar la lista de declaraciones
     : declarador { 
         insert_if_not_exists(&variable, function, data_variable);
+
+        t_function* existing_function = (t_function*)get_element(function, data_variable, compare_ID_function);
+        if (existing_function) {
+            asprintf(&data_sem_error->msg, "%i:%i: '%s' redeclarado como un tipo diferente de símbolo\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i", 
+                    @1.first_line, @1.first_column, $<string_type>1, 
+                    existing_function->name, existing_function->return_type, 
+                    existing_function->line, existing_function->column);
+
+            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        }
+
+        t_variable* existing_variable = (t_variable*)get_element(variable, data_variable, compare_ID_and_type_variable);
+        if(existing_variable) {
+            asprintf(&data_sem_error->msg, "%i:%i: Redeclaracion de '%s'\nNota: la declaracion previa de '%s' es de tipo '%s': %i:%i", 
+                    @1.first_line, @1.first_column, $<string_type>1,
+                    existing_variable->variable, existing_variable->type,
+                    existing_variable->line, existing_variable->column);
+
+            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+            return;
+        }
+
+        existing_variable = (t_variable*)get_element(variable, data_variable, compare_ID_and_diff_type_variable);
+        if(existing_variable) {
+            asprintf(&data_sem_error->msg, "%i:%i: conflicto de tipos para '%s'; la ultima es de tipo '%s'\nNota: la declaracion previa de '%s' es de tipo '%s': %i:%i", 
+                    @1.first_line, @1.first_column, $<string_type>1, data_variable->type,
+                    existing_variable->variable, existing_variable->type,
+                    existing_variable->line, existing_variable->column);
+
+            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        }
     }
     | listaDeclaradores ',' declarador {
         insert_if_not_exists(&variable, function, data_variable);
@@ -347,7 +394,7 @@ listaInicializadores
     ;
 
 inicializador
-    : expAsignacion 
+    : expAsignacion {declaration_flag = 1;}
     | '{' listaInicializadores opcionComa '}' 
     ;
 
@@ -438,10 +485,10 @@ declaradorDirecto
         data_variable->variable = strdup($<string_type>1);
         data_variable->line = yylloc.first_line;
         data_variable->column = yylloc.first_column;
+        data_function->column = yylloc.first_column;
     }
     | '(' decla ')'
-    | declaradorDirecto continuacionDeclaradorDirecto { data_function->line = yylloc.first_line; parameter_flag
- = 1;}
+    | declaradorDirecto continuacionDeclaradorDirecto { data_function->line = yylloc.first_line; parameter_flag = 1;}
     ;
 
 continuacionDeclaradorDirecto
