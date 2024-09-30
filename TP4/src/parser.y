@@ -333,14 +333,18 @@ especificadorDeclaracionOp
     | especificadorDeclaracion
     ;
 
-listaDeclaradores // ToDo: Simplificar y reducir lógica && considerar la lista de declaraciones
+// ToDo: Simplificar y reducir lógica && considerar la lista de declaraciones   
+listaDeclaradores
     : declarador { 
+        int redeclaration_line = data_variable->line;
+        int redeclaration_column = data_variable->column;
+
         insert_if_not_exists(&variable, function, data_variable);
 
         t_function* existing_function = (t_function*)get_element(function, data_variable, compare_ID_function);
         if (existing_function) {
             asprintf(&data_sem_error->msg, "%i:%i: '%s' redeclarado como un tipo diferente de símbolo\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i", 
-                    @1.first_line, @1.first_column, $<string_type>1, 
+                    redeclaration_line, redeclaration_column, $<string_type>1, 
                     existing_function->name, existing_function->return_type, 
                     existing_function->line, existing_function->column);
 
@@ -350,7 +354,7 @@ listaDeclaradores // ToDo: Simplificar y reducir lógica && considerar la lista 
         t_variable* existing_variable = (t_variable*)get_element(variable, data_variable, compare_ID_and_type_variable);
         if(existing_variable) {
             asprintf(&data_sem_error->msg, "%i:%i: Redeclaracion de '%s'\nNota: la declaracion previa de '%s' es de tipo '%s': %i:%i", 
-                    @1.first_line, @1.first_column, $<string_type>1,
+                    redeclaration_line, redeclaration_column, $<string_type>1,
                     existing_variable->variable, existing_variable->type,
                     existing_variable->line, existing_variable->column);
 
@@ -361,7 +365,7 @@ listaDeclaradores // ToDo: Simplificar y reducir lógica && considerar la lista 
         existing_variable = (t_variable*)get_element(variable, data_variable, compare_ID_and_diff_type_variable);
         if(existing_variable) {
             asprintf(&data_sem_error->msg, "%i:%i: conflicto de tipos para '%s'; la ultima es de tipo '%s'\nNota: la declaracion previa de '%s' es de tipo '%s': %i:%i", 
-                    @1.first_line, @1.first_column, $<string_type>1, data_variable->type,
+                    redeclaration_line, redeclaration_column, $<string_type>1, data_variable->type,
                     existing_variable->variable, existing_variable->type,
                     existing_variable->line, existing_variable->column);
 
