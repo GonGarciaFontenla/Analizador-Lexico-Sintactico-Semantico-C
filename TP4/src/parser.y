@@ -215,9 +215,7 @@ opcionAditiva
     
 expMultiplicativa
     : expUnaria
-    | expMultiplicativa '*' expUnaria { 
-        //snprintf(new_semantic_error -> msg, sizeof(algo), "%i:%i: Operandos invalidos del operador binario * (tienen '%s'y '%s')", @1.first_line, @1.first_column)
-        } 
+    | expMultiplicativa '*' expUnaria
     | expMultiplicativa '/' expUnaria
     | expMultiplicativa '%' expUnaria 
     ;
@@ -241,9 +239,9 @@ operUnario
 
 expPostfijo
     : expPrimaria  
-    | expPostfijo expPrimaria {printf("DEA");}
+    | expPostfijo expPrimaria
     | IDENTIFICADOR opcionPostfijo {
-        if(!fetch_element(function, $<string_type>1, compare_ID_variable)) {
+        if(!fetch_element(function, data_function, compare_ID_fxf)) {
             asprintf(&data_sem_error -> msg, "%i:%i: Funcion '%s' sin declarar", @1.first_line, @1.first_column, $<string_type>1);
             insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
         }
@@ -252,7 +250,7 @@ expPostfijo
 
 opcionPostfijo
     : '[' expresion ']'
-    | '(' listaArgumentosOp ')' 
+    | '(' listaArgumentosOp ')'
     ;
 
 listaArgumentosOp
@@ -268,7 +266,7 @@ listaArgumentos
 expPrimaria
     : IDENTIFICADOR { 
         if(!declaration_flag) {
-            if(!fetch_element(variable, $<string_type>1, compare_ID_variable)) {
+            if(!fetch_element(variable, data_variable, compare_ID_variable)) {
                 asprintf(&data_sem_error -> msg, "%i:%i: '%s' sin declarar", @1.first_line, @1.first_column, $<string_type>1);
                 insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
             }
@@ -278,8 +276,8 @@ expPrimaria
     | ENTERO        
     | NUM        
     | CONSTANTE 
-    | LITERAL_CADENA //{ is_string = 1;}
-    | '(' expresion ')'
+    | LITERAL_CADENA 
+    | '(' expresion ')' 
     | PALABRA_RESERVADA
     ;
 
@@ -338,11 +336,13 @@ listaDeclaradores
     : declarador { 
         int redeclaration_line = data_variable->line;
         int redeclaration_column = data_variable->column;
-
+        handle_redeclaration(redeclaration_line, redeclaration_column, data_variable->variable);
         insert_if_not_exists(&variable, function, data_variable);
-        handle_redeclaration(redeclaration_line, redeclaration_column, $<string_type>1);   
     }
     | listaDeclaradores ',' declarador {
+        int redeclaration_line = data_variable->line;
+        int redeclaration_column = data_variable->column;
+        handle_redeclaration(redeclaration_line, redeclaration_column, data_variable->variable);
         insert_if_not_exists(&variable, function, data_variable);
     }
     ;
@@ -460,6 +460,7 @@ declaradorDirecto
         data_variable->line = yylloc.first_line;
         data_variable->column = yylloc.first_column;
         data_function->column = yylloc.first_column;
+
     }
     | '(' decla ')'
     | declaradorDirecto continuacionDeclaradorDirecto { data_function->line = yylloc.first_line; parameter_flag = 1;}

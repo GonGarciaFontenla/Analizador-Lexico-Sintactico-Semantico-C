@@ -126,6 +126,8 @@ int compare_def_dec_functions(void* data, void* wanted);
 int compare_types(void* data, void* wanted);
 int compare_ID_and_diff_type_variable(void* data, void* wanted);
 int compare_ID_and_type_variable(void* data, void* wanted);
+int compare_ID_fxf(void* data, void* wanted);
+
 
 void print_lists();
 void print_semantic_errors(GenericNode* list);

@@ -407,6 +407,12 @@ int compare_ID_function(void* data, void* wanted) { // Si existe otro ID con el 
     return strcmp(function_var->name, data_wanted->variable) == 0;
 }
 
+int compare_ID_fxf(void* data, void* wanted) {
+    t_function* function_var = (t_function*)data;
+    t_function* data_wanted = (t_function*)wanted;
+    return strcmp(function_var->name, data_wanted->name) == 0;
+}
+
 int compare_def_dec_functions(void* data, void* wanted) { // Si existe una decla o definición del mismo ID (error semantico)
     t_function* function_var = (t_function*)data;
     t_function* data_wanted = (t_function*)wanted;
@@ -452,19 +458,20 @@ void handle_redeclaration(int redeclaration_line, int redeclaration_column, cons
 
     if (existing_function) {
         asprintf(&data_sem_error->msg, "%i:%i: '%s' redeclarado como un tipo diferente de símbolo\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i", 
-                 redeclaration_line, redeclaration_column, identifier, 
-                 existing_function->name, existing_function->return_type, 
-                 existing_function->line, existing_function->column);
+                redeclaration_line, redeclaration_column, identifier, 
+                existing_function->name, existing_function->return_type, 
+                existing_function->line, existing_function->column);
         insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        return;
     }
 
     t_variable* existing_variable = (t_variable*)get_element(variable, data_variable, compare_ID_and_type_variable);
 
     if (existing_variable) {
         asprintf(&data_sem_error->msg, "%i:%i: Redeclaración de '%s'\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i", 
-                 redeclaration_line, redeclaration_column, identifier,
-                 existing_variable->variable, existing_variable->type,
-                 existing_variable->line, existing_variable->column);
+                redeclaration_line, redeclaration_column, identifier,
+                existing_variable->variable, existing_variable->type,
+                existing_variable->line, existing_variable->column);
         insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
         return;
     }
