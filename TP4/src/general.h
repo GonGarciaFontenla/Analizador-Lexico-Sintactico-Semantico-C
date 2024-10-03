@@ -17,10 +17,6 @@ extern FILE *yyin;
 
 extern char* current_type;
 
-typedef struct {                            // A pesar de ser solo un campo, que podríamos haber laburado con un vector de char's, usamos una lista para seguir con la misma esencia con la que venimos trabajando
-    char* msg;                              // Mensaje de X error semántico
-} t_semantic_error;
-
 typedef struct YYLTYPE
 {
     int first_line;
@@ -28,6 +24,15 @@ typedef struct YYLTYPE
     int last_line;
     int last_column;
 } YYLTYPE;
+
+typedef struct GenericNode {                // Estructura para reducir lógica repetida en los agregar //
+    void* data;
+    struct GenericNode* next;
+} GenericNode;
+
+typedef struct {                            // A pesar de ser solo un campo, que podríamos haber laburado con un vector de char's, usamos una lista para seguir con la misma esencia con la que venimos trabajando
+    char* msg;                              // Mensaje de X error semántico
+} t_semantic_error;
 
 typedef struct {
     int line;
@@ -46,7 +51,7 @@ typedef struct {
     int line;
     int column;
     char* type;                             // Si es declaracion o definicion
-    t_parameter* parameters;                // Es una sublista (array de parametros, guardar como string el tipo y el ID)
+    GenericNode* parameters;                
     char* return_type;
 } t_function;
 
@@ -72,10 +77,7 @@ typedef struct {
     char *message;                          // Campo para el mensaje del error
 } t_error;
 
-typedef struct GenericNode {                // Estructura para reducir lógica repetida en los agregar //
-    void* data;
-    struct GenericNode* next;
-} GenericNode;
+
 
 #define INICIO_CONTEO_LINEA 1
 #define INICIO_CONTEO_COLUMNA 1
@@ -114,6 +116,7 @@ void add_unrecognised_token(const char* intoken);
 void add_sent(const char* tipo_sentencia, int line, int column);
 void append_token(const char* token);
 void save_function(const char* type, const char* return_type, const char* id);
+char* concat_parameters(GenericNode* parameters);
 
 void insert_sorted_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*));
 void insert_node(GenericNode** list, void* new_data, size_t data_size);

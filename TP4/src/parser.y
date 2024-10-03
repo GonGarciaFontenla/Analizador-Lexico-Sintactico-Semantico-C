@@ -22,6 +22,7 @@ t_semantic_error* data_sem_error = NULL;
 
 int declaration_flag = 0;
 int parameter_flag = 0;
+int line_parameter = 0;
 
 %}
 
@@ -298,12 +299,14 @@ declaracionExterna
 definicionFuncion
     : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta {
         save_function("definicion", $<string_type>1, $<string_type>2);
+    
         if(!fetch_element(function, data_function, compare_ID_in_declaration_or_definition) && !fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
             insert_node(&function, data_function, sizeof(t_function));
             data_function->parameters = NULL;
         }
         else {
             insert_sem_error_different_symbol();
+            data_function->parameters = NULL;
         }                
     }
             
@@ -317,7 +320,7 @@ declaracion
             if(!fetch_element(function, data_function, compare_ID_in_declaration_or_definition) && !fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
                 insert_node(&function, data_function, sizeof(t_function));
                 data_function->parameters = NULL;
-            } else { 
+            } else {
                 insert_sem_error_different_symbol();
             }
         } else {
@@ -474,12 +477,12 @@ declaradorDirecto
 
 continuacionDeclaradorDirecto
     : '[' expConstanteOp ']'
-    | '(' listaTiposParametrosOp ')' 
+    | '(' listaTiposParametrosOp ')'
     | '(' listaIdentificadoresOp ')'
     | '(' TIPO_DATO ')' {  
-        data_parameter.type = strdup($<string_type>2);
-        data_parameter.name = NULL;
-        insert_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter));
+            data_parameter.type = strdup($<string_type>2);
+            data_parameter.name = NULL;
+            insert_node(&data_function->parameters, &data_parameter, sizeof(t_parameter));
         }
     ;
 
@@ -509,7 +512,7 @@ listaParametros
 declaracionParametro
     : especificadorDeclaracion opcionesDecla {
         data_parameter.type = strdup($<string_type>1);
-        }
+    }
     ;
 
 opcionesDecla

@@ -117,6 +117,14 @@ void init_structures() { // Iniciar todas las estructuras
     data_function->parameters = NULL;
     data_function->return_type = NULL;
 
+    t_parameter* data_parameter = (t_parameter*)malloc(sizeof(t_parameter));
+    if(!data_parameter) {
+        printf("Error al asignar memoria para data_parameter\n");
+        exit(EXIT_FAILURE);
+    }
+    data_parameter->name = NULL;
+    data_parameter->type = NULL;
+
     data_intoken = (t_token_unrecognised*)malloc(sizeof(t_token_unrecognised));
     if(!data_intoken) {
         printf("Error al asignar memoria para data_intoken");
@@ -458,14 +466,37 @@ void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_lis
     }
 }
 
+char* concat_parameters(GenericNode* parameters) {
+    char* string_parameters = malloc(1);
+    string_parameters[0] = '\0';
+
+    GenericNode* aux = parameters;
+    while (aux) {
+        t_parameter* param = (t_parameter*) aux->data;
+
+        size_t new_size = strlen(string_parameters) + strlen(param->type) + 3; // El +3 es para el caracter vacio, la coma y el espacio
+        string_parameters = realloc(string_parameters, new_size);
+
+        strcat(string_parameters, param->type);
+        aux = aux -> next;
+        if(aux) {
+            strcat(string_parameters, ", ");
+        }
+    }
+
+    return string_parameters;
+}
+
 void insert_sem_error_different_symbol() {
     t_function* existing_function = (t_function*)get_element(function, data_function, compare_ID_and_different_type_functions);
     if(existing_function) {
-        asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la última es de tipo '%s'\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i",
-                 data_function->line, data_function->column, data_function->name,
-                 data_function->return_type, existing_function->name, 
-                 existing_function->return_type, existing_function->line, 
-                 existing_function->column);
+        char* new_parameters = concat_parameters(data_function -> parameters);
+        char* old_parameters = concat_parameters(existing_function -> parameters);
+        asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la última es de tipo '%s(%s)'\nNota: la declaración previa de '%s' es de tipo '%s(%s)': %i:%i",
+                data_function->line, data_function->column, data_function->name,
+                data_function->return_type, new_parameters, existing_function->name, 
+                existing_function->return_type, old_parameters,
+                existing_function->line, existing_function->column);
         insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
     }
 }
