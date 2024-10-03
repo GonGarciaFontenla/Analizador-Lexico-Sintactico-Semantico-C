@@ -458,6 +458,19 @@ void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_lis
     }
 }
 
+void insert_sem_error_different_symbol() {
+    t_function* existing_function = (t_function*)get_element(function, data_function, compare_ID_and_different_type_functions);
+    if(existing_function) {
+        asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la última es de tipo '%s'\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i",
+                 data_function->line, data_function->column, data_function->name,
+                 data_function->return_type, existing_function->name, 
+                 existing_function->return_type, existing_function->line, 
+                 existing_function->column);
+        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+    }
+}
+
+// ToDo: delegar cada IF!!!
 void handle_redeclaration(int redeclaration_line, int redeclaration_column, const char* identifier) {
     t_function* existing_function = (t_function*)get_element(function, data_variable, compare_ID_between_variable_and_function);
 

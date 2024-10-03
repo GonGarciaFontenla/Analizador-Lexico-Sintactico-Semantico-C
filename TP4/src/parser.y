@@ -303,18 +303,10 @@ definicionFuncion
             data_function->parameters = NULL;
         }
         else {
-            t_function* existing_function = (t_function*)get_element(function, data_function, compare_ID_and_different_type_functions);
-            if(existing_function) {
-                asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la última es de tipo '%s'\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i",
-                        data_function->line, data_function->column, data_function->name,
-                        data_function->return_type, existing_function->name, 
-                        existing_function->return_type, existing_function->line, 
-                        existing_function->column);
-                insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-                }                
-            }
+            insert_sem_error_different_symbol();
+        }                
+    }
             
-        }
     ;
 
 declaracion
@@ -326,15 +318,7 @@ declaracion
                 insert_node(&function, data_function, sizeof(t_function));
                 data_function->parameters = NULL;
             } else { 
-                t_function* existing_function = (t_function*)get_element(function, data_function, compare_ID_and_different_type_functions);
-                if(existing_function) {
-                asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la última es de tipo '%s'\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i",
-                        data_function->line, data_function->column, data_function->name,
-                        data_function->return_type, existing_function->name, 
-                        existing_function->return_type, existing_function->line, 
-                        existing_function->column);
-                insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-                }
+                insert_sem_error_different_symbol();
             }
         } else {
             insert_node(&variable, data_variable, sizeof(t_variable));

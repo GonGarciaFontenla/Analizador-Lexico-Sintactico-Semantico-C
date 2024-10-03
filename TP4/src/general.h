@@ -118,6 +118,7 @@ void save_function(const char* type, const char* return_type, const char* id);
 void insert_sorted_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*));
 void insert_node(GenericNode** list, void* new_data, size_t data_size);
 void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_list, t_variable* data_variable);
+void insert_sem_error_different_symbol();
 
 int compare_lines(const void* a, const void* b);
 int compare_ID_variable(void* data, void* wanted);
