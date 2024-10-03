@@ -241,7 +241,7 @@ expPostfijo
     : expPrimaria  
     | expPostfijo expPrimaria
     | IDENTIFICADOR opcionPostfijo {
-        if(!fetch_element(function, data_function, compare_ID_fxf)) {
+        if(!fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
             asprintf(&data_sem_error -> msg, "%i:%i: Funcion '%s' sin declarar", @1.first_line, @1.first_column, $<string_type>1);
             insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
         }
@@ -266,7 +266,7 @@ listaArgumentos
 expPrimaria
     : IDENTIFICADOR { 
         if(!declaration_flag) {
-            if(!fetch_element(variable, data_variable, compare_ID_variable) && fetch_element(data_function->parameters, &data_parameter, compare_parameter)) {
+            if(!fetch_element(variable, data_variable, compare_ID_variable) && fetch_element(data_function->parameters, &data_parameter, compare_variable_and_parameter)) {
                 asprintf(&data_sem_error -> msg, "%i:%i: '%s' sin declarar", @1.first_line, @1.first_column, $<string_type>1);
                 insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
             }
@@ -298,11 +298,23 @@ declaracionExterna
 definicionFuncion
     : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta {
         save_function("definicion", $<string_type>1, $<string_type>2);
-        if(!fetch_element(function, data_function, compare_def_dec_functions) && !fetch_element(function, data_function, compare_types)) {
+        if(!fetch_element(function, data_function, compare_ID_in_declaration_or_definition) && !fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
             insert_node(&function, data_function, sizeof(t_function));
             data_function->parameters = NULL;
         }
-    }
+        else {
+            t_function* existing_function = (t_function*)get_element(function, data_function, compare_ID_and_different_type_functions);
+            if(existing_function) {
+                asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la última es de tipo '%s'\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i",
+                        data_function->line, data_function->column, data_function->name,
+                        data_function->return_type, existing_function->name, 
+                        existing_function->return_type, existing_function->line, 
+                        existing_function->column);
+                insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                }                
+            }
+            
+        }
     ;
 
 declaracion
@@ -310,10 +322,20 @@ declaracion
     | especificadorDeclaracion decla ';' {
         if (parameter_flag) {
             save_function("declaracion", $<string_type>1, $<string_type>2);
-            if(!fetch_element(function, data_function, compare_def_dec_functions) && !fetch_element(function, data_function, compare_types)) {
+            if(!fetch_element(function, data_function, compare_ID_in_declaration_or_definition) && !fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
                 insert_node(&function, data_function, sizeof(t_function));
                 data_function->parameters = NULL;
-        }
+            } else { 
+                t_function* existing_function = (t_function*)get_element(function, data_function, compare_ID_and_different_type_functions);
+                if(existing_function) {
+                asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la última es de tipo '%s'\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i",
+                        data_function->line, data_function->column, data_function->name,
+                        data_function->return_type, existing_function->name, 
+                        existing_function->return_type, existing_function->line, 
+                        existing_function->column);
+                insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                }
+            }
         } else {
             insert_node(&variable, data_variable, sizeof(t_variable));
         }

@@ -395,47 +395,23 @@ void* get_element(GenericNode* list, void* wanted, compare_element cmp) {
     return NULL;
 }
 
+// Busca una variable que ÚNICAMENTE tenga el mismo IDENTIFICADOR que la trackeada
 int compare_ID_variable(void* data, void* wanted) {
     t_variable* var_data = (t_variable*)data;
     t_variable* data_wanted = (t_variable*)wanted;
     return strcmp(var_data->variable, data_wanted->variable) == 0;
 }
 
-int compare_ID_function(void* data, void* wanted) { // Si existe otro ID con el mismo nombre (error semantico)
-    t_function* function_var = (t_function*)data;
-    t_variable* data_wanted = (t_variable*)wanted;
-    return strcmp(function_var->name, data_wanted->variable) == 0;
-}
-
-int compare_ID_fxf(void* data, void* wanted) {
+// Busca una funcion con el mismo IDENTIFICADOR que la trackeada pero con distinto tipo
+int compare_ID_and_different_type_functions(void* data, void* wanted) {
     t_function* function_var = (t_function*)data;
     t_function* data_wanted = (t_function*)wanted;
-    return strcmp(function_var->name, data_wanted->name) == 0;
-}
-
-int compare_def_dec_functions(void* data, void* wanted) { // Si existe una decla o definición del mismo ID (error semantico)
-    t_function* function_var = (t_function*)data;
-    t_function* data_wanted = (t_function*)wanted;
-    return (strcmp(function_var->type, data_wanted->type) == 0 && 
-            strcmp(function_var->name, data_wanted->name) == 0);
-}
-
-int compare_types(void* data, void* wanted) { // Si son mismo nombre pero distinto tipo (error semantico)
-    t_function* function_var = (t_function*)data;
-    t_function* data_wanted = (t_function*)wanted;
-    if(strcmp(data_wanted->name, function_var->name) == 0 && strcmp(data_wanted->return_type, function_var->return_type) != 0) 
-        return 1;
+    if(strcmp(function_var->return_type, data_wanted->return_type) != 0)
+        return strcmp(function_var->name, data_wanted->name) == 0;
     return 0;
 }
 
-int compare_ID_and_type_variable(void* data, void* wanted) {
-    t_variable* var_data = (t_variable*)data;
-    t_variable* data_wanted = (t_variable*)wanted;
-
-    return strcmp(var_data->variable, data_wanted->variable) == 0 &&
-           strcmp(var_data->type, data_wanted->type) == 0;
-}
-
+// Busca una variable en la lista de variables declaradas que tenga mismo IDENTIFICADOR y distinto tipo
 int compare_ID_and_diff_type_variable(void* data, void* wanted) {
     t_variable* var_data = (t_variable*)data;
     t_variable* data_wanted = (t_variable*)wanted;
@@ -444,7 +420,32 @@ int compare_ID_and_diff_type_variable(void* data, void* wanted) {
            strcmp(var_data->type, data_wanted->type) != 0;
 }
 
-int compare_parameter(void* data, void* wanted) {
+// Busca una variable en la lista de variables declaradas que tenga mismo tipo y IDENTIFICADOR que la trackeada
+int compare_ID_and_type_variable(void* data, void* wanted) {
+    t_variable* var_data = (t_variable*)data;
+    t_variable* data_wanted = (t_variable*)wanted;
+
+    return strcmp(var_data->variable, data_wanted->variable) == 0 &&
+           strcmp(var_data->type, data_wanted->type) == 0;
+}
+
+// Busca el IDENTIFICADOR de la variable pasada por parametro en la lista de funciones
+int compare_ID_between_variable_and_function(void* data, void* wanted) {
+    t_function* function_var = (t_function*)data;
+    t_variable* data_wanted = (t_variable*)wanted;
+    return strcmp(function_var->name, data_wanted->variable) == 0;
+}
+
+// Busca el IDENTIFICADOR de la variable pasada por parametro en la lista de funciones DEFINIDAS O DECLARADAS (difiere por definicion y declaracion)
+int compare_ID_in_declaration_or_definition(void* data, void* wanted) { 
+    t_function* function_var = (t_function*)data;
+    t_function* data_wanted = (t_function*)wanted;
+    return (strcmp(function_var->type, data_wanted->type) == 0 && 
+            strcmp(function_var->name, data_wanted->name) == 0);
+}
+
+// Busca el IDENTIFICADOR de la variable en los parametros de la funcion
+int compare_variable_and_parameter(void* data, void* wanted) {
     t_parameter* data_param = (t_parameter*)data;
     t_variable* data_wanted = (t_variable*)wanted;
     return strcmp(data_param->name, data_wanted->variable) == 0;
@@ -452,13 +453,13 @@ int compare_parameter(void* data, void* wanted) {
 
 void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_list, t_variable* data_variable) {
     if (!fetch_element(*variable_list, data_variable, compare_ID_variable) &&
-        !fetch_element(function_list, data_variable, compare_ID_function)) {
+        !fetch_element(function_list, data_variable, compare_ID_between_variable_and_function)) {
         insert_node(variable_list, data_variable, sizeof(t_variable));
     }
 }
 
 void handle_redeclaration(int redeclaration_line, int redeclaration_column, const char* identifier) {
-    t_function* existing_function = (t_function*)get_element(function, data_variable, compare_ID_function);
+    t_function* existing_function = (t_function*)get_element(function, data_variable, compare_ID_between_variable_and_function);
 
     if (existing_function) {
         asprintf(&data_sem_error->msg, "%i:%i: '%s' redeclarado como un tipo diferente de símbolo\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i", 

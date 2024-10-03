@@ -121,13 +121,12 @@ void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_lis
 
 int compare_lines(const void* a, const void* b);
 int compare_ID_variable(void* data, void* wanted);
-int compare_ID_function(void* data, void* wanted);
-int compare_def_dec_functions(void* data, void* wanted);
-int compare_types(void* data, void* wanted);
-int compare_ID_and_diff_type_variable(void* data, void* wanted);
 int compare_ID_and_type_variable(void* data, void* wanted);
-int compare_ID_fxf(void* data, void* wanted);
-int compare_parameter(void* data, void* wanted);
+int compare_ID_and_different_type_functions(void* data, void* wanted);
+int compare_ID_between_variable_and_function(void* data, void* wanted);
+int compare_ID_in_declaration_or_definition(void* data, void* wanted);
+int compare_ID_and_diff_type_variable(void* data, void* wanted);
+int compare_variable_and_parameter(void* data, void* wanted);
 
 void print_lists();
 void print_semantic_errors(GenericNode* list);
