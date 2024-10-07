@@ -23,6 +23,7 @@ t_semantic_error* data_sem_error = NULL;
 int declaration_flag = 0;
 int parameter_flag = 0;
 int quantity_parameters = 0;
+int assignation_flag = 0;
 
 %}
 
@@ -152,7 +153,7 @@ expresion
 
 expAsignacion
     : expCondicional
-    | expUnaria operAsignacion expAsignacion 
+    | expUnaria operAsignacion {assignation_flag = 1;} expAsignacion 
     | expUnaria operAsignacion error 
     ;
 
@@ -241,34 +242,8 @@ operUnario
 expPostfijo
     : expPrimaria  
     | expPostfijo expPrimaria
-    | IDENTIFICADOR opcionPostfijo { // ToDo: arreglar columnas y filas!!!
-        if(!fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
-            asprintf(&data_sem_error -> msg, "%i:%i: Funcion '%s' sin declarar", @1.first_line, @1.first_column, $<string_type>1);
-            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-        } else if(!fetch_element(function, $<string_type>1, compare_char_and_ID_function)) {
-            t_variable* existing_variable = (t_variable*)get_element(variable, $<string_type>1, compare_char_and_ID_variable);
-            if(existing_variable) {
-                asprintf(&data_sem_error -> msg, "%i:%i: El objeto invocado '%s' no es una funcion o un puntero a una funcion\nNota: declarado aqui: %i:%i",
-                        @1.first_line, @1.first_column, $<string_type>1, 
-                        existing_variable -> line, existing_variable -> column);
-                insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-            }
-        } else if(fetch_element(function, $<string_type>1, compare_char_and_ID_function)){
-            t_function* existing_function = (t_function*)get_element(function, $<string_type>1, compare_char_and_ID_function);
-            if(existing_function) {
-                if(get_quantity_parameters(existing_function -> parameters) > quantity_parameters) {
-                    asprintf(&data_sem_error -> msg, "%i:%i: Insuficientes argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
-                            @1.first_line, @1.first_column, $<string_type>1,
-                            existing_function -> line, existing_function -> column);
-                    insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-                } else if(get_quantity_parameters(existing_function -> parameters) < quantity_parameters) {
-                    asprintf(&data_sem_error -> msg, "%i:%i: Demasiados argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
-                            @1.first_line, @1.first_column, $<string_type>1,
-                            existing_function -> line, existing_function -> column);
-                    insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-                }
-            }
-        } 
+    | IDENTIFICADOR opcionPostfijo {
+        insert_sem_error_invocate_function(@1.first_line, @1.first_column, $<string_type>1, quantity_parameters);
         quantity_parameters = 0;
     }
     ;

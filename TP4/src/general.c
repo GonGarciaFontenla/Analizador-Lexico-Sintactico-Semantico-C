@@ -392,6 +392,20 @@ int fetch_element(GenericNode* list, void* wanted, compare_element cmp) {
     return 0;
 }
 
+int get_quantity_parameters(GenericNode* list) {
+    GenericNode* aux = list;
+    int quantity = 0;
+    while(aux) {
+        t_parameter* temp = (t_parameter*)aux -> data;
+        if(temp && strcmp(temp->type, "void") == 0) {
+            quantity --;
+        }
+        quantity ++;
+        aux = aux -> next;
+    }
+    return quantity;
+}
+
 void* get_element(GenericNode* list, void* wanted, compare_element cmp) {
     GenericNode* current = list;
     while (current != NULL) {
@@ -515,6 +529,44 @@ void insert_sem_error_different_symbol() {
     }
 }
 
+void insert_sem_error_invocate_function(int line, int column, const char* identifier, int quant_parameters) {
+    if(!fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
+        asprintf(&data_sem_error -> msg, "%i:%i: Funcion '%s' sin declarar", line, column, identifier);
+        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+    } else if(!fetch_element(function, identifier, compare_char_and_ID_function)) {
+        insert_sem_error_invalid_identifier(line, column, identifier);
+    } else if(fetch_element(function, identifier, compare_char_and_ID_function)) {
+        insert_sem_error_too_many_or_few_parameters(line, column, identifier, quant_parameters);
+    }
+}
+
+void insert_sem_error_invalid_identifier(int line, int column, const char* identifier) {
+    t_variable* existing_variable = (t_variable*)get_element(variable, identifier, compare_char_and_ID_variable);
+    if(existing_variable) {
+        asprintf(&data_sem_error -> msg, "%i:%i: El objeto invocado '%s' no es una funcion o un puntero a una funcion\nNota: declarado aqui: %i:%i",
+                line, column, identifier, 
+                existing_variable -> line, existing_variable -> column);
+        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+    }
+}
+
+void insert_sem_error_too_many_or_few_parameters(int line, int column, const char* identifier, int quant_parameters) {
+    t_function* existing_function = (t_function*)get_element(function, identifier, compare_char_and_ID_function);
+    if(existing_function) {
+        if(get_quantity_parameters(existing_function -> parameters) > quant_parameters) {
+            asprintf(&data_sem_error -> msg, "%i:%i: Insuficientes argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
+                    line, column, identifier,
+                    existing_function -> line, existing_function -> column);
+            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        } else if(get_quantity_parameters(existing_function -> parameters) < quant_parameters) {
+            asprintf(&data_sem_error -> msg, "%i:%i: Demasiados argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
+                    line, column, identifier,
+                    existing_function -> line, existing_function -> column);
+            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        }
+    }
+}
+
 // ToDo: delegar cada IF!!!
 void handle_redeclaration(int redeclaration_line, int redeclaration_column, const char* identifier) {
     t_function* existing_function = (t_function*)get_element(function, data_variable, compare_ID_between_variable_and_function);
@@ -550,16 +602,3 @@ void handle_redeclaration(int redeclaration_line, int redeclaration_column, cons
     }
 }
 
-int get_quantity_parameters(GenericNode* list) {
-    GenericNode* aux = list;
-    int quantity = 0;
-    while(aux) {
-        t_parameter* temp = (t_parameter*)aux -> data;
-        if(temp && strcmp(temp->type, "void") == 0) {
-            quantity --;
-        }
-        quantity ++;
-        aux = aux -> next;
-    }
-    return quantity;
-}
