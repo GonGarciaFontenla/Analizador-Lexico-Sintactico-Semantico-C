@@ -60,7 +60,7 @@ programa
     : input
     ;
 
-input
+input //Ver esto despues -> Unidad de traduccion
     : 
     | input expresion {reset_token_buffer();}
     | input sentencia {reset_token_buffer();}
@@ -576,5 +576,5 @@ int main(int argc, char *argv[]) {
 }
 
 void yyerror(const char *s) {
-    // No hacemos nada aquí para evitar cualquier impresión o manejo
+    //Usar fprintf para imprimir 
 }
