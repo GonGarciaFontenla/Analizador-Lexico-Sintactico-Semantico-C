@@ -10,6 +10,7 @@ extern int yylex(void);
 /* Declaracion de variables */
 GenericNode* variable = NULL;
 t_variable* data_variable = NULL;
+t_variable* data_variable_aux = NULL;
 t_function* data_function = NULL;
 GenericNode* function = NULL;
 t_parameter data_parameter;
@@ -19,7 +20,11 @@ t_sent* data_sent = NULL;
 
 char* type = NULL;
 char* loco = NULL;
-int parameter_flag = 0;
+int parameter_flag = 0; 
+
+char* tipoAuxiliar1 = "";
+char* tipoAuxiliar2 = "";
+int validacionBinaria = 0;
 
 %}
 
@@ -53,7 +58,6 @@ int parameter_flag = 0;
 %type <int_type> operAsignacion operUnario nombreTipo listaArgumentos expPrimaria
 %type <int_type> sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
 %type <string_type> unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto  
-
 
 %start programa
 
@@ -136,7 +140,13 @@ sentEtiquetadas
     ;
 
 sentSalto
-    : RETURN sentExpresion {add_sent($<string_type>1, @1.first_line, @1.first_column);}
+    : RETURN sentExpresion {
+        add_sent($<string_type>1, @1.first_line, @1.first_column);
+
+        /* Tomar último elemento de la lista de funciones y chequear que el tipo 
+        de return sea == al tipo de return dentro de la función*/    
+        
+    }
     | CONTINUE ';' {add_sent($<string_type>1, @1.first_line, @1.first_column);}
     | BREAK ';' {add_sent($<string_type>1, @1.first_line, @1.first_column);}
     | GOTO IDENTIFICADOR ';'{add_sent($<string_type>1, @1.first_line, @1.first_column);}
@@ -215,8 +225,9 @@ expMultiplicativa
     : expUnaria
     | expMultiplicativa opcionMultiplicativa
     ;
-opcionMultiplicativa
-    : '*' expUnaria
+
+opcionMultiplicativa 
+    : '*' expUnaria { printf("\n\n\nLos tipos encontrados son %s y %s\n\n\n", tipoAuxiliar1, tipoAuxiliar2); validacionTipos(tipoAuxiliar1, tipoAuxiliar2); }
     | '/' expUnaria
     | '%' expUnaria
     ;
@@ -259,11 +270,19 @@ listaArgumentos
     ;
 
 expPrimaria
-    : IDENTIFICADOR 
-    | ENTERO        
-    | NUM        
-    | CONSTANTE 
-    | LITERAL_CADENA 
+    : IDENTIFICADOR  { 
+        data_variable_aux = getId($1); 
+        if(data_variable_aux != NULL) {  /* Si obtengo la variable de la lista de variables */
+            (validacionBinaria == 0)
+            ? (tipoAuxiliar1 = data_variable_aux->type) 
+            : (tipoAuxiliar2 = data_variable_aux->type); 
+            validacionBinaria = 1; 
+        }
+    }  
+    | ENTERO  { (validacionBinaria == 0) ? (tipoAuxiliar1 = "int"  ) : (tipoAuxiliar2 = "int"  ); validacionBinaria = 1; } 
+    | NUM    { (validacionBinaria == 0) ? (tipoAuxiliar1 = "int"  ) : (tipoAuxiliar2 = "int"  ); validacionBinaria = 1; }     
+    | CONSTANTE { (validacionBinaria == 0) ? (tipoAuxiliar1 = "int"  ) : (tipoAuxiliar2 = "int"  ); validacionBinaria = 1; } 
+    | LITERAL_CADENA { (validacionBinaria == 0) ? (tipoAuxiliar1 = "char*"  ) : (tipoAuxiliar2 = "char*"  ); validacionBinaria = 1; } 
     | '(' expresion ')'
     | PALABRA_RESERVADA
     ;
@@ -329,7 +348,7 @@ listaDeclaradores
 
 listaDeclaracionOp
     : 
-    | listaDeclaraciones
+    | listaDeclaraciones 
     ;
     
 declarador

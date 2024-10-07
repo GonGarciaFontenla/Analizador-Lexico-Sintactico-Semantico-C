@@ -415,3 +415,22 @@ void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_lis
     }
 }
 
+struct t_variable* getId(char* identificador) {
+    GenericNode* nodo_aux = variable;
+    t_variable* var = nodo_aux->data;
+
+    while (var != NULL && strcmp(identificador, var->variable) != 0) {
+        nodo_aux = nodo_aux->next;
+        var = nodo_aux->data;
+    }
+    return var;
+}
+
+void validacionTipos(char* tipoA, char* tipoB) {    
+        if(strcmp(tipoA, tipoB) == 0) { // Son del mismo tipo
+        printf("\nLos tipos son iguales \n");
+    
+    } else { 
+        printf("\nLos tipos son distintos\n");
+    }
+}

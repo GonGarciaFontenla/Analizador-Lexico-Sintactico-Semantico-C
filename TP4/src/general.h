@@ -17,8 +17,7 @@ extern FILE *yyin;
 
 extern char* current_type;
 
-typedef struct YYLTYPE
-{
+typedef struct YYLTYPE {
     int first_line;
     int first_column;
     int last_line;
@@ -132,5 +131,8 @@ int compare_lines(const void* a, const void* b);
 void reset_token_buffer();
 
 void yerror(YYLTYPE string);
+
+struct t_variable* getId(char* identificador);
+void validacionTipos(char* tipoA, char* tipoB);
 
 #endif
