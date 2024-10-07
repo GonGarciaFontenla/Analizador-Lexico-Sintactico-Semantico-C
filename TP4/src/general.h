@@ -146,4 +146,6 @@ void reset_token_buffer();
 
 void yerror(YYLTYPE string);
 
+int get_quantity_parameters(GenericNode* list);
+
 #endif

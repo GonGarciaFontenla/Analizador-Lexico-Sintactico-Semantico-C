@@ -549,3 +549,17 @@ void handle_redeclaration(int redeclaration_line, int redeclaration_column, cons
         insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
     }
 }
+
+int get_quantity_parameters(GenericNode* list) {
+    GenericNode* aux = list;
+    int quantity = 0;
+    while(aux) {
+        t_parameter* temp = (t_parameter*)aux -> data;
+        if(temp && strcmp(temp->type, "void") == 0) {
+            quantity --;
+        }
+        quantity ++;
+        aux = aux -> next;
+    }
+    return quantity;
+}

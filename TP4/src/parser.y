@@ -22,6 +22,7 @@ t_semantic_error* data_sem_error = NULL;
 
 int declaration_flag = 0;
 int parameter_flag = 0;
+int quantity_parameters = 0;
 
 %}
 
@@ -240,7 +241,7 @@ operUnario
 expPostfijo
     : expPrimaria  
     | expPostfijo expPrimaria
-    | IDENTIFICADOR opcionPostfijo {
+    | IDENTIFICADOR opcionPostfijo { // ToDo: arreglar columnas y filas!!!
         if(!fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
             asprintf(&data_sem_error -> msg, "%i:%i: Funcion '%s' sin declarar", @1.first_line, @1.first_column, $<string_type>1);
             insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
@@ -252,7 +253,23 @@ expPostfijo
                         existing_variable -> line, existing_variable -> column);
                 insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
             }
-        }
+        } else if(fetch_element(function, $<string_type>1, compare_char_and_ID_function)){
+            t_function* existing_function = (t_function*)get_element(function, $<string_type>1, compare_char_and_ID_function);
+            if(existing_function) {
+                if(get_quantity_parameters(existing_function -> parameters) > quantity_parameters) {
+                    asprintf(&data_sem_error -> msg, "%i:%i: Insuficientes argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
+                            @1.first_line, @1.first_column, $<string_type>1,
+                            existing_function -> line, existing_function -> column);
+                    insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                } else if(get_quantity_parameters(existing_function -> parameters) < quantity_parameters) {
+                    asprintf(&data_sem_error -> msg, "%i:%i: Demasiados argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
+                            @1.first_line, @1.first_column, $<string_type>1,
+                            existing_function -> line, existing_function -> column);
+                    insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                }
+            }
+        } 
+        quantity_parameters = 0;
     }
     ;
 
@@ -267,8 +284,8 @@ listaArgumentosOp
     ;
 
 listaArgumentos
-    : expAsignacion 
-    | listaArgumentos ',' expAsignacion
+    : expAsignacion { quantity_parameters ++;}
+    | listaArgumentos ',' expAsignacion { quantity_parameters ++;}
     ;
 
 expPrimaria
