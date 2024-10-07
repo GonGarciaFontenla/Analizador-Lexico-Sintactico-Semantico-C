@@ -22,7 +22,6 @@ t_semantic_error* data_sem_error = NULL;
 
 int declaration_flag = 0;
 int parameter_flag = 0;
-int line_parameter = 0;
 
 %}
 
@@ -245,6 +244,14 @@ expPostfijo
         if(!fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
             asprintf(&data_sem_error -> msg, "%i:%i: Funcion '%s' sin declarar", @1.first_line, @1.first_column, $<string_type>1);
             insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        } else if(!fetch_element(function, $<string_type>1, compare_char_and_ID_function)) {
+            t_variable* existing_variable = (t_variable*)get_element(variable, $<string_type>1, compare_char_and_ID_variable);
+            if(existing_variable) {
+                asprintf(&data_sem_error -> msg, "%i:%i: El objeto invocado '%s' no es una funcion o un puntero a una funcion\nNota: declarado aqui: %i:%i",
+                        @1.first_line, @1.first_column, $<string_type>1, 
+                        existing_variable -> line, existing_variable -> column);
+                insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+            }
         }
     }
     ;
@@ -340,7 +347,6 @@ especificadorDeclaracionOp
     | especificadorDeclaracion
     ;
 
-// ToDo: Simplificar y reducir lógica && considerar la lista de declaraciones   
 listaDeclaradores
     : declarador { 
         int redeclaration_line = data_variable->line;
@@ -516,7 +522,7 @@ declaracionParametro
     ;
 
 opcionesDecla
-    :  {data_parameter.name = "";}
+    :  {data_parameter.name = strdup("");}
     | decla { 
         data_parameter.name = strdup($<string_type>1); 
         }
@@ -616,5 +622,5 @@ int main(int argc, char *argv[]) {
 }
 
 void yyerror(const char *s) {
-    // No hacemos nada aquí para evitar cualquier impresión o manejo
+    //fprintf(stderr, "Error sintactico");
 }

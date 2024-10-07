@@ -444,6 +444,20 @@ int compare_ID_between_variable_and_function(void* data, void* wanted) {
     return strcmp(function_var->name, data_wanted->variable) == 0;
 }
 
+// Busca un IDENTIFICADOR x en la lista de funciones
+int compare_char_and_ID_function(void* data, void* wanted) {
+    t_function* function_var = (t_function*)data;
+    char* data_wanted = (char*)wanted;
+    return strcmp(function_var->name, data_wanted) == 0;
+}
+
+// Busca un IDENTIFICADOR x en la lista de variables
+int compare_char_and_ID_variable(void* data, void* wanted) {
+    t_variable* data_var = (t_function*)data;
+    char* data_wanted = (char*)wanted;
+    return strcmp(data_var->variable, data_wanted) == 0;
+}
+
 // Busca el IDENTIFICADOR de la variable pasada por parametro en la lista de funciones DEFINIDAS O DECLARADAS (difiere por definicion y declaracion)
 int compare_ID_in_declaration_or_definition(void* data, void* wanted) { 
     t_function* function_var = (t_function*)data;
