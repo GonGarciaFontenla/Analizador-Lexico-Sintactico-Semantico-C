@@ -77,11 +77,18 @@ typedef struct {
     char *message;                          // Campo para el mensaje del error
 } t_error;
 
+typedef enum {
+    FUNCTION,
+    VARIABLE
+} SYMBOL_TYPE;
+
 typedef struct {
-    char* type;
+    SYMBOL_TYPE symbol;
+    void* data;
     char* identifier;
     int line;
     int column;
+    int scope;
 } t_symbol_table;
 
 #define INICIO_CONTEO_LINEA 1
@@ -93,6 +100,8 @@ extern GenericNode* error_list;
 extern GenericNode* intokens;
 extern GenericNode* sentencias;
 extern GenericNode* semantic_errors;
+extern GenericNode* symbol_table;
+extern t_symbol_table* data_symbol;
 extern t_token_unrecognised* data_intoken;
 extern t_variable* data_variable;
 extern t_function* data_function;

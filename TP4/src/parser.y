@@ -10,21 +10,22 @@ void yyerror(const char *s);
 
 /* Declaracion de variables */
 GenericNode* variable = NULL;
-t_variable* data_variable = NULL;
-t_function* data_function = NULL;
 GenericNode* function = NULL;
-t_parameter data_parameter;
 GenericNode* error_list = NULL;
 GenericNode* sentencias = NULL;
-t_sent* data_sent = NULL;
-
 GenericNode* semantic_errors = NULL;
+GenericNode* symbol_table = NULL;
+
+t_variable* data_variable = NULL;
+t_function* data_function = NULL;
+t_parameter data_parameter;
+t_sent* data_sent = NULL;
 t_semantic_error* data_sem_error = NULL; 
+t_symbol_table* data_symbol = NULL;
 
 int declaration_flag = 0;
 int parameter_flag = 0;
 int quantity_parameters = 0;
-int assignation_flag = 0;
 
 %}
 
@@ -154,7 +155,7 @@ expresion
 
 expAsignacion
     : expCondicional
-    | expUnaria operAsignacion {assignation_flag = 1;} expAsignacion 
+    | expUnaria operAsignacion { = 1;} expAsignacion 
     | expUnaria operAsignacion error 
     ;
 

@@ -149,6 +149,18 @@ void init_structures() { // Iniciar todas las estructuras
     data_sent->column = 0;
     data_sent->line = 0;
 
+    data_symbol = (t_symbol_table*)malloc(sizeof(t_symbol_table));
+    if(!data_symbol) {
+        printf("Error al asignar memoria para data_symbol");
+        exit(EXIT_FAILURE);
+    }
+    data_symbol->column = 0;
+    data_symbol->line = 0;
+    data_symbol->scope = 0;
+    data_symbol->symbol = 0;
+    data_symbol->identifier = NULL;
+    data_symbol->data = NULL;
+
     new_error = (t_error*)malloc(sizeof(t_error));
     if (!new_error) {
         printf("Error al asignar memoria para el nuevo error!\n");
