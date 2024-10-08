@@ -144,6 +144,9 @@ void* get_element(GenericNode* list, void* wanted, compare_element cmp);
 int fetch_element(GenericNode* list, void* wanted, compare_element cmp);
 
 void handle_redeclaration(int redeclaration_line, int redeclaration_column, const char* identifier); 
+void check_function_redeclaration(t_function* function, int redeclaration_line, int redeclaration_column, const char* identifier); 
+void check_variable_redeclaration(t_variable* variable, int line, int column, const char* id); 
+void check_type_conflict(t_variable* variable, int line, int column, const char* id); 
 
 void reset_token_buffer();
 

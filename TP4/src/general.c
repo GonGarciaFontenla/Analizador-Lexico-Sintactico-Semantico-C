@@ -567,38 +567,48 @@ void insert_sem_error_too_many_or_few_parameters(int line, int column, const cha
     }
 }
 
-// ToDo: delegar cada IF!!!
 void handle_redeclaration(int redeclaration_line, int redeclaration_column, const char* identifier) {
     t_function* existing_function = (t_function*)get_element(function, data_variable, compare_ID_between_variable_and_function);
 
     if (existing_function) {
-        asprintf(&data_sem_error->msg, "%i:%i: '%s' redeclarado como un tipo diferente de símbolo\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i", 
-                redeclaration_line, redeclaration_column, identifier, 
-                existing_function->name, existing_function->return_type, 
-                existing_function->line, existing_function->column);
-        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        check_function_redeclaration(existing_function, redeclaration_line, redeclaration_column, identifier);
         return;
     }
 
     t_variable* existing_variable = (t_variable*)get_element(variable, data_variable, compare_ID_and_type_variable);
 
     if (existing_variable) {
-        asprintf(&data_sem_error->msg, "%i:%i: Redeclaración de '%s'\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i", 
-                redeclaration_line, redeclaration_column, identifier,
-                existing_variable->variable, existing_variable->type,
-                existing_variable->line, existing_variable->column);
-        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        check_variable_redeclaration(existing_variable, redeclaration_line, redeclaration_column, identifier);
         return;
     }
-
+    
     existing_variable = (t_variable*)get_element(variable, data_variable, compare_ID_and_diff_type_variable);
     if (existing_variable) {
-        asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la última es de tipo '%s'\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i",
-                redeclaration_line, redeclaration_column, identifier,
-                data_variable->type, existing_variable->variable, 
-                existing_variable->type, existing_variable->line, 
-                existing_variable->column);
-        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        check_type_conflict(existing_variable, redeclaration_line, redeclaration_column, identifier);
     }
 }
 
+void check_function_redeclaration(t_function* function, int line, int column, const char* id) {
+        asprintf(&data_sem_error->msg, "%i:%i: '%s' redeclarado como un tipo diferente de símbolo\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i", 
+                line, column, id, 
+                function->name, function->return_type, 
+                function->line, function->column);
+        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+}
+
+void check_variable_redeclaration(t_variable* variable, int line, int column, const char* id) {
+    asprintf(&data_sem_error->msg, "%i:%i: Redeclaración de '%s'\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i", 
+            line, column, id,
+            variable->variable, variable->type,
+            variable->line, variable->column);
+    insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+}
+
+void check_type_conflict(t_variable* variable, int line, int column, const char* id) {
+    asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la última es de tipo '%s'\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i",
+            line, column, id,
+            data_variable->type, variable->variable, 
+            variable->type, variable->line, 
+            variable->column);
+    insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+}
