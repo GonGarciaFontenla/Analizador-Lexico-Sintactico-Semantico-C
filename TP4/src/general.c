@@ -467,7 +467,7 @@ int compare_char_and_ID_function(void* data, void* wanted) {
 
 // Busca un IDENTIFICADOR x en la lista de variables
 int compare_char_and_ID_variable(void* data, void* wanted) {
-    t_variable* data_var = (t_function*)data;
+    t_variable* data_var = (t_variable*)data;
     char* data_wanted = (char*)wanted;
     return strcmp(data_var->variable, data_wanted) == 0;
 }
@@ -529,7 +529,7 @@ void insert_sem_error_different_symbol() {
     }
 }
 
-void insert_sem_error_invocate_function(int line, int column, const char* identifier, int quant_parameters) {
+void insert_sem_error_invocate_function(int line, int column, char* identifier, int quant_parameters) {
     if(!fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
         asprintf(&data_sem_error -> msg, "%i:%i: Funcion '%s' sin declarar", line, column, identifier);
         insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
@@ -540,7 +540,7 @@ void insert_sem_error_invocate_function(int line, int column, const char* identi
     }
 }
 
-void insert_sem_error_invalid_identifier(int line, int column, const char* identifier) {
+void insert_sem_error_invalid_identifier(int line, int column, char* identifier) {
     t_variable* existing_variable = (t_variable*)get_element(variable, identifier, compare_char_and_ID_variable);
     if(existing_variable) {
         asprintf(&data_sem_error -> msg, "%i:%i: El objeto invocado '%s' no es una funcion o un puntero a una funcion\nNota: declarado aqui: %i:%i",
@@ -550,7 +550,7 @@ void insert_sem_error_invalid_identifier(int line, int column, const char* ident
     }
 }
 
-void insert_sem_error_too_many_or_few_parameters(int line, int column, const char* identifier, int quant_parameters) {
+void insert_sem_error_too_many_or_few_parameters(int line, int column, char* identifier, int quant_parameters) {
     t_function* existing_function = (t_function*)get_element(function, identifier, compare_char_and_ID_function);
     if(existing_function) {
         if(get_quantity_parameters(existing_function -> parameters) > quant_parameters) {

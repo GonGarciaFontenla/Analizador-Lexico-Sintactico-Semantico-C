@@ -122,9 +122,9 @@ void insert_sorted_node(GenericNode** list, void* new_data, size_t data_size, in
 void insert_node(GenericNode** list, void* new_data, size_t data_size);
 void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_list, t_variable* data_variable);
 void insert_sem_error_different_symbol();
-void insert_sem_error_invocate_function(int line, int column, const char* identifier, int quant_parameters);
-void insert_sem_error_too_many_or_few_parameters(int line, int column, const char* identifier, int quant_parameters);
-void insert_sem_error_invalid_identifier(int line, int column, const char* identifier);
+void insert_sem_error_invocate_function(int line, int column, char* identifier, int quant_parameters);
+void insert_sem_error_too_many_or_few_parameters(int line, int column, char* identifier, int quant_parameters);
+void insert_sem_error_invalid_identifier(int line, int column, char* identifier);
 
 int compare_lines(const void* a, const void* b);
 int compare_ID_variable(void* data, void* wanted);
