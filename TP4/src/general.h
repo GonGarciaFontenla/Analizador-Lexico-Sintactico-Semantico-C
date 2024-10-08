@@ -77,7 +77,12 @@ typedef struct {
     char *message;                          // Campo para el mensaje del error
 } t_error;
 
-
+typedef struct {
+    char* type;
+    char* identifier;
+    int line;
+    int column;
+} t_symbol_table;
 
 #define INICIO_CONTEO_LINEA 1
 #define INICIO_CONTEO_COLUMNA 1
