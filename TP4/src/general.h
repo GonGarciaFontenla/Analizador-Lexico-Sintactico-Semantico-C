@@ -115,7 +115,7 @@ void add_sent(const char* tipo_sentencia, int line, int column);
 void add_unrecognised_token(const char* intoken);
 void add_sent(const char* tipo_sentencia, int line, int column);
 void append_token(const char* token);
-void save_function(const char* type, const char* return_type, const char* id);
+void save_function(char* type, const char* return_type, const char* id);
 char* concat_parameters(GenericNode* parameters);
 
 void insert_sorted_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*));
@@ -147,8 +147,8 @@ void handle_redeclaration(int redeclaration_line, int redeclaration_column, cons
 
 void reset_token_buffer();
 
-void yerror(YYLTYPE string);
+void yerror(YYLTYPE ubicacion);
 
 int get_quantity_parameters(GenericNode* list);
 
-#endif
+#endif 

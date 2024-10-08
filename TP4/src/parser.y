@@ -6,6 +6,7 @@
 #include "general.h"
 
 extern int yylex(void);
+void yyerror(const char *s);
 
 /* Declaracion de variables */
 GenericNode* variable = NULL;

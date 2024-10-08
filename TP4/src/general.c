@@ -89,7 +89,7 @@ void free_token_buffer() {
     }
 }
 
-void save_function(const char* type, const char* return_type, const char* id) {
+void save_function(char* type, const char* return_type, const char* id) {
     data_function->return_type = strdup(return_type);
     data_function->name = strdup(id);
     data_function->type = type;
