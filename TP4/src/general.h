@@ -77,19 +77,30 @@ typedef struct {
     char *message;                          // Campo para el mensaje del error
 } t_error;
 
-typedef enum {
-    FUNCTION,
+
+//Para tabla de simbolos //
+typedef enum { 
     VARIABLE
-} SYMBOL_TYPE;
+,   FUNCTION
+,   PARAMETER 
+,   UNDEFINED
+} SymbolType;
 
 typedef struct {
-    SYMBOL_TYPE symbol;
-    void* data;
-    char* identifier;
-    int line;
-    int column;
-    int scope;
+    char* name;                 // Nombre del símbolo (identificador)
+    char* data_type;            // Tipo de dato
+    SymbolType symbol_type;     // Tipo de símbolo (variable, función, parámetro)
+    int line;                   // Línea de la declaración
+    int column;                 // Columna de la declaración
+} t_symbol;
+
+typedef struct {
+    GenericNode* symbols;       // Lista de símbolos (podemos usar la estructura de nodos genérica que ya tienes)
 } t_symbol_table;
+
+//-------------------------------//
+
+// Global symbol table
 
 #define INICIO_CONTEO_LINEA 1
 #define INICIO_CONTEO_COLUMNA 1
@@ -100,8 +111,8 @@ extern GenericNode* error_list;
 extern GenericNode* intokens;
 extern GenericNode* sentencias;
 extern GenericNode* semantic_errors;
-extern GenericNode* symbol_table;
-extern t_symbol_table* data_symbol;
+extern t_symbol_table* symbol_table;
+// extern GenericNode* symbol_table;
 extern t_token_unrecognised* data_intoken;
 extern t_variable* data_variable;
 extern t_function* data_function;
@@ -109,6 +120,7 @@ extern t_parameter data_parameter;
 extern t_sent* data_sent;
 extern t_error* new_error;
 extern t_semantic_error* data_sem_error;
+extern t_symbol* data_symbol;
 
 extern char* invalid_string;
 extern int first_line_error;
@@ -157,15 +169,22 @@ void print_semantic_errors(GenericNode* list);
 void* get_element(GenericNode* list, void* wanted, compare_element cmp);
 int fetch_element(GenericNode* list, void* wanted, compare_element cmp);
 
-void handle_redeclaration(int redeclaration_line, int redeclaration_column, const char* identifier); 
-void check_function_redeclaration(t_function* function, int redeclaration_line, int redeclaration_column, const char* identifier); 
-void check_variable_redeclaration(t_variable* variable, int line, int column, const char* id); 
-void check_type_conflict(t_variable* variable, int line, int column, const char* id); 
+// void handle_redeclaration(int redeclaration_line, int redeclaration_column, const char* identifier); 
+// void check_function_redeclaration(t_function* function, int redeclaration_line, int redeclaration_column, const char* identifier); 
+// void check_variable_redeclaration(t_variable* variable, int line, int column, const char* id); 
+// void check_type_conflict(t_variable* variable, int line, int column, const char* id); 
 
 void reset_token_buffer();
 
 void yerror(YYLTYPE ubicacion);
 
 int get_quantity_parameters(GenericNode* list);
+
+
+//Idea de tabla de simbolos
+void add_symbol(const char* name, const char* data_type, SymbolType symbol_type, int line, int column);
+t_symbol* fetch_symbol(const char* name);
+void handle_redeclaration(const char* name, int line, int column); 
+int compare_ID_symbol(const void *a, const void *b);
 
 #endif 

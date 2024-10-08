@@ -14,18 +14,21 @@ GenericNode* function = NULL;
 GenericNode* error_list = NULL;
 GenericNode* sentencias = NULL;
 GenericNode* semantic_errors = NULL;
-GenericNode* symbol_table = NULL;
+
+t_symbol_table* symbol_table = NULL; 
+
 
 t_variable* data_variable = NULL;
 t_function* data_function = NULL;
 t_parameter data_parameter;
 t_sent* data_sent = NULL;
 t_semantic_error* data_sem_error = NULL; 
-t_symbol_table* data_symbol = NULL;
+t_symbol* data_symbol = NULL;
 
 int declaration_flag = 0;
 int parameter_flag = 0;
 int quantity_parameters = 0;
+int assignation_flag = 0;
 
 %}
 
@@ -155,7 +158,7 @@ expresion
 
 expAsignacion
     : expCondicional
-    | expUnaria operAsignacion { = 1;} expAsignacion 
+    | expUnaria operAsignacion {assignation_flag = 1;} expAsignacion 
     | expUnaria operAsignacion error 
     ;
 
@@ -299,6 +302,7 @@ declaracionExterna
 
 definicionFuncion
     : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta {
+        add_symbol(data_function->name, data_function->return_type, FUNCTION, data_function->line, data_function->column);
         save_function("definicion", $<string_type>1, $<string_type>2);
     
         if(!fetch_element(function, data_function, compare_ID_in_declaration_or_definition) && !fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
@@ -316,6 +320,7 @@ definicionFuncion
 declaracion
     : especificadorDeclaracion listaDeclaradores ';'
     | especificadorDeclaracion decla ';' {
+        add_symbol(data_variable->variable, data_variable->type, VARIABLE, data_variable->line, data_variable->column);
         if (parameter_flag) {
             save_function("declaracion", $<string_type>1, $<string_type>2);
             if(!fetch_element(function, data_function, compare_ID_in_declaration_or_definition) && !fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
@@ -502,6 +507,7 @@ opcionalListaParametros
 
 listaParametros
     : declaracionParametro  {
+        add_symbol(data_parameter.name, data_parameter.type, PARAMETER, yylloc.first_line, yylloc.first_column);
         insert_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter));
     }
     | listaParametros ',' declaracionParametro {
