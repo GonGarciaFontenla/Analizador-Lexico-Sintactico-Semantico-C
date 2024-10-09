@@ -525,6 +525,12 @@ int compare_variable_and_parameter(void* data, void* wanted) {
     return strcmp(data_param->name, data_wanted->variable) == 0;
 }
 
+int compare_void_function(void* data, void* wanted) {
+    t_function* data_func = (t_function*)data;
+    char* data_wanted = (char*)wanted;
+    return strcmp(data_func->name, data_wanted) == 0 && strcmp(data_func->return_type, "void") == 0;
+}
+
 void insert_if_not_exists() {
     if (!fetch_element(VARIABLE, data_variable, compare_ID_variable) &&
         !fetch_element(FUNCTION, data_variable, compare_ID_between_variable_and_function)) {

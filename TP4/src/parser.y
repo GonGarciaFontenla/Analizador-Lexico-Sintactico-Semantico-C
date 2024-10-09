@@ -23,9 +23,10 @@ t_sent* data_sent = NULL;
 t_semantic_error* data_sem_error = NULL; 
 t_symbol_table* data_symbol = NULL;
 
-int declaration_flag = 0;
-int parameter_flag = 0;
-int quantity_parameters = 0;
+int declaration_flag = 0; // Si está en declaracion
+int parameter_flag = 0; // Si está dentro de los parametros de X funcion
+int quantity_parameters = 0; // Cantidad de parametros
+int assign_void_flag = 0; // Si se asigna una variable a una funcion void
 
 %}
 
@@ -155,7 +156,13 @@ expresion
 
 expAsignacion
     : expCondicional
-    | expUnaria operAsignacion expAsignacion 
+    | expUnaria operAsignacion expAsignacion {
+        if(assign_void_flag) {
+            asprintf(&data_sem_error->msg, "%i:%i: No se ignora el valor de retorno void como deberia ser", @1.first_line, @1.first_column);
+            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+            assign_void_flag = 0;
+        }
+    }
     | expUnaria operAsignacion error 
     ;
 
@@ -244,6 +251,9 @@ expPostfijo
     | expPostfijo expPrimaria
     | IDENTIFICADOR opcionPostfijo {
         insert_sem_error_invocate_function(@1.first_line, @1.first_column, $<string_type>1, quantity_parameters);
+        if(fetch_element(FUNCTION, $<string_type>1, compare_void_function)) {
+            assign_void_flag = 1;
+        }
         quantity_parameters = 0;
     }
     ;
@@ -264,7 +274,7 @@ listaArgumentos
     ;
 
 expPrimaria
-    : IDENTIFICADOR { // ToDo: delegar el else if
+    : IDENTIFICADOR {
         if(!declaration_flag) {
             if(!fetch_element(VARIABLE, $<string_type>1, compare_ID_parameter) && !fetch_parameter($<string_type>1) && !fetch_element(FUNCTION, $<string_type>1, compare_char_and_ID_function)) {
                 asprintf(&data_sem_error -> msg, "%i:%i: '%s' sin declarar", @1.first_line, @1.first_column, $<string_type>1);

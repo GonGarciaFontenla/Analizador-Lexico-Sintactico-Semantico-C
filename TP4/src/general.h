@@ -151,6 +151,7 @@ int compare_variable_and_parameter(void* data, void* wanted);
 int compare_char_and_ID_function(void* data, void* wanted);
 int compare_char_and_ID_variable(void* data, void* wanted);
 int compare_ID_parameter(void* data, void* wanted);
+int compare_void_function(void* data, void* wanted);
 
 void print_lists();
 void print_semantic_errors(GenericNode* list);
