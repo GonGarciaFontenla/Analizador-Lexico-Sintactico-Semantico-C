@@ -406,13 +406,16 @@ int compare_lines(const void* a, const void* b) {
     return sent_a->line - sent_b->line;
 }
                                     
-int fetch_element(GenericNode* list, void* wanted, compare_element cmp) {
-    GenericNode* aux = list;
-    while (aux) {
-        if (cmp(aux->data, wanted) == 1) { 
-            return 1;
+int fetch_element(SYMBOL_TYPE symbol, void* wanted, compare_element cmp) {
+    GenericNode* current = symbol_table;
+    while (current) {
+        t_symbol_table* sym = (t_symbol_table*)current->data;
+        if(sym->symbol == symbol) {
+            if (cmp(sym->data, wanted) == 1) { 
+                return 1;
+            }
         }
-        aux = aux->next;
+        current = current->next;
     }
     return 0;
 }
@@ -501,10 +504,10 @@ int compare_variable_and_parameter(void* data, void* wanted) {
     return strcmp(data_param->name, data_wanted->variable) == 0;
 }
 
-void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_list, t_variable* data_variable) {
-    if (!fetch_element(*variable_list, data_variable, compare_ID_variable) &&
-        !fetch_element(function_list, data_variable, compare_ID_between_variable_and_function)) {
-        insert_node(variable_list, data_variable, sizeof(t_variable));
+void insert_if_not_exists() {
+    if (!fetch_element(VARIABLE, data_variable, compare_ID_variable) &&
+        !fetch_element(FUNCTION, data_variable, compare_ID_between_variable_and_function)) {
+        insert_node(&variable, data_variable, sizeof(t_variable));
         insert_symbol(VARIABLE);
     }
 }
@@ -593,12 +596,12 @@ void insert_sem_error_different_symbol(int column) {
 }
 
 void insert_sem_error_invocate_function(int line, int column, char* identifier, int quant_parameters) {
-    if(!fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
+    if(!fetch_element(FUNCTION, data_function, compare_ID_and_different_type_functions)) {
         asprintf(&data_sem_error -> msg, "%i:%i: Funcion '%s' sin declarar", line, column, identifier);
         insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-    } else if(!fetch_element(function, identifier, compare_char_and_ID_function)) {
+    } else if(!fetch_element(FUNCTION, identifier, compare_char_and_ID_function)) {
         insert_sem_error_invalid_identifier(line, column, identifier);
-    } else if(fetch_element(function, identifier, compare_char_and_ID_function)) {
+    } else if(fetch_element(FUNCTION, identifier, compare_char_and_ID_function)) {
         insert_sem_error_too_many_or_few_parameters(line, column, identifier, quant_parameters);
     }
 }

@@ -133,7 +133,7 @@ char* concat_parameters(GenericNode* parameters);
 
 void insert_sorted_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*));
 void insert_node(GenericNode** list, void* new_data, size_t data_size);
-void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_list, t_variable* data_variable);
+void insert_if_not_exists();
 void insert_sem_error_different_symbol(int column);
 void insert_sem_error_invocate_function(int line, int column, char* identifier, int quant_parameters);
 void insert_sem_error_too_many_or_few_parameters(int line, int column, char* identifier, int quant_parameters);
@@ -155,7 +155,7 @@ void print_lists();
 void print_semantic_errors(GenericNode* list);
 
 t_symbol_table* get_element(SYMBOL_TYPE symbol_type, void* wanted, compare_element cmp);
-int fetch_element(GenericNode* list, void* wanted, compare_element cmp);
+int fetch_element(SYMBOL_TYPE sym, void* wanted, compare_element cmp);
 
 void handle_redeclaration(int redeclaration_line, int redeclaration_column, const char* identifier); 
 void check_function_redeclaration(t_symbol_table* function, int redeclaration_line, int redeclaration_column, const char* identifier); 

@@ -268,7 +268,7 @@ listaArgumentos
 expPrimaria
     : IDENTIFICADOR { 
         if(!declaration_flag) {
-            if(!fetch_element(variable, data_variable, compare_ID_variable) && fetch_element(data_function->parameters, &data_parameter, compare_variable_and_parameter)) {
+            if(!fetch_element(VARIABLE, data_variable, compare_ID_variable) && fetch_element(VARIABLE, &data_parameter, compare_variable_and_parameter)) {
                 asprintf(&data_sem_error -> msg, "%i:%i: '%s' sin declarar", @1.first_line, @1.first_column, $<string_type>1);
                 insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
             }
@@ -300,7 +300,7 @@ declaracionExterna
 definicionFuncion
     : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta { // ToDo: Reducir codigo && Tratar de arreglar el +1 del @1.first_column
         save_function("definicion", $<string_type>1, $<string_type>2);
-        if(!fetch_element(function, data_function, compare_ID_in_declaration_or_definition) && !fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
+        if(!fetch_element(FUNCTION, data_function, compare_ID_in_declaration_or_definition) && !fetch_element(FUNCTION, data_function, compare_ID_and_different_type_functions)) {
             insert_node(&function, data_function, sizeof(t_function));
             data_symbol -> line = @2.first_line;
             data_symbol -> column = @2.first_column + 1;
@@ -319,7 +319,7 @@ declaracion
     | especificadorDeclaracion decla ';' { // ToDo: Reducir codigo && Tratar de arreglar el +1 del @1.first_column
         if (parameter_flag) {
             save_function("declaracion", $<string_type>1, $<string_type>2);
-            if(!fetch_element(function, data_function, compare_ID_in_declaration_or_definition) && !fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
+            if(!fetch_element(FUNCTION, data_function, compare_ID_in_declaration_or_definition) && !fetch_element(FUNCTION, data_function, compare_ID_and_different_type_functions)) {
                 insert_node(&function, data_function, sizeof(t_function));
                 data_symbol -> line = @2.first_line;
                 data_symbol -> column = @2.first_column + 1;
@@ -351,13 +351,13 @@ listaDeclaradores
         int redeclaration_line = data_variable->line;
         int redeclaration_column = data_variable->column;
         handle_redeclaration(redeclaration_line, redeclaration_column, data_variable->variable);
-        insert_if_not_exists(&variable, function, data_variable);
+        insert_if_not_exists();
     }
     | listaDeclaradores ',' declarador {
         int redeclaration_line = data_variable->line;
         int redeclaration_column = data_variable->column;
         handle_redeclaration(redeclaration_line, redeclaration_column, data_variable->variable);
-        insert_if_not_exists(&variable, function, data_variable);
+        insert_if_not_exists();
     }
     ;
 
