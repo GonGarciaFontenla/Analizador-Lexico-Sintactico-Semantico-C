@@ -150,12 +150,14 @@ int compare_ID_and_diff_type_variable(void* data, void* wanted);
 int compare_variable_and_parameter(void* data, void* wanted);
 int compare_char_and_ID_function(void* data, void* wanted);
 int compare_char_and_ID_variable(void* data, void* wanted);
+int compare_ID_parameter(void* data, void* wanted);
 
 void print_lists();
 void print_semantic_errors(GenericNode* list);
 
 t_symbol_table* get_element(SYMBOL_TYPE symbol_type, void* wanted, compare_element cmp);
 int fetch_element(SYMBOL_TYPE sym, void* wanted, compare_element cmp);
+int fetch_parameter(const char* wanted);
 
 void handle_redeclaration(int redeclaration_line, int redeclaration_column, const char* identifier); 
 void check_function_redeclaration(t_symbol_table* function, int redeclaration_line, int redeclaration_column, const char* identifier); 

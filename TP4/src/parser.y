@@ -266,11 +266,11 @@ listaArgumentos
     ;
 
 expPrimaria
-    : IDENTIFICADOR { 
+    : IDENTIFICADOR { // ToDo: delegar el else if
         if(!declaration_flag) {
-            if(!fetch_element(VARIABLE, data_variable, compare_ID_variable) && fetch_element(VARIABLE, &data_parameter, compare_variable_and_parameter)) {
+            if(!fetch_element(VARIABLE, $<string_type>1, compare_ID_parameter) && !fetch_parameter($<string_type>1) && !fetch_element(FUNCTION, $<string_type>1, compare_char_and_ID_function)) {
                 asprintf(&data_sem_error -> msg, "%i:%i: '%s' sin declarar", @1.first_line, @1.first_column, $<string_type>1);
-                insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                insert_node(&semantic_errors, data_sem_error, sizeof(semantic_errors));
             }
         }
         declaration_flag = 0;

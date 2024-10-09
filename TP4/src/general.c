@@ -380,7 +380,7 @@ void print_semantic_errors(GenericNode* list) {
     }
 }
 
-void free_list(GenericNode** head) {
+void free_list(GenericNode** head) { // ToDo: hay memory leaks, los free no estan pensados para sublistas
     GenericNode* temp;
     while (*head) {
         temp = *head;
@@ -391,7 +391,7 @@ void free_list(GenericNode** head) {
     *head = NULL; // Evita referencias a memoria liberada
 }
 
-void free_all_lists() {
+void free_all_lists() { 
     free_list(&variable);
     free_list(&function);
     free_list(&error_list);
@@ -420,6 +420,20 @@ int fetch_element(SYMBOL_TYPE symbol, void* wanted, compare_element cmp) {
     return 0;
 }
 
+int fetch_parameter(const char* wanted) {
+    GenericNode* current = data_function->parameters; 
+    while (current) {
+        t_parameter* param = (t_parameter*)current->data;
+        if(param && param->name) {
+            if (strcmp(param->name, wanted) == 0) { 
+                return 1; 
+            }
+        }
+        current = current->next;  
+    }
+    return 0; 
+}
+
 int get_quantity_parameters(GenericNode* list) {
     GenericNode* aux = list;
     int quantity = 0;
@@ -439,6 +453,13 @@ int compare_ID_variable(void* data, void* wanted) {
     t_variable* var_data = (t_variable*)data;
     t_variable* data_wanted = (t_variable*)wanted;
     return strcmp(var_data->variable, data_wanted->variable) == 0;
+}
+
+// Busca un IDENTIFICADOR NO declarado en los parametros de las invocaciones (ToDo: fijarse si se puede acoplar con el compare de arriba)
+int compare_ID_parameter(void* data, void* wanted) {
+    t_variable* var_data = (t_variable*)data;
+    char* data_wanted = (char*)wanted;
+    return strcmp(var_data->variable, data_wanted) == 0;
 }
 
 // Busca una funcion con el mismo IDENTIFICADOR que la trackeada pero con distinto tipo
