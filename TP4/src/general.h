@@ -49,7 +49,6 @@ typedef struct {
 typedef struct {
     char* name;
     int line;
-    int column;
     char* type;                             // Si es declaracion o definicion
     GenericNode* parameters;                
     char* return_type;
@@ -135,10 +134,11 @@ char* concat_parameters(GenericNode* parameters);
 void insert_sorted_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*));
 void insert_node(GenericNode** list, void* new_data, size_t data_size);
 void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_list, t_variable* data_variable);
-void insert_sem_error_different_symbol();
+void insert_sem_error_different_symbol(int column);
 void insert_sem_error_invocate_function(int line, int column, char* identifier, int quant_parameters);
 void insert_sem_error_too_many_or_few_parameters(int line, int column, char* identifier, int quant_parameters);
 void insert_sem_error_invalid_identifier(int line, int column, char* identifier);
+void insert_symbol(SYMBOL_TYPE type);
 
 int compare_lines(const void* a, const void* b);
 int compare_ID_variable(void* data, void* wanted);
@@ -154,13 +154,13 @@ int compare_char_and_ID_variable(void* data, void* wanted);
 void print_lists();
 void print_semantic_errors(GenericNode* list);
 
-void* get_element(GenericNode* list, void* wanted, compare_element cmp);
+t_symbol_table* get_element(SYMBOL_TYPE symbol_type, void* wanted, compare_element cmp);
 int fetch_element(GenericNode* list, void* wanted, compare_element cmp);
 
 void handle_redeclaration(int redeclaration_line, int redeclaration_column, const char* identifier); 
-void check_function_redeclaration(t_function* function, int redeclaration_line, int redeclaration_column, const char* identifier); 
-void check_variable_redeclaration(t_variable* variable, int line, int column, const char* id); 
-void check_type_conflict(t_variable* variable, int line, int column, const char* id); 
+void check_function_redeclaration(t_symbol_table* function, int redeclaration_line, int redeclaration_column, const char* identifier); 
+void check_variable_redeclaration(t_symbol_table* variable, int line, int column, const char* id); 
+void check_type_conflict(t_symbol_table* variable, int line, int column, const char* id); 
 
 void reset_token_buffer();
 

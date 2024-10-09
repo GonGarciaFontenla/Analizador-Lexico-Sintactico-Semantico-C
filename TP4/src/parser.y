@@ -155,7 +155,7 @@ expresion
 
 expAsignacion
     : expCondicional
-    | expUnaria operAsignacion { = 1;} expAsignacion 
+    | expUnaria operAsignacion expAsignacion 
     | expUnaria operAsignacion error 
     ;
 
@@ -245,7 +245,7 @@ expPostfijo
     : expPrimaria  
     | expPostfijo expPrimaria
     | IDENTIFICADOR opcionPostfijo {
-        insert_sem_error_invocate_function(@1.first_line, @1.first_column, $<string_type>1, quantity_parameters);
+        //insert_sem_error_invocate_function(@1.first_line, @1.first_column, $<string_type>1, quantity_parameters);
         quantity_parameters = 0;
     }
     ;
@@ -298,34 +298,39 @@ declaracionExterna
     ;        
 
 definicionFuncion
-    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta {
+    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta { // ToDo: Reducir codigo && Tratar de arreglar el +1 del @1.first_column
         save_function("definicion", $<string_type>1, $<string_type>2);
-    
         if(!fetch_element(function, data_function, compare_ID_in_declaration_or_definition) && !fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
             insert_node(&function, data_function, sizeof(t_function));
+            data_symbol -> line = @2.first_line;
+            data_symbol -> column = @2.first_column + 1;
+            insert_symbol(FUNCTION);
             data_function->parameters = NULL;
         }
         else {
-            insert_sem_error_different_symbol();
+            insert_sem_error_different_symbol(@2.first_column + 1);
             data_function->parameters = NULL;
         }                
     }
-            
     ;
 
 declaracion
     : especificadorDeclaracion listaDeclaradores ';'
-    | especificadorDeclaracion decla ';' {
+    | especificadorDeclaracion decla ';' { // ToDo: Reducir codigo && Tratar de arreglar el +1 del @1.first_column
         if (parameter_flag) {
             save_function("declaracion", $<string_type>1, $<string_type>2);
             if(!fetch_element(function, data_function, compare_ID_in_declaration_or_definition) && !fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
                 insert_node(&function, data_function, sizeof(t_function));
+                data_symbol -> line = @2.first_line;
+                data_symbol -> column = @2.first_column + 1;
+                insert_symbol(FUNCTION);
                 data_function->parameters = NULL;
             } else {
-                insert_sem_error_different_symbol();
+                insert_sem_error_different_symbol(@2.first_column + 1);
             }
         } else {
             insert_node(&variable, data_variable, sizeof(t_variable));
+            insert_symbol(VARIABLE);
         }
     }
     ;
@@ -468,8 +473,6 @@ declaradorDirecto
         data_variable->variable = strdup($<string_type>1);
         data_variable->line = yylloc.first_line;
         data_variable->column = yylloc.first_column;
-        data_function->column = yylloc.first_column;
-
     }
     | '(' decla ')'
     | declaradorDirecto continuacionDeclaradorDirecto { data_function->line = yylloc.first_line; parameter_flag = 1;}

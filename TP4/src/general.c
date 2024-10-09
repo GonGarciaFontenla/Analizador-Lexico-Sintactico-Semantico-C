@@ -112,7 +112,6 @@ void init_structures() { // Iniciar todas las estructuras
     }
     data_function->name = NULL;
     data_function->line = 0;
-    data_function->column = 0;
     data_function->type = NULL;
     data_function->parameters = NULL;
     data_function->return_type = NULL;
@@ -353,6 +352,20 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
         printf("-\n");
     }
 
+    // printf("* Si\n");
+    // if(symbol_table) {
+    //     GenericNode* aux = symbol_table;
+    //     while(aux) {
+    //         t_symbol_table* auxx = (t_symbol_table*)aux->data;
+    //         if(auxx->symbol == 0) {
+    //             t_function* func = (t_function*) auxx->data;
+    //             printf("%i:%i: ID: %s - Symbol: %i - Ret: %s - Name: %s\n", auxx->line, auxx->column, auxx->identifier, auxx->symbol, func->return_type, func->name);
+                
+    //         }
+    //         aux = aux -> next;
+    //     }
+    // }
+
 }
 
 void print_semantic_errors(GenericNode* list) {
@@ -416,17 +429,6 @@ int get_quantity_parameters(GenericNode* list) {
         aux = aux -> next;
     }
     return quantity;
-}
-
-void* get_element(GenericNode* list, void* wanted, compare_element cmp) {
-    GenericNode* current = list;
-    while (current != NULL) {
-        if (cmp(current->data, wanted) == 1) {
-            return current->data;
-        }
-        current = current->next;
-    }
-    return NULL;
 }
 
 // Busca una variable que ÚNICAMENTE tenga el mismo IDENTIFICADOR que la trackeada
@@ -503,6 +505,7 @@ void insert_if_not_exists(GenericNode** variable_list, GenericNode* function_lis
     if (!fetch_element(*variable_list, data_variable, compare_ID_variable) &&
         !fetch_element(function_list, data_variable, compare_ID_between_variable_and_function)) {
         insert_node(variable_list, data_variable, sizeof(t_variable));
+        insert_symbol(VARIABLE);
     }
 }
 
@@ -527,100 +530,151 @@ char* concat_parameters(GenericNode* parameters) {
     return string_parameters;
 }
 
-void insert_sem_error_different_symbol() {
-    t_function* existing_function = (t_function*)get_element(function, data_function, compare_ID_and_different_type_functions);
-    if(existing_function) {
-        char* new_parameters = concat_parameters(data_function -> parameters);
-        char* old_parameters = concat_parameters(existing_function -> parameters);
-        asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la última es de tipo '%s(%s)'\nNota: la declaración previa de '%s' es de tipo '%s(%s)': %i:%i",
-                data_function->line, data_function->column, data_function->name,
-                data_function->return_type, new_parameters, existing_function->name, 
-                existing_function->return_type, old_parameters,
-                existing_function->line, existing_function->column);
-        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+void insert_symbol(SYMBOL_TYPE symbol_type) {
+    data_symbol->symbol = symbol_type;
+    switch (data_symbol->symbol) {
+        case FUNCTION:
+            data_symbol->identifier = strdup(data_function->name);
+            data_symbol->data = malloc(sizeof(t_function));
+            if (!data_symbol->data) {
+                printf("Error allocating memory for data_symbol->data\n");
+                exit(EXIT_FAILURE);
+            }
+            memcpy(data_symbol->data, data_function, sizeof(t_function));
+            break;
+
+        case VARIABLE:
+            data_symbol->identifier = strdup(data_variable->variable);
+            data_symbol->data = malloc(sizeof(t_variable));
+            if (!data_symbol->data) {
+                printf("Error allocating memory for data_symbol->data\n");
+                exit(EXIT_FAILURE);
+            }
+            memcpy(data_symbol->data, data_variable, sizeof(t_variable));
+            break;
+
+        default:
+            printf("Unknown symbol type\n");
+            break;
     }
+
+    insert_node(&symbol_table, data_symbol, sizeof(t_symbol_table));
 }
 
-void insert_sem_error_invocate_function(int line, int column, char* identifier, int quant_parameters) {
-    if(!fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
-        asprintf(&data_sem_error -> msg, "%i:%i: Funcion '%s' sin declarar", line, column, identifier);
-        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-    } else if(!fetch_element(function, identifier, compare_char_and_ID_function)) {
-        insert_sem_error_invalid_identifier(line, column, identifier);
-    } else if(fetch_element(function, identifier, compare_char_and_ID_function)) {
-        insert_sem_error_too_many_or_few_parameters(line, column, identifier, quant_parameters);
+t_symbol_table* get_element(SYMBOL_TYPE symbol_type, void* wanted, compare_element cmp) {
+    GenericNode* current = symbol_table;
+    while (current) {
+        t_symbol_table* aux = (t_symbol_table*)current->data;
+        if(aux->symbol == symbol_type) {
+            if (cmp(aux->data, wanted) == 1) {
+                return aux;
+            }
+        }
+        current = current->next;
     }
+    return NULL;
 }
 
-void insert_sem_error_invalid_identifier(int line, int column, char* identifier) {
-    t_variable* existing_variable = (t_variable*)get_element(variable, identifier, compare_char_and_ID_variable);
-    if(existing_variable) {
-        asprintf(&data_sem_error -> msg, "%i:%i: El objeto invocado '%s' no es una funcion o un puntero a una funcion\nNota: declarado aqui: %i:%i",
-                line, column, identifier, 
-                existing_variable -> line, existing_variable -> column);
-        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-    }
-}
-
-void insert_sem_error_too_many_or_few_parameters(int line, int column, char* identifier, int quant_parameters) {
-    t_function* existing_function = (t_function*)get_element(function, identifier, compare_char_and_ID_function);
-    if(existing_function) {
-        if(get_quantity_parameters(existing_function -> parameters) > quant_parameters) {
-            asprintf(&data_sem_error -> msg, "%i:%i: Insuficientes argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
-                    line, column, identifier,
-                    existing_function -> line, existing_function -> column);
-            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-        } else if(get_quantity_parameters(existing_function -> parameters) < quant_parameters) {
-            asprintf(&data_sem_error -> msg, "%i:%i: Demasiados argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
-                    line, column, identifier,
-                    existing_function -> line, existing_function -> column);
+void insert_sem_error_different_symbol(int column) {
+    t_symbol_table* existing_symbol = get_element(FUNCTION, data_function, compare_ID_and_different_type_functions);
+    if(existing_symbol) {
+        t_function* existing_function = (t_function*)existing_symbol->data;
+        if(existing_function) {
+            char* new_parameters = concat_parameters(data_function -> parameters);
+            char* old_parameters = concat_parameters(existing_function -> parameters);
+            asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la última es de tipo '%s(%s)'\nNota: la declaración previa de '%s' es de tipo '%s(%s)': %i:%i",
+                    data_function->line, column, data_function->name,
+                    data_function->return_type, new_parameters, existing_function->name, 
+                    existing_function->return_type, old_parameters,
+                    existing_symbol->line, existing_symbol->column);
             insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
         }
     }
 }
 
-void handle_redeclaration(int redeclaration_line, int redeclaration_column, const char* identifier) {
-    t_function* existing_function = (t_function*)get_element(function, data_variable, compare_ID_between_variable_and_function);
+// void insert_sem_error_invocate_function(int line, int column, char* identifier, int quant_parameters) {
+//     if(!fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
+//         asprintf(&data_sem_error -> msg, "%i:%i: Funcion '%s' sin declarar", line, column, identifier);
+//         insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+//     } else if(!fetch_element(function, identifier, compare_char_and_ID_function)) {
+//         insert_sem_error_invalid_identifier(line, column, identifier);
+//     } else if(fetch_element(function, identifier, compare_char_and_ID_function)) {
+//         insert_sem_error_too_many_or_few_parameters(line, column, identifier, quant_parameters);
+//     }
+// }
 
-    if (existing_function) {
-        check_function_redeclaration(existing_function, redeclaration_line, redeclaration_column, identifier);
+// void insert_sem_error_invalid_identifier(int line, int column, char* identifier) {
+//     t_variable* existing_variable = (t_variable*)get_element(variable, identifier, compare_char_and_ID_variable);
+//     if(existing_variable) {
+//         asprintf(&data_sem_error -> msg, "%i:%i: El objeto invocado '%s' no es una funcion o un puntero a una funcion\nNota: declarado aqui: %i:%i",
+//                 line, column, identifier, 
+//                 existing_variable -> line, existing_variable -> column);
+//         insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+//     }
+// }
+
+// void insert_sem_error_too_many_or_few_parameters(int line, int column, char* identifier, int quant_parameters) {
+//     t_function* existing_function = (t_function*)get_element(function, identifier, compare_char_and_ID_function);
+//     if(existing_function) {
+//         if(get_quantity_parameters(existing_function -> parameters) > quant_parameters) {
+//             asprintf(&data_sem_error -> msg, "%i:%i: Insuficientes argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
+//                     line, column, identifier,
+//                     existing_function -> line, 0);
+//             insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+//         } else if(get_quantity_parameters(existing_function -> parameters) < quant_parameters) {
+//             asprintf(&data_sem_error -> msg, "%i:%i: Demasiados argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
+//                     line, column, identifier,
+//                     existing_function -> line, 0);
+//             insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+//         }
+//     }
+// }
+
+void handle_redeclaration(int redeclaration_line, int redeclaration_column, const char* identifier) {
+    t_symbol_table* existing_symbol = get_element(FUNCTION, data_variable, compare_ID_between_variable_and_function); // Si no encuentra, asigna null, por ende no hace falta reinicializar en las demas
+
+    if (existing_symbol) {
+        check_function_redeclaration(existing_symbol, redeclaration_line, redeclaration_column, identifier);
         return;
     }
 
-    t_variable* existing_variable = (t_variable*)get_element(variable, data_variable, compare_ID_and_type_variable);
+    existing_symbol = get_element(VARIABLE, data_variable, compare_ID_and_type_variable);
 
-    if (existing_variable) {
-        check_variable_redeclaration(existing_variable, redeclaration_line, redeclaration_column, identifier);
+    if (existing_symbol) {
+        check_variable_redeclaration(existing_symbol, redeclaration_line, redeclaration_column, identifier);
         return;
     }
     
-    existing_variable = (t_variable*)get_element(variable, data_variable, compare_ID_and_diff_type_variable);
-    if (existing_variable) {
-        check_type_conflict(existing_variable, redeclaration_line, redeclaration_column, identifier);
+    existing_symbol = get_element(VARIABLE, data_variable, compare_ID_and_diff_type_variable);
+    if (existing_symbol) {
+        check_type_conflict(existing_symbol, redeclaration_line, redeclaration_column, identifier);
     }
 }
 
-void check_function_redeclaration(t_function* function, int line, int column, const char* id) {
-        asprintf(&data_sem_error->msg, "%i:%i: '%s' redeclarado como un tipo diferente de símbolo\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i", 
-                line, column, id, 
-                function->name, function->return_type, 
-                function->line, function->column);
-        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-}
-
-void check_variable_redeclaration(t_variable* variable, int line, int column, const char* id) {
-    asprintf(&data_sem_error->msg, "%i:%i: Redeclaración de '%s'\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i", 
-            line, column, id,
-            variable->variable, variable->type,
-            variable->line, variable->column);
+void check_function_redeclaration(t_symbol_table* symbol, int line, int column, const char* id) {
+    t_function* existing_function = (t_function*)symbol->data;
+    asprintf(&data_sem_error->msg, "%i:%i: '%s' redeclarado como un tipo diferente de símbolo\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i", 
+            line, column, id, 
+            existing_function->name, existing_function->return_type, 
+            symbol->line, symbol->column);
     insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
 }
 
-void check_type_conflict(t_variable* variable, int line, int column, const char* id) {
+void check_variable_redeclaration(t_symbol_table* symbol, int line, int column, const char* id) {
+    t_variable* existing_variable = (t_variable*)symbol->data;
+    asprintf(&data_sem_error->msg, "%i:%i: Redeclaración de '%s'\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i", 
+            line, column, id,
+            existing_variable->variable, existing_variable->type,
+            existing_variable->line, existing_variable->column);
+    insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+}
+
+void check_type_conflict(t_symbol_table* symbol, int line, int column, const char* id) {
+    t_variable* existing_variable = (t_variable*)symbol->data;
     asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la última es de tipo '%s'\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i",
             line, column, id,
-            data_variable->type, variable->variable, 
-            variable->type, variable->line, 
-            variable->column);
+            data_variable->type, existing_variable->variable, 
+            existing_variable->type, existing_variable->line, 
+            existing_variable->column);
     insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
 }
