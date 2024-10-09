@@ -630,7 +630,6 @@ void insert_sem_error_invocate_function(int line, int column, char* identifier, 
 void insert_sem_error_invalid_identifier(int line, int column, char* identifier) {
     t_symbol_table* existing_symbol = get_element(VARIABLE, identifier, compare_char_and_ID_variable);
     if(existing_symbol) {
-        t_variable* existing_variable = (t_variable*)existing_symbol->data;
         asprintf(&data_sem_error -> msg, "%i:%i: El objeto invocado '%s' no es una funcion o un puntero a una funcion\nNota: declarado aqui: %i:%i",
                 line, column, identifier, 
                 existing_symbol -> line, existing_symbol -> column);

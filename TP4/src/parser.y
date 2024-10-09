@@ -55,10 +55,10 @@ int quantity_parameters = 0;
 %token PTR_OP INC_OP DEC_OP
 %token ELIPSIS
 
-%type <int_type> expresion expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expMultiplicativa expUnaria expPostfijo
-%type <int_type> operAsignacion operUnario nombreTipo listaArgumentos expPrimaria
-%type <int_type> sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
-%type <string_type> unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto  
+%type expresion expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expMultiplicativa expUnaria expPostfijo
+%type operAsignacion operUnario nombreTipo listaArgumentos expPrimaria
+%type sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
+%type unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto  
 
 
 %start programa
@@ -199,8 +199,7 @@ expRelacional
     ;
     
 opcionRelacional
-    : 
-    | '<' expAditiva
+    : '<' expAditiva
     | '>' expAditiva
     | LE expAditiva
     | GE expAditiva
@@ -212,8 +211,7 @@ expAditiva
     ;
 
 opcionAditiva
-    : 
-    | '+' expMultiplicativa
+    : '+' expMultiplicativa
     | '-' expMultiplicativa
     ;
     
@@ -519,7 +517,7 @@ declaracionParametro
     ;
 
 opcionesDecla
-    :  {data_parameter.name = strdup("");}
+    :  {data_parameter.name = (char*)malloc(1); data_parameter.name = '\0';}
     | decla { 
         data_parameter.name = strdup($<string_type>1); 
         }
@@ -527,8 +525,7 @@ opcionesDecla
     ;
 
 listaIdentificadoresOp
-    : 
-    | listaIdentificadores
+    : listaIdentificadores
     ;
 
 listaIdentificadores
@@ -582,12 +579,6 @@ declaradorAbstractoDirecto
 postOpcionDeclaradorAbstracto
     : '[' expresion ']'
     | '(' listaTiposParametrosOp ')'
-    ;
-
-listaDeclaracionSentencia
-    : 
-    | listaDeclaracionSentencia declaracion
-    | listaDeclaracionSentencia sentencia
     ;
 
 %%
