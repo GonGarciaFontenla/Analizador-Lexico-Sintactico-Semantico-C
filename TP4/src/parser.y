@@ -245,7 +245,7 @@ expPostfijo
     : expPrimaria  
     | expPostfijo expPrimaria
     | IDENTIFICADOR opcionPostfijo {
-        //insert_sem_error_invocate_function(@1.first_line, @1.first_column, $<string_type>1, quantity_parameters);
+        insert_sem_error_invocate_function(@1.first_line, @1.first_column, $<string_type>1, quantity_parameters);
         quantity_parameters = 0;
     }
     ;
@@ -471,8 +471,8 @@ declaradorDirecto
     : IDENTIFICADOR {
         $<string_type>$ = strdup($<string_type>1);
         data_variable->variable = strdup($<string_type>1);
-        data_variable->line = yylloc.first_line;
-        data_variable->column = yylloc.first_column;
+        data_variable->line = data_symbol->line = yylloc.first_line;
+        data_variable->column =  data_symbol->column = yylloc.first_column;
     }
     | '(' decla ')'
     | declaradorDirecto continuacionDeclaradorDirecto { data_function->line = yylloc.first_line; parameter_flag = 1;}

@@ -592,43 +592,46 @@ void insert_sem_error_different_symbol(int column) {
     }
 }
 
-// void insert_sem_error_invocate_function(int line, int column, char* identifier, int quant_parameters) {
-//     if(!fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
-//         asprintf(&data_sem_error -> msg, "%i:%i: Funcion '%s' sin declarar", line, column, identifier);
-//         insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-//     } else if(!fetch_element(function, identifier, compare_char_and_ID_function)) {
-//         insert_sem_error_invalid_identifier(line, column, identifier);
-//     } else if(fetch_element(function, identifier, compare_char_and_ID_function)) {
-//         insert_sem_error_too_many_or_few_parameters(line, column, identifier, quant_parameters);
-//     }
-// }
+void insert_sem_error_invocate_function(int line, int column, char* identifier, int quant_parameters) {
+    if(!fetch_element(function, data_function, compare_ID_and_different_type_functions)) {
+        asprintf(&data_sem_error -> msg, "%i:%i: Funcion '%s' sin declarar", line, column, identifier);
+        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+    } else if(!fetch_element(function, identifier, compare_char_and_ID_function)) {
+        insert_sem_error_invalid_identifier(line, column, identifier);
+    } else if(fetch_element(function, identifier, compare_char_and_ID_function)) {
+        insert_sem_error_too_many_or_few_parameters(line, column, identifier, quant_parameters);
+    }
+}
 
-// void insert_sem_error_invalid_identifier(int line, int column, char* identifier) {
-//     t_variable* existing_variable = (t_variable*)get_element(variable, identifier, compare_char_and_ID_variable);
-//     if(existing_variable) {
-//         asprintf(&data_sem_error -> msg, "%i:%i: El objeto invocado '%s' no es una funcion o un puntero a una funcion\nNota: declarado aqui: %i:%i",
-//                 line, column, identifier, 
-//                 existing_variable -> line, existing_variable -> column);
-//         insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-//     }
-// }
+void insert_sem_error_invalid_identifier(int line, int column, char* identifier) {
+    t_symbol_table* existing_symbol = get_element(VARIABLE, identifier, compare_char_and_ID_variable);
+    if(existing_symbol) {
+        t_variable* existing_variable = (t_variable*)existing_symbol->data;
+        asprintf(&data_sem_error -> msg, "%i:%i: El objeto invocado '%s' no es una funcion o un puntero a una funcion\nNota: declarado aqui: %i:%i",
+                line, column, identifier, 
+                existing_symbol -> line, existing_symbol -> column);
+        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+    }
+}
 
-// void insert_sem_error_too_many_or_few_parameters(int line, int column, char* identifier, int quant_parameters) {
-//     t_function* existing_function = (t_function*)get_element(function, identifier, compare_char_and_ID_function);
-//     if(existing_function) {
-//         if(get_quantity_parameters(existing_function -> parameters) > quant_parameters) {
-//             asprintf(&data_sem_error -> msg, "%i:%i: Insuficientes argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
-//                     line, column, identifier,
-//                     existing_function -> line, 0);
-//             insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-//         } else if(get_quantity_parameters(existing_function -> parameters) < quant_parameters) {
-//             asprintf(&data_sem_error -> msg, "%i:%i: Demasiados argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
-//                     line, column, identifier,
-//                     existing_function -> line, 0);
-//             insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-//         }
-//     }
-// }
+void insert_sem_error_too_many_or_few_parameters(int line, int column, char* identifier, int quant_parameters) {
+    t_symbol_table* existing_symbol = get_element(FUNCTION, identifier, compare_char_and_ID_variable);
+    if(existing_symbol) {
+        t_function* existing_function = (t_function*)existing_symbol->data;
+
+        if(get_quantity_parameters(existing_function -> parameters) > quant_parameters) {
+            asprintf(&data_sem_error -> msg, "%i:%i: Insuficientes argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
+                    line, column, identifier,
+                    existing_symbol->line, existing_symbol->column);
+            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        } else if(get_quantity_parameters(existing_function -> parameters) < quant_parameters) {
+            asprintf(&data_sem_error -> msg, "%i:%i: Demasiados argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
+                    line, column, identifier,
+                    existing_symbol->line, existing_symbol->column);
+            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        }
+    }
+}
 
 void handle_redeclaration(int redeclaration_line, int redeclaration_column, const char* identifier) {
     t_symbol_table* existing_symbol = get_element(FUNCTION, data_variable, compare_ID_between_variable_and_function); // Si no encuentra, asigna null, por ende no hace falta reinicializar en las demas
