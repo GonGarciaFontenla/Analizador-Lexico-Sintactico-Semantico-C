@@ -186,7 +186,7 @@ void add_unrecognised_token(const char* intoken) {
 void add_sent(const char* tipo_sentencia, int line, int column) {
     data_sent->type = strdup(tipo_sentencia);
     if (!data_sent->type) {
-        printf("Error al asignar memoria para el tipo de sentencia");
+        printf("Error al asignar memoria para el tipo de sentencia en %i:%i", line, column);
         exit(EXIT_FAILURE);
     }
     data_sent->line = line;
@@ -604,7 +604,7 @@ t_symbol_table* get_element(SYMBOL_TYPE symbol_type, void* wanted, compare_eleme
     }
     return NULL;
 }
-
+//TO DO: comentamos todo porque nos falla la función '_asprintf'
 void insert_sem_error_different_symbol(int column) {
     t_symbol_table* existing_symbol = get_element(FUNCTION, data_function, compare_ID_and_different_type_functions);
     if(existing_symbol) {
@@ -612,7 +612,7 @@ void insert_sem_error_different_symbol(int column) {
         if(existing_function) {
             char* new_parameters = concat_parameters(data_function -> parameters);
             char* old_parameters = concat_parameters(existing_function -> parameters);
-            asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la última es de tipo '%s(%s)'\nNota: la declaración previa de '%s' es de tipo '%s(%s)': %i:%i",
+            _asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la ultima es de tipo '%s(%s)'\nNota: la declaracion previa de '%s' es de tipo '%s(%s)': %i:%i",
                     data_function->line, column, data_function->name,
                     data_function->return_type, new_parameters, existing_function->name, 
                     existing_function->return_type, old_parameters,
@@ -624,7 +624,7 @@ void insert_sem_error_different_symbol(int column) {
 
 void insert_sem_error_invocate_function(int line, int column, char* identifier, int quant_parameters) {
     if(!fetch_element(FUNCTION, data_function, compare_ID_and_different_type_functions)) {
-        asprintf(&data_sem_error -> msg, "%i:%i: Funcion '%s' sin declarar", line, column, identifier);
+        _asprintf(&data_sem_error -> msg, "%i:%i: Funcion '%s' sin declarar", line, column, identifier);
         insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
     } else if(!fetch_element(FUNCTION, identifier, compare_char_and_ID_function)) {
         insert_sem_error_invalid_identifier(line, column, identifier);
@@ -636,7 +636,7 @@ void insert_sem_error_invocate_function(int line, int column, char* identifier, 
 void insert_sem_error_invalid_identifier(int line, int column, char* identifier) {
     t_symbol_table* existing_symbol = get_element(VARIABLE, identifier, compare_char_and_ID_variable);
     if(existing_symbol) {
-        asprintf(&data_sem_error -> msg, "%i:%i: El objeto invocado '%s' no es una funcion o un puntero a una funcion\nNota: declarado aqui: %i:%i",
+        _asprintf(&data_sem_error -> msg, "%i:%i: El objeto invocado '%s' no es una funcion o un puntero a una funcion\nNota: declarado aqui: %i:%i",
                 line, column, identifier, 
                 existing_symbol -> line, existing_symbol -> column);
         insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
@@ -649,12 +649,12 @@ void insert_sem_error_too_many_or_few_parameters(int line, int column, char* ide
         t_function* existing_function = (t_function*)existing_symbol->data;
 
         if(get_quantity_parameters(existing_function -> parameters) > quant_parameters) {
-            asprintf(&data_sem_error -> msg, "%i:%i: Insuficientes argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
+            _asprintf(&data_sem_error -> msg, "%i:%i: Insuficientes argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
                     line, column, identifier,
                     existing_symbol->line, existing_symbol->column);
             insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
         } else if(get_quantity_parameters(existing_function -> parameters) < quant_parameters) {
-            asprintf(&data_sem_error -> msg, "%i:%i: Demasiados argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
+            _asprintf(&data_sem_error -> msg, "%i:%i: Demasiados argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
                     line, column, identifier,
                     existing_symbol->line, existing_symbol->column);
             insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
@@ -685,7 +685,7 @@ void handle_redeclaration(int redeclaration_line, int redeclaration_column, cons
 
 void check_function_redeclaration(t_symbol_table* symbol, int line, int column, const char* id) {
     t_function* existing_function = (t_function*)symbol->data;
-    asprintf(&data_sem_error->msg, "%i:%i: '%s' redeclarado como un tipo diferente de símbolo\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i", 
+    _asprintf(&data_sem_error->msg, "%i:%i: '%s' redeclarado como un tipo diferente de simbolo\nNota: la declaracion previa de '%s' es de tipo '%s': %i:%i", 
             line, column, id, 
             existing_function->name, existing_function->return_type, 
             symbol->line, symbol->column);
@@ -694,7 +694,7 @@ void check_function_redeclaration(t_symbol_table* symbol, int line, int column, 
 
 void check_variable_redeclaration(t_symbol_table* symbol, int line, int column, const char* id) {
     t_variable* existing_variable = (t_variable*)symbol->data;
-    asprintf(&data_sem_error->msg, "%i:%i: Redeclaración de '%s'\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i", 
+    _asprintf(&data_sem_error->msg, "%i:%i: Redeclaracion de '%s'\nNota: la declaracion previa de '%s' es de tipo '%s': %i:%i", 
             line, column, id,
             existing_variable->variable, existing_variable->type,
             existing_variable->line, existing_variable->column);
@@ -703,7 +703,7 @@ void check_variable_redeclaration(t_symbol_table* symbol, int line, int column, 
 
 void check_type_conflict(t_symbol_table* symbol, int line, int column, const char* id) {
     t_variable* existing_variable = (t_variable*)symbol->data;
-    asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la última es de tipo '%s'\nNota: la declaración previa de '%s' es de tipo '%s': %i:%i",
+    _asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la ultima es de tipo '%s'\nNota: la declaracion previa de '%s' es de tipo '%s': %i:%i",
             line, column, id,
             data_variable->type, existing_variable->variable, 
             existing_variable->type, existing_variable->line, 
@@ -745,7 +745,7 @@ void check_type_conflict(t_symbol_table* symbol, int line, int column, const cha
 //             switch(type) {
 //                 case STRING:
 //                     if(param->validation_type != STRING) {
-//                         asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos para el argumento %i de '%s'\nNota: se esperaba '%s' pero el argumento es de tipo 'char*': %i:%i",
+//                         __asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos para el argumento %i de '%s'\nNota: se esperaba '%s' pero el argumento es de tipo 'char*': %i:%i",
 //                                 yylloc.first_line, yylloc.first_column, i, existing_function->name, param->type,
 //                                 existing_symbol->line, existing_symbol->column);
 //                         insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
@@ -764,3 +764,65 @@ void check_type_conflict(t_symbol_table* symbol, int line, int column, const cha
 //         aux = aux->next;
 //     }
 // }
+
+
+
+
+// struct t_variable* getId(char* identificador) {
+//     GenericNode* nodo_aux = variable;
+//     t_variable* var = nodo_aux->data;
+
+//     while (var != NULL && strcmp(identificador, var->variable) != 0) {
+//         nodo_aux = nodo_aux->next;
+//         var = nodo_aux->data;
+//     }
+//     if(var != NULL){
+//         return var;
+//     }else{
+//         return NULL;
+//     }
+// }
+struct t_variable* getId(char* identificador) {
+    GenericNode* nodo_aux = variable; // Asegúrate de que 'variable' esté inicializado correctamente
+    t_variable* var;
+    // Iterar a través de la lista enlazada
+    while (nodo_aux != NULL) {
+        var = nodo_aux->data; // Obtener el dato del nodo actual
+
+        // Comprobar si 'var' no es NULL y comparar
+        if (var != NULL && strcmp(identificador, var->variable) == 0) {
+            return var; // Retornar la variable si hay coincidencia
+        }
+
+        nodo_aux = nodo_aux->next; // Mover al siguiente nodo
+    }
+
+    // Si no se encontró el identificador, retornar NULL
+    return NULL;
+}
+
+int _asprintf(char **strp, const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    
+    // Calcula el tamaño de la cadena resultante
+    int size = _vscprintf(fmt, args) + 1;  // +1 para el terminador nulo
+    
+    if (size <= 0) {
+        va_end(args);
+        return -1;  // Error al calcular el tamaño
+    }
+    
+    // Asigna memoria
+    *strp = (char *)malloc(size);
+    if (*strp == NULL) {
+        va_end(args);
+        return -1;  // Error al asignar memoria
+    }
+    
+    // Genera la cadena formateada
+    vsnprintf(*strp, size, fmt, args);
+    
+    va_end(args);
+    return size - 1;  // Devuelve la longitud de la cadena sin contar el terminador nulo
+}

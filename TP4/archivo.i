@@ -5,7 +5,8 @@ void imprimir(void) {
 
 void imprimir(void);
 int imprimir = 2, compartida = -5;
-float potencia(float base, unsigned long);
+float potencia(float base, 
+unsigned long);
 int incremento(int y);
 long incremento(long y);
 

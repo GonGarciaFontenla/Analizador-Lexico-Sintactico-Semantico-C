@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 /* En los archivos de cabecera (header files) (*.h) poner DECLARACIONES (evitar DEFINICIONES) de C, así como directivas de preprocesador */
 /* Recordar solamente indicar archivos *.h en las directivas de preprocesador #include, nunca archivos *.c */
@@ -89,7 +90,7 @@ typedef enum {
 
 typedef struct {
     SYMBOL_TYPE symbol;
-    void* data;
+    void* data; 
     char* identifier;
     int line;
     int column;
@@ -131,6 +132,7 @@ void init_structures();
 void free_list(GenericNode** head);
 void free_all_lists(void);
 
+int _asprintf(char **strp, const char *fmt, ...);
 void add_sent(const char* tipo_sentencia, int line, int column);
 void add_unrecognised_token(const char* intoken);
 void add_sent(const char* tipo_sentencia, int line, int column);
@@ -179,5 +181,8 @@ void yerror(YYLTYPE ubicacion);
 
 int get_quantity_parameters(GenericNode* list);
 void add_parameter(TYPES validation_type);
+
+
+struct t_variable* getId(char* identificador) ;
 
 #endif 
