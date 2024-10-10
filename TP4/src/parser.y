@@ -18,6 +18,10 @@ GenericNode* symbol_table = NULL;
 
 //int* invocated_arguments = NULL;
 t_variable* data_variable = NULL;
+
+t_variable* data_variable_aux = NULL;
+t_variable* data_variable_aux_2 = NULL;
+
 t_function* data_function = NULL;
 t_parameter data_parameter;
 t_sent* data_sent = NULL;
@@ -28,6 +32,9 @@ int declaration_flag = 0; // Si está en declaracion
 int parameter_flag = 0; // Si está dentro de los parametros de X funcion
 int quantity_parameters = 0; // Cantidad de parametros
 int assign_void_flag = 0; // Si se asigna una variable a una funcion void
+
+int sem_multi = 0;
+char* tipo_auxiliar = "";
 
 %}
 
@@ -57,10 +64,11 @@ int assign_void_flag = 0; // Si se asigna una variable a una funcion void
 %token PTR_OP INC_OP DEC_OP
 %token ELIPSIS
 
-%type expresion expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expMultiplicativa expUnaria expPostfijo
-%type operAsignacion operUnario nombreTipo listaArgumentos expPrimaria
-%type sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
-%type unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto  
+/* TO DO: agregamos los tipos para que corra */
+%type <void*> expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expUnaria expMultiplicativa expPostfijo
+%type <void*> operAsignacion operUnario nombreTipo listaArgumentos expPrimaria
+%type <void*> sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
+%type <void*> unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto
 
 
 %start programa
@@ -159,7 +167,7 @@ expAsignacion
     : expCondicional
     | expUnaria operAsignacion expAsignacion {
         if(assign_void_flag) {
-            asprintf(&data_sem_error->msg, "%i:%i: No se ignora el valor de retorno void como deberia ser", @1.first_line, @1.first_column);
+            _asprintf(&data_sem_error->msg, "%i:%i: No se ignora el valor de retorno void como deberia ser", @1.first_line, @1.first_column);
             insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
             assign_void_flag = 0;
         }
@@ -214,7 +222,7 @@ opcionRelacional
     ;
 
 expAditiva
-    : expMultiplicativa
+    : expMultiplicativa 
     | expAditiva opcionAditiva
     ;
 
@@ -225,7 +233,14 @@ opcionAditiva
     
 expMultiplicativa
     : expUnaria
-    | expMultiplicativa '*' expUnaria { }
+    | expMultiplicativa '*' {sem_multi = 1;} expUnaria /* { 
+        if(data_variable_aux = getId($1)) {
+            printf("El tipo del primer operando () es: %s \n", data_variable_aux->type);F
+            printf("El tipo del segundo operando () es: %s \n", tipo_auxiliar);
+        } else { 
+            printf("No esta \n"); 
+        }
+    } */
     | expMultiplicativa '/' expUnaria
     | expMultiplicativa '%' expUnaria 
     ;
@@ -283,11 +298,13 @@ expPrimaria
     : IDENTIFICADOR {
         if(!declaration_flag) {
             if(!fetch_element(VARIABLE, $<string_type>1, compare_ID_parameter) && !fetch_parameter($<string_type>1) && !fetch_element(FUNCTION, $<string_type>1, compare_char_and_ID_function)) {
-                asprintf(&data_sem_error -> msg, "%i:%i: '%s' sin declarar", @1.first_line, @1.first_column, $<string_type>1);
-                insert_node(&semantic_errors, data_sem_error, sizeof(semantic_errors));
+               _asprintf(&data_sem_error -> msg, "%i:%i: '%s' sin declarar", @1.first_line, @1.first_column, $<string_type>1);
+               insert_node(&semantic_errors, data_sem_error, sizeof(semantic_errors));
             }
+            
         }
         declaration_flag = 0;
+
     }
     | ENTERO            { 
         // if(parameter_flag) {  
@@ -298,6 +315,7 @@ expPrimaria
         // if(parameter_flag){
         //     add_parameter(NUMBER);
         // }
+       
     }
     | CONSTANTE         {
         // if(parameter_flag) {
@@ -308,6 +326,12 @@ expPrimaria
         // if(parameter_flag) {
         //     add_parameter(STRING);
         // }
+        printf("El valor del sem es %d \n", sem_multi);
+        if(sem_multi == 1){
+            tipo_auxiliar = "char*";
+            sem_multi = 0;
+        }
+        
     }
     | '(' expresion ')' 
     | PALABRA_RESERVADA
@@ -340,7 +364,7 @@ definicionFuncion
         else {
             insert_sem_error_different_symbol(@2.first_column + 1);
             data_function->parameters = NULL;
-        }                
+        }              
     }
     ;
 
