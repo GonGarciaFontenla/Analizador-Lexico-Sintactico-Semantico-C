@@ -41,7 +41,13 @@ typedef struct {
     char* variable;
 } t_variable;
 
+typedef enum {
+    STRING,   
+    NUMBER
+} TYPES; 
+
 typedef struct {
+    TYPES validation_type;
     char* type;
     char* name;
 } t_parameter;
@@ -108,6 +114,7 @@ extern t_parameter data_parameter;
 extern t_sent* data_sent;
 extern t_error* new_error;
 extern t_semantic_error* data_sem_error;
+extern int* invocated_arguments;
 
 extern char* invalid_string;
 extern int first_line_error;
@@ -152,6 +159,7 @@ int compare_char_and_ID_function(void* data, void* wanted);
 int compare_char_and_ID_variable(void* data, void* wanted);
 int compare_ID_parameter(void* data, void* wanted);
 int compare_void_function(void* data, void* wanted);
+void compare_arguments(t_symbol_table* function);
 
 void print_lists();
 void print_semantic_errors(GenericNode* list);
@@ -170,5 +178,6 @@ void reset_token_buffer();
 void yerror(YYLTYPE ubicacion);
 
 int get_quantity_parameters(GenericNode* list);
+void add_parameter(TYPES validation_type);
 
 #endif 

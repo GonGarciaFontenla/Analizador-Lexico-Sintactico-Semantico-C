@@ -710,3 +710,57 @@ void check_type_conflict(t_symbol_table* symbol, int line, int column, const cha
             existing_variable->column);
     insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
 }
+
+// //add_parameter
+// int invocated_arguments_size = 0;
+
+// void add_parameter(TYPES validation_type) {
+//     invocated_arguments = (int*)realloc(invocated_arguments, (invocated_arguments_size + 1) * sizeof(TYPES));
+//     if(invocated_arguments == NULL){
+//         printf("Error al asignar memoria para invocated_arguments\n");
+//         exit(EXIT_FAILURE);
+//     }
+    
+//     switch(validation_type) {
+//         case NUMBER: 
+//             invocated_arguments[invocated_arguments_size] = NUMBER;
+//             break; 
+//         case STRING:
+//             invocated_arguments[invocated_arguments_size] = STRING;
+//             break;
+//         default: 
+//             break;
+//         }
+//         invocated_arguments_size++;
+// }
+
+// void compare_arguments(t_symbol_table* existing_symbol) {
+//     t_function* existing_function = (t_function*)existing_symbol->data;
+//     GenericNode* aux = existing_function->parameters;
+//     int quantity_parameters = get_quantity_parameters(aux);
+//     for(int i = 0; i < quantity_parameters && aux; i++) {
+//         t_parameter* param = (t_parameter*)aux->data;
+//         if(param && param->name) {
+//             TYPES type = invocated_arguments[i];
+//             switch(type) {
+//                 case STRING:
+//                     if(param->validation_type != STRING) {
+//                         asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos para el argumento %i de '%s'\nNota: se esperaba '%s' pero el argumento es de tipo 'char*': %i:%i",
+//                                 yylloc.first_line, yylloc.first_column, i, existing_function->name, param->type,
+//                                 existing_symbol->line, existing_symbol->column);
+//                         insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+//                     }
+//                     break;
+//                 case NUMBER:
+//                     if(param->validation_type != NUMBER) {
+//                         printf("CAGASTE!");
+//                     }
+//                     break;
+//                 default:
+//                     printf("Nada válido");
+//                     break;
+//             }
+//         }
+//         aux = aux->next;
+//     }
+// }

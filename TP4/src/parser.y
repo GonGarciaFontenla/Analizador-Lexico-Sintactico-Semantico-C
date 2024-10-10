@@ -16,6 +16,7 @@ GenericNode* sentencias = NULL;
 GenericNode* semantic_errors = NULL;
 GenericNode* symbol_table = NULL;
 
+//int* invocated_arguments = NULL;
 t_variable* data_variable = NULL;
 t_function* data_function = NULL;
 t_parameter data_parameter;
@@ -224,7 +225,7 @@ opcionAditiva
     
 expMultiplicativa
     : expUnaria
-    | expMultiplicativa '*' expUnaria
+    | expMultiplicativa '*' expUnaria { }
     | expMultiplicativa '/' expUnaria
     | expMultiplicativa '%' expUnaria 
     ;
@@ -251,6 +252,11 @@ expPostfijo
     | expPostfijo expPrimaria
     | IDENTIFICADOR opcionPostfijo {
         insert_sem_error_invocate_function(@1.first_line, @1.first_column, $<string_type>1, quantity_parameters);
+
+        // t_symbol_table* existing_symbol = (t_symbol_table*)get_element(FUNCTION, $<string_type>1, compare_char_and_ID_function);
+        // if(existing_symbol)
+        //     compare_arguments(existing_symbol);
+        
         if(fetch_element(FUNCTION, $<string_type>1, compare_void_function)) {
             assign_void_flag = 1;
         }
@@ -260,7 +266,7 @@ expPostfijo
 
 opcionPostfijo
     : '[' expresion ']'
-    | '(' listaArgumentosOp ')'
+    | '(' {parameter_flag = 1;} listaArgumentosOp ')' {parameter_flag = 0;}
     ;
 
 listaArgumentosOp
@@ -283,10 +289,26 @@ expPrimaria
         }
         declaration_flag = 0;
     }
-    | ENTERO        
-    | NUM        
-    | CONSTANTE 
-    | LITERAL_CADENA 
+    | ENTERO            { 
+        // if(parameter_flag) {  
+        //     add_parameter(NUMBER);
+        // }
+    } 
+    | NUM               { 
+        // if(parameter_flag){
+        //     add_parameter(NUMBER);
+        // }
+    }
+    | CONSTANTE         {
+        // if(parameter_flag) {
+        //     add_parameter(NUMBER);
+        // }
+    }
+    | LITERAL_CADENA    { 
+        // if(parameter_flag) {
+        //     add_parameter(STRING);
+        // }
+    }
     | '(' expresion ')' 
     | PALABRA_RESERVADA
     ;
@@ -523,6 +545,7 @@ listaParametros
 declaracionParametro
     : especificadorDeclaracion opcionesDecla {
         data_parameter.type = strdup($<string_type>1);
+        data_parameter.validation_type = NUMBER;
     }
     ;
 
