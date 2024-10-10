@@ -22,6 +22,7 @@ t_variable* data_variable = NULL;
 t_variable* data_variable_aux = NULL;
 t_variable* data_variable_aux_2 = NULL;
 
+t_arguments* invocated_arguments = NULL;
 t_function* data_function = NULL;
 t_parameter data_parameter;
 t_sent* data_sent = NULL;
@@ -29,12 +30,14 @@ t_semantic_error* data_sem_error = NULL;
 t_symbol_table* data_symbol = NULL;
 
 int declaration_flag = 0; // Si está en declaracion
+int semicolon_flag = 0; // Si hay un punto y coma
 int parameter_flag = 0; // Si está dentro de los parametros de X funcion
 int quantity_parameters = 0; // Cantidad de parametros
 int assign_void_flag = 0; // Si se asigna una variable a una funcion void
-
-int sem_multi = 0;
-char* tipo_auxiliar = "";
+int string_flag = 0;
+char* type_aux = "";
+int position = 1;
+int* vec_parameters = NULL;
 
 %}
 
@@ -50,7 +53,6 @@ char* tipo_auxiliar = "";
 
 %token <string_type> IDENTIFICADOR
 %token <string_type> LITERAL_CADENA
-%token <string_type> PALABRA_RESERVADA
 %token CONSTANTE
 %token <string_type> TIPO_DATO
 %token <string_type> TIPO_ALMACENAMIENTO TIPO_CALIFICADOR ENUM STRUCT UNION
@@ -64,11 +66,10 @@ char* tipo_auxiliar = "";
 %token PTR_OP INC_OP DEC_OP
 %token ELIPSIS
 
-/* TO DO: agregamos los tipos para que corra */
-%type <void*> expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expUnaria expMultiplicativa expPostfijo
-%type <void*> operAsignacion operUnario nombreTipo listaArgumentos expPrimaria
-%type <void*> sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
-%type <void*> unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto
+%type expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expUnaria expMultiplicativa expPostfijo
+%type operAsignacion operUnario nombreTipo listaArgumentos expPrimaria
+%type sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
+%type unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto
 
 
 %start programa
@@ -122,7 +123,7 @@ listaSentencias
     ;
 
 sentExpresion
-    : ';'
+    : ';' { semicolon_flag = 1;}
     | expresion ';' 
     | expresion error { yerror(@1);}
     ;
@@ -132,7 +133,6 @@ sentSeleccion
     | IF '(' expresion ')' sentencia ELSE sentencia  {add_sent("if/else", @1.first_line, @1.first_column);} 
     | SWITCH '(' expresion ')' {reset_token_buffer(); } sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column); }
     ;
-
 
 sentIteracion
     : WHILE '(' expresion ')' sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column);}
@@ -152,7 +152,12 @@ sentEtiquetadas
     ;
 
 sentSalto
-    : RETURN sentExpresion {add_sent($<string_type>1, @1.first_line, @1.first_column);}
+    : RETURN sentExpresion {add_sent($<string_type>1, @1.first_line, @1.first_column);
+        t_symbol_table* existing_symbol = (t_symbol_table*)get_element(FUNCTION, data_function->name, compare_char_and_ID_function);
+        if(existing_symbol) {
+            return_conflict_types(existing_symbol, @1.first_line, @1.last_column);
+        }
+    }
     | CONTINUE ';' {add_sent($<string_type>1, @1.first_line, @1.first_column);}
     | BREAK ';' {add_sent($<string_type>1, @1.first_line, @1.first_column);}
     | GOTO IDENTIFICADOR ';'{add_sent($<string_type>1, @1.first_line, @1.first_column);}
@@ -233,7 +238,7 @@ opcionAditiva
     
 expMultiplicativa
     : expUnaria
-    | expMultiplicativa '*' {sem_multi = 1;} expUnaria /* { 
+    | expMultiplicativa '*' expUnaria/* { 
         if(data_variable_aux = getId($1)) {
             printf("El tipo del primer operando () es: %s \n", data_variable_aux->type);F
             printf("El tipo del segundo operando () es: %s \n", tipo_auxiliar);
@@ -246,7 +251,7 @@ expMultiplicativa
     ;
 
 expUnaria
-    : expPostfijo 
+    : expPostfijo
     | INC_OP expUnaria 
     | DEC_OP expUnaria 
     | expUnaria INC_OP
@@ -265,13 +270,44 @@ operUnario
 expPostfijo
     : expPrimaria  
     | expPostfijo expPrimaria
-    | IDENTIFICADOR opcionPostfijo {
+    | IDENTIFICADOR opcionPostfijo { // ToDo: Delegar urgente esta asquerosidad!!!
         insert_sem_error_invocate_function(@1.first_line, @1.first_column, $<string_type>1, quantity_parameters);
 
-        // t_symbol_table* existing_symbol = (t_symbol_table*)get_element(FUNCTION, $<string_type>1, compare_char_and_ID_function);
-        // if(existing_symbol)
-        //     compare_arguments(existing_symbol);
-        
+        t_symbol_table* existing_symbol = (t_symbol_table*)get_element(FUNCTION, $<string_type>1, compare_char_and_ID_function);
+        if(existing_symbol) {
+            t_function* func = (t_function*)existing_symbol->data;
+            int quant = get_quantity_parameters(func->parameters);
+            for(int i = 0; i < quant; i++) {
+                switch(invocated_arguments[i].type) {
+                    case STRING:
+                        t_parameter* param = (t_parameter*)get_parameter(func->parameters, i);
+                        _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos para el argumento %i de '%s'\nNota: se esperaba '%s' pero el argumento es de tipo '%s': %i:%i",
+                                invocated_arguments[i].line, invocated_arguments[i].column, i + 1,
+                                func->name, param->type, "char*", param->line, param->column);
+                        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                        break;
+                    case ID:
+                        if(!fetch_element(FUNCTION, type_aux, compare_void_function)) {
+                            t_symbol_table* sym = (t_symbol_table*)get_element(FUNCTION, type_aux, compare_char_and_ID_function);
+                            if(sym) {
+                                t_function* function = (t_function*)sym->data;
+                                printf("Si:%i", i);
+                                t_parameter* param = (t_parameter*)get_parameter(func->parameters, i);
+                                char* parameters_concat = concat_parameters(function->parameters);
+                                _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos para el argumento %i de '%s'\nNota: se esperaba '%s' pero el argumento es de tipo '%s(*)(%s)': %i:%i",
+                                        invocated_arguments[i].line, invocated_arguments[i].column, i + 1,
+                                        func->name, param->type, function->return_type, parameters_concat, 
+                                        param->line, param->column);
+                                insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                            }
+                        }
+                    default:
+                        break;
+                }
+            }
+        }
+        free_invocated_arguments();
+
         if(fetch_element(FUNCTION, $<string_type>1, compare_void_function)) {
             assign_void_flag = 1;
         }
@@ -281,17 +317,12 @@ expPostfijo
 
 opcionPostfijo
     : '[' expresion ']'
-    | '(' {parameter_flag = 1;} listaArgumentosOp ')' {parameter_flag = 0;}
-    ;
-
-listaArgumentosOp
-    : 
-    | listaArgumentos 
+    | '(' { parameter_flag = 1;} listaArgumentos ')' { parameter_flag = 0;}
     ;
 
 listaArgumentos
     : expAsignacion { quantity_parameters ++;}
-    | listaArgumentos ',' expAsignacion { quantity_parameters ++;}
+    | listaArgumentos ',' expAsignacion { quantity_parameters ++; }
     ;
 
 expPrimaria
@@ -301,40 +332,37 @@ expPrimaria
                _asprintf(&data_sem_error -> msg, "%i:%i: '%s' sin declarar", @1.first_line, @1.first_column, $<string_type>1);
                insert_node(&semantic_errors, data_sem_error, sizeof(semantic_errors));
             }
-            
         }
         declaration_flag = 0;
-
+        
+        type_aux = strdup($<string_type>1);
+        //printf("%s- %i:%i\n", type_aux, @1.first_line, @1.first_column);
+        if(parameter_flag) {
+            add_argument(@1.first_line, @1.first_column, ID);
+        }
     }
     | ENTERO            { 
-        // if(parameter_flag) {  
-        //     add_parameter(NUMBER);
-        // }
+        if(parameter_flag) {  
+            add_argument(@1.first_line, @1.first_column, INT);
+        }
     } 
     | NUM               { 
-        // if(parameter_flag){
-        //     add_parameter(NUMBER);
-        // }
-       
+        if(parameter_flag){
+            add_argument(@1.first_line, @1.first_column, NUMBER);
+        }   
     }
     | CONSTANTE         {
-        // if(parameter_flag) {
-        //     add_parameter(NUMBER);
-        // }
+        if(parameter_flag) {
+            add_argument(@1.first_line, @1.first_column, INT);
+        }
     }
     | LITERAL_CADENA    { 
-        // if(parameter_flag) {
-        //     add_parameter(STRING);
-        // }
-        printf("El valor del sem es %d \n", sem_multi);
-        if(sem_multi == 1){
-            tipo_auxiliar = "char*";
-            sem_multi = 0;
+        if(parameter_flag) {
+            add_argument(@1.first_line, @1.first_column, STRING);
         }
-        
+        string_flag = 1;
     }
     | '(' expresion ')' 
-    | PALABRA_RESERVADA
     ;
 
 nombreTipo
@@ -360,6 +388,7 @@ definicionFuncion
             data_symbol -> column = @2.first_column + 1;
             insert_symbol(FUNCTION);
             data_function->parameters = NULL;
+            position = 0;
         }
         else {
             insert_sem_error_different_symbol(@2.first_column + 1);
@@ -379,6 +408,7 @@ declaracion
                 data_symbol -> column = @2.first_column + 1;
                 insert_symbol(FUNCTION);
                 data_function->parameters = NULL;
+                position = 0;
             } else {
                 insert_sem_error_different_symbol(@2.first_column + 1);
             }
@@ -569,7 +599,8 @@ listaParametros
 declaracionParametro
     : especificadorDeclaracion opcionesDecla {
         data_parameter.type = strdup($<string_type>1);
-        data_parameter.validation_type = NUMBER;
+        data_parameter.line = @1.first_line;
+        data_parameter.column = @1.first_column;
     }
     ;
 

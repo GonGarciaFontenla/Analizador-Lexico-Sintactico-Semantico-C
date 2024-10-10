@@ -9,6 +9,7 @@
 
 extern YYLTYPE yylloc;
 extern char *yytext; 
+int size_vec_arguments = 0;
 
 extern int yyleng;
 char* invalid_string;
@@ -352,20 +353,6 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
         printf("-\n");
     }
 
-    // printf("* Si\n");
-    // if(symbol_table) {
-    //     GenericNode* aux = symbol_table;
-    //     while(aux) {
-    //         t_symbol_table* auxx = (t_symbol_table*)aux->data;
-    //         if(auxx->symbol == 0) {
-    //             t_function* func = (t_function*) auxx->data;
-    //             printf("%i:%i: ID: %s - Symbol: %i - Ret: %s - Name: %s\n", auxx->line, auxx->column, auxx->identifier, auxx->symbol, func->return_type, func->name);
-                
-    //         }
-    //         aux = aux -> next;
-    //     }
-    // }
-
 }
 
 void print_semantic_errors(GenericNode* list) {
@@ -426,6 +413,20 @@ int fetch_parameter(const char* wanted) {
         t_parameter* param = (t_parameter*)current->data;
         if(param && param->name) {
             if (strcmp(param->name, wanted) == 0) { 
+                return 1; 
+            }
+        }
+        current = current->next;  
+    }
+    return 0; 
+}
+
+int fetch_type_parameter(t_function* function, char* wanted) {
+    GenericNode* current = function->parameters; 
+    while (current) {
+        t_parameter* param = (t_parameter*)current->data;
+        if(param && param->type) {
+            if (strcmp(param->type, wanted) == 0) { 
                 return 1; 
             }
         }
@@ -604,7 +605,7 @@ t_symbol_table* get_element(SYMBOL_TYPE symbol_type, void* wanted, compare_eleme
     }
     return NULL;
 }
-//TO DO: comentamos todo porque nos falla la función '_asprintf'
+//TO DO: comentamos todo porque nos falla la función 'asprintf'
 void insert_sem_error_different_symbol(int column) {
     t_symbol_table* existing_symbol = get_element(FUNCTION, data_function, compare_ID_and_different_type_functions);
     if(existing_symbol) {
@@ -711,118 +712,135 @@ void check_type_conflict(t_symbol_table* symbol, int line, int column, const cha
     insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
 }
 
-// //add_parameter
-// int invocated_arguments_size = 0;
-
-// void add_parameter(TYPES validation_type) {
-//     invocated_arguments = (int*)realloc(invocated_arguments, (invocated_arguments_size + 1) * sizeof(TYPES));
-//     if(invocated_arguments == NULL){
-//         printf("Error al asignar memoria para invocated_arguments\n");
-//         exit(EXIT_FAILURE);
-//     }
-    
-//     switch(validation_type) {
-//         case NUMBER: 
-//             invocated_arguments[invocated_arguments_size] = NUMBER;
-//             break; 
-//         case STRING:
-//             invocated_arguments[invocated_arguments_size] = STRING;
-//             break;
-//         default: 
-//             break;
-//         }
-//         invocated_arguments_size++;
-// }
-
-// void compare_arguments(t_symbol_table* existing_symbol) {
-//     t_function* existing_function = (t_function*)existing_symbol->data;
-//     GenericNode* aux = existing_function->parameters;
-//     int quantity_parameters = get_quantity_parameters(aux);
-//     for(int i = 0; i < quantity_parameters && aux; i++) {
-//         t_parameter* param = (t_parameter*)aux->data;
-//         if(param && param->name) {
-//             TYPES type = invocated_arguments[i];
-//             switch(type) {
-//                 case STRING:
-//                     if(param->validation_type != STRING) {
-//                         __asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos para el argumento %i de '%s'\nNota: se esperaba '%s' pero el argumento es de tipo 'char*': %i:%i",
-//                                 yylloc.first_line, yylloc.first_column, i, existing_function->name, param->type,
-//                                 existing_symbol->line, existing_symbol->column);
-//                         insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-//                     }
-//                     break;
-//                 case NUMBER:
-//                     if(param->validation_type != NUMBER) {
-//                         printf("CAGASTE!");
-//                     }
-//                     break;
-//                 default:
-//                     printf("Nada válido");
-//                     break;
-//             }
-//         }
-//         aux = aux->next;
-//     }
-// }
-
-
-
 
 // struct t_variable* getId(char* identificador) {
-//     GenericNode* nodo_aux = variable;
-//     t_variable* var = nodo_aux->data;
+//     GenericNode* nodo_aux = variable; // Asegúrate de que 'variable' esté inicializado correctamente
+//     t_variable* var;
+//     // Iterar a través de la lista enlazada
+//     while (nodo_aux != NULL) {
+//         var = nodo_aux->data; // Obtener el dato del nodo actual
 
-//     while (var != NULL && strcmp(identificador, var->variable) != 0) {
-//         nodo_aux = nodo_aux->next;
-//         var = nodo_aux->data;
+//         // Comprobar si 'var' no es NULL y comparar
+//         if (var != NULL && strcmp(identificador, var->variable) == 0) {
+//             return var; // Retornar la variable si hay coincidencia
+//         }
+
+//         nodo_aux = nodo_aux->next; // Mover al siguiente nodo
 //     }
-//     if(var != NULL){
-//         return var;
-//     }else{
-//         return NULL;
-//     }
+
+//     // Si no se encontró el identificador, retornar NULL
+//     return NULL;
 // }
-struct t_variable* getId(char* identificador) {
-    GenericNode* nodo_aux = variable; // Asegúrate de que 'variable' esté inicializado correctamente
-    t_variable* var;
-    // Iterar a través de la lista enlazada
-    while (nodo_aux != NULL) {
-        var = nodo_aux->data; // Obtener el dato del nodo actual
-
-        // Comprobar si 'var' no es NULL y comparar
-        if (var != NULL && strcmp(identificador, var->variable) == 0) {
-            return var; // Retornar la variable si hay coincidencia
-        }
-
-        nodo_aux = nodo_aux->next; // Mover al siguiente nodo
-    }
-
-    // Si no se encontró el identificador, retornar NULL
-    return NULL;
-}
 
 int _asprintf(char **strp, const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     
-    // Calcula el tamaño de la cadena resultante
-    int size = _vscprintf(fmt, args) + 1;  // +1 para el terminador nulo
-    
+    int size;
+#ifdef _WIN32
+    size = _vscprintf(fmt, args) + 1;  // +1 para el terminador nulo en Windows
+#else
+    size = vsnprintf(NULL, 0, fmt, args) + 1;  // +1 para el terminador nulo en Linux
+#endif
+
+    // Terminamos el uso de args para reiniciarlo después
+    va_end(args);
+
     if (size <= 0) {
-        va_end(args);
         return -1;  // Error al calcular el tamaño
     }
-    
-    // Asigna memoria
+
     *strp = (char *)malloc(size);
     if (*strp == NULL) {
-        va_end(args);
         return -1;  // Error al asignar memoria
     }
+
+    // Volvemos a inicializar el va_list
+    va_start(args, fmt);
     
     // Genera la cadena formateada
-    vsnprintf(*strp, size, fmt, args);
-    
+#ifdef _WIN32
+    vsnprintf_s(*strp, size, size, fmt, args);  // Windows
+#else
+    vsnprintf(*strp, size, fmt, args);  // Linux/Unix
+#endif
+
     va_end(args);
-    return size - 1;  // Devuelve la longitud de la cadena sin contar el terminador nulo
+    return size - 1;  // Devuelve la longitud de la cadena sin contar el terminador nulo
+}
+
+void return_conflict_types(t_symbol_table* existing_symbol, int line, int column){
+        t_function* existing_function = (t_function*)existing_symbol->data;
+            printf("%i\n", string_flag);
+
+        if(strcmp(existing_function->return_type, "void") != 0) {
+            if(string_flag) {
+                _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al retornar el tipo '%s' pero se esperaba '%s'", 
+                        line, column + 1, "char *", existing_function->return_type);
+                insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                string_flag = 0;
+            } else {
+                t_symbol_table* symbol = (t_symbol_table*)get_element(FUNCTION, type_aux, compare_void_function);
+                if(symbol) {
+                    t_function* function = (t_function*)symbol->data;
+                    char* parameters = concat_parameters(function->parameters);
+                    _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al retornar el tipo '%s(*)(%s)' pero se esperaba '%s'", 
+                            line, column + 1, function->return_type, parameters, existing_function->return_type);
+                    insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                    }
+                }
+        } else {
+            if(semicolon_flag) {
+                _asprintf(&data_sem_error->msg, "%i:%i: 'return' sin valor en una funcion que no retorna void\nNota: declarado aqui: %i:%i", 
+                line, column, existing_symbol->line, existing_symbol->column);
+                insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                string_flag = 0;
+            }
+        }
+}
+
+void add_argument(int line, int column, TYPES type) {
+    t_arguments* temp = realloc(invocated_arguments, (size_vec_arguments + 1) * sizeof(t_arguments));
+    if (temp == NULL) {
+        printf("Error al redimensionar la memoria.\n");
+        return;
+    }
+    
+    invocated_arguments = temp;
+
+    invocated_arguments[size_vec_arguments].line = line;
+    invocated_arguments[size_vec_arguments].column = column;
+    invocated_arguments[size_vec_arguments].type = type;
+
+    size_vec_arguments++;
+}
+
+void free_invocated_arguments() {
+    if (invocated_arguments == NULL) {
+        return;  // Si ya es NULL, no hay nada que liberar
+    }
+
+    for (int i = 0; i < size_vec_arguments; i++) {
+        free(invocated_arguments[i].name);  // Liberar el campo name
+    }
+
+    free(invocated_arguments);
+
+    invocated_arguments = NULL;
+    size_vec_arguments = 0;
+}
+
+void* get_parameter(GenericNode* list, int index) {
+    GenericNode* current = list;
+    int count = 0;
+    while (current && count < index) {
+        current = current->next;
+        count++;
+    }
+
+    if (current != NULL) {
+        return current->data;
+    } else {
+        return NULL;
+    }
 }

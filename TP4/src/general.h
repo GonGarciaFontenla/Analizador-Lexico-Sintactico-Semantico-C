@@ -44,13 +44,16 @@ typedef struct {
 
 typedef enum {
     STRING,   
-    NUMBER
+    INT,
+    NUMBER,
+    ID
 } TYPES; 
 
 typedef struct {
-    TYPES validation_type;
     char* type;
     char* name;
+    int line;
+    int column;
 } t_parameter;
 
 typedef struct {
@@ -97,6 +100,13 @@ typedef struct {
     int scope;
 } t_symbol_table;
 
+typedef struct {
+    int line;
+    int column;
+    TYPES type;
+    char* name;
+} t_arguments;
+
 #define INICIO_CONTEO_LINEA 1
 #define INICIO_CONTEO_COLUMNA 1
 
@@ -115,10 +125,14 @@ extern t_parameter data_parameter;
 extern t_sent* data_sent;
 extern t_error* new_error;
 extern t_semantic_error* data_sem_error;
-extern int* invocated_arguments;
+extern t_arguments* invocated_arguments;
 
 extern char* invalid_string;
 extern int first_line_error;
+extern int string_flag;
+extern char* type_aux;
+extern int semicolon_flag; 
+extern int size_vec_arguments;
 
 typedef int (*compare_element)(void* data, void* wanted); // Es un alias para llamar en la funcion fetch y que resulte mucho mas legible
 
@@ -131,12 +145,14 @@ void init_structures();
 // con un struct que tenga un union y un enum, pero lo dejamos para la entrega final, muy dificil de pensar ahora 
 void free_list(GenericNode** head);
 void free_all_lists(void);
+void free_invocated_arguments();
 
 int _asprintf(char **strp, const char *fmt, ...);
 void add_sent(const char* tipo_sentencia, int line, int column);
 void add_unrecognised_token(const char* intoken);
 void add_sent(const char* tipo_sentencia, int line, int column);
 void append_token(const char* token);
+void add_argument(int line, int column, TYPES type);
 void save_function(char* type, const char* return_type, const char* id);
 char* concat_parameters(GenericNode* parameters);
 
@@ -169,6 +185,7 @@ void print_semantic_errors(GenericNode* list);
 t_symbol_table* get_element(SYMBOL_TYPE symbol_type, void* wanted, compare_element cmp);
 int fetch_element(SYMBOL_TYPE sym, void* wanted, compare_element cmp);
 int fetch_parameter(const char* wanted);
+int fetch_type_parameter(t_function* function, char* wanted);
 
 void handle_redeclaration(int redeclaration_line, int redeclaration_column, const char* identifier); 
 void check_function_redeclaration(t_symbol_table* function, int redeclaration_line, int redeclaration_column, const char* identifier); 
@@ -179,8 +196,10 @@ void reset_token_buffer();
 
 void yerror(YYLTYPE ubicacion);
 
+void* get_parameter(GenericNode* list, int index);
 int get_quantity_parameters(GenericNode* list);
 void add_parameter(TYPES validation_type);
+void return_conflict_types(t_symbol_table* existing_symbol, int line, int column); 
 
 
 struct t_variable* getId(char* identificador) ;
