@@ -769,9 +769,8 @@ int _asprintf(char **strp, const char *fmt, ...) {
     return size - 1;  // Devuelve la longitud de la cadena sin contar el terminador nulo
 }
 
-void return_conflict_types(t_symbol_table* existing_symbol, int line, int column){
+void return_conflict_types(t_symbol_table* existing_symbol, int line, int column){ // ToDo: Delegar
         t_function* existing_function = (t_function*)existing_symbol->data;
-            printf("%i\n", string_flag);
 
         if(strcmp(existing_function->return_type, "void") != 0) {
             if(string_flag) {
@@ -859,7 +858,7 @@ void manage_conflict_tpyes(int line, int column) {
     }
 }
 
-void manage_conflict_arguments (char* identifier){
+void manage_conflict_arguments (char* identifier){ // ToDo: delegar cada "case"
     t_symbol_table* existing_symbol = (t_symbol_table*)get_element(FUNCTION, identifier, compare_char_and_ID_function);
     if(existing_symbol) {
         t_function* func = (t_function*)existing_symbol->data;
@@ -878,7 +877,6 @@ void manage_conflict_arguments (char* identifier){
                         t_symbol_table* sym = (t_symbol_table*)get_element(FUNCTION, type_aux, compare_char_and_ID_function);
                         if(sym) {
                             t_function* function = (t_function*)sym->data;
-                            printf("Si:%i", i);
                             t_parameter* param = (t_parameter*)get_parameter(func->parameters, i);
                             char* parameters_concat = concat_parameters(function->parameters);
                             _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos para el argumento %i de '%s'\nNota: se esperaba '%s' pero el argumento es de tipo '%s(*)(%s)': %i:%i",

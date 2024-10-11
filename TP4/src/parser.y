@@ -280,6 +280,7 @@ expPostfijo
         }
         quantity_parameters = 0;
     }
+    | IDENTIFICADOR '(' ')'
     ;
 
 opcionPostfijo
@@ -301,9 +302,9 @@ expPrimaria
             }
         }
         declaration_flag = 0;
-        
+        string_flag = 0;
         type_aux = strdup($<string_type>1);
-        //printf("%s- %i:%i\n", type_aux, @1.first_line, @1.first_column);
+        
         if(parameter_flag) {
             add_argument(@1.first_line, @1.first_column, ID);
         }
