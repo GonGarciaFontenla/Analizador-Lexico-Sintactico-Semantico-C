@@ -844,3 +844,53 @@ void* get_parameter(GenericNode* list, int index) {
         return NULL;
     }
 }
+
+void manage_conflict_tpyes(int line, int column) {
+    if(!fetch_element(FUNCTION, data_function, compare_ID_in_declaration_or_definition) && !fetch_element(FUNCTION, data_function, compare_ID_and_different_type_functions)) {
+        insert_node(&function, data_function, sizeof(t_function));
+        data_symbol -> line = line;
+        data_symbol -> column = column;
+        insert_symbol(FUNCTION);
+        data_function->parameters = NULL;
+        position = 0;
+    } else {
+        insert_sem_error_different_symbol(column);
+        data_function->parameters = NULL; 
+    }
+}
+
+void manage_conflict_arguments (char* identifier){
+    t_symbol_table* existing_symbol = (t_symbol_table*)get_element(FUNCTION, identifier, compare_char_and_ID_function);
+    if(existing_symbol) {
+        t_function* func = (t_function*)existing_symbol->data;
+        int quant = get_quantity_parameters(func->parameters);
+        for(int i = 0; i < quant; i++) {
+            switch(invocated_arguments[i].type) {
+                case STRING:
+                    t_parameter* param = (t_parameter*)get_parameter(func->parameters, i);
+                    _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos para el argumento %i de '%s'\nNota: se esperaba '%s' pero el argumento es de tipo '%s': %i:%i",
+                            invocated_arguments[i].line, invocated_arguments[i].column, i + 1,
+                            func->name, param->type, "char*", param->line, param->column);
+                    insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                    break;
+                case ID:
+                    if(!fetch_element(FUNCTION, type_aux, compare_void_function)) {
+                        t_symbol_table* sym = (t_symbol_table*)get_element(FUNCTION, type_aux, compare_char_and_ID_function);
+                        if(sym) {
+                            t_function* function = (t_function*)sym->data;
+                            printf("Si:%i", i);
+                            t_parameter* param = (t_parameter*)get_parameter(func->parameters, i);
+                            char* parameters_concat = concat_parameters(function->parameters);
+                            _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos para el argumento %i de '%s'\nNota: se esperaba '%s' pero el argumento es de tipo '%s(*)(%s)': %i:%i",
+                                    invocated_arguments[i].line, invocated_arguments[i].column, i + 1,
+                                    func->name, param->type, function->return_type, parameters_concat, 
+                                    param->line, param->column);
+                            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                        }
+                    }
+                default:
+                    break;
+            }
+        }
+    } 
+}

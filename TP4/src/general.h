@@ -133,6 +133,7 @@ extern int string_flag;
 extern char* type_aux;
 extern int semicolon_flag; 
 extern int size_vec_arguments;
+extern int position; 
 
 typedef int (*compare_element)(void* data, void* wanted); // Es un alias para llamar en la funcion fetch y que resulte mucho mas legible
 
@@ -200,7 +201,8 @@ void* get_parameter(GenericNode* list, int index);
 int get_quantity_parameters(GenericNode* list);
 void add_parameter(TYPES validation_type);
 void return_conflict_types(t_symbol_table* existing_symbol, int line, int column); 
-
+void manage_conflict_tpyes(int line, int column);
+void manage_conflict_arguments(char* identifier); 
 
 struct t_variable* getId(char* identificador) ;
 
