@@ -469,6 +469,7 @@ int compare_ID_and_different_type_functions(void* data, void* wanted) {
     t_function* data_wanted = (t_function*)wanted;
     if(strcmp(function_var->return_type, data_wanted->return_type) != 0)
         return strcmp(function_var->name, data_wanted->name) == 0;
+    
     return 0;
 }
 
@@ -515,8 +516,16 @@ int compare_char_and_ID_variable(void* data, void* wanted) {
 int compare_ID_in_declaration_or_definition(void* data, void* wanted) { 
     t_function* function_var = (t_function*)data;
     t_function* data_wanted = (t_function*)wanted;
-    return (strcmp(function_var->type, data_wanted->type) == 0 && 
-            strcmp(function_var->name, data_wanted->name) == 0);
+    if(strcmp(function_var->name, data_wanted->name) == 0) {
+        if(strcmp(function_var->type, data_wanted->type) == 0)
+            return 1;
+        else {
+            if(strcmp(function_var->type, "definicion") == 0 && strcmp(data_wanted->type, "declaracion") == 0) {
+                return 1;
+            }
+        }
+    }
+    return 0;
 }
 
 // Busca el IDENTIFICADOR de la variable en los parametros de la funcion
