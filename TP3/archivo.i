@@ -3,7 +3,6 @@ float potencia(float base, long exp) {
     for (; exp > 0; exp--) {
         acumulador *= base;
     }
-    acumulador = ;
     return acumulador;
 }
 

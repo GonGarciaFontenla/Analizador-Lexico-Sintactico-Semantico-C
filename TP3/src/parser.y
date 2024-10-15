@@ -57,14 +57,12 @@ t_sent* data_sent = NULL;
 %%
 
 programa
-    : input
+    : unidadTraduccion
     ;
 
-input
-    : 
-    | input expresion {reset_token_buffer();}
-    | input sentencia {reset_token_buffer();}
-    | input unidadTraduccion {reset_token_buffer();}
+unidadTraduccion
+    : declaracionExterna {reset_token_buffer();}
+    | unidadTraduccion declaracionExterna{reset_token_buffer();}
     ;
 
 sentencia
@@ -266,11 +264,6 @@ expPrimaria
 
 nombreTipo
     : TIPO_DATO 
-    ;
-
-unidadTraduccion
-    : declaracionExterna 
-    | unidadTraduccion declaracionExterna
     ;
 
 declaracionExterna
