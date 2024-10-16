@@ -276,7 +276,7 @@ definicionFuncion
         data_function->return_type = strdup($<string_type>1);
         data_function->name = strdup($<string_type>2); 
         data_function->type = "definicion"; 
-        insert_node(&function, data_function, sizeof(t_function));
+        insert_node((GenericNode**)&function, data_function, sizeof(t_function));
         data_function->parameters = NULL;
     }
     ;
@@ -287,7 +287,7 @@ declaracion
         data_function->return_type = strdup($<string_type>1);
         data_function->name = strdup($<string_type>2);
         data_function->type = "declaracion"; 
-        insert_node(&function, data_function, sizeof(t_function));
+        insert_node((GenericNode**)&function, data_function, sizeof(t_function));
         data_function->parameters = NULL;
     }
     | especificadorDeclaracion error {yerror(@2);}
@@ -306,10 +306,10 @@ especificadorDeclaracion
 
 listaDeclaradores
     : declarador { 
-            insert_node(&variable, data_variable, sizeof(t_variable));
+            insert_node((GenericNode**)&variable, data_variable, sizeof(t_variable));
     }
     | listaDeclaradores ',' declarador {
-            insert_node(&variable, data_variable, sizeof(t_variable));
+            insert_node((GenericNode**)&variable, data_variable, sizeof(t_variable));
     }
     ;
 
@@ -436,7 +436,7 @@ continuacionDeclaradorDirecto
     | '(' TIPO_DATO ')' { 
         data_parameter.type = strdup($<string_type>2);
         data_parameter.name = NULL;
-        insert_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter));
+        insert_node((GenericNode**)&(data_function->parameters), &data_parameter, sizeof(t_parameter));
         }
     ;
 
@@ -456,10 +456,10 @@ opcionalListaParametros
 
 listaParametros
     : declaracionParametro  {
-        insert_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter));
+        insert_node((GenericNode**)&(data_function->parameters), &data_parameter, sizeof(t_parameter));
     }
     | listaParametros ',' declaracionParametro {
-        insert_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter));
+        insert_node((GenericNode**)&(data_function->parameters), &data_parameter, sizeof(t_parameter));
     }
     ;
     
@@ -569,5 +569,5 @@ int main(int argc, char *argv[]) {
 }
 
 void yyerror(const char *s) {
-    // No hacemos nada aquí para evitar cualquier impresión o manejo
+    fprintf(stderr, "Error de sintaxis: %s\n", s);
 }

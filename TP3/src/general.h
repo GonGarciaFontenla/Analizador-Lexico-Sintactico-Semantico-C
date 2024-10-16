@@ -121,5 +121,6 @@ int compare_lines(const void* a, const void* b);
 void reset_token_buffer();
 
 void yerror(YYLTYPE string);
+void yyerror(const char *s) ;
 
 #endif
