@@ -46,7 +46,8 @@ typedef enum {
     STRING,   
     INT,
     NUMBER,
-    ID
+    ID,
+    UNKNOWN
 } TYPES; 
 
 typedef struct {
@@ -126,6 +127,7 @@ extern t_sent* data_sent;
 extern t_error* new_error;
 extern t_semantic_error* data_sem_error;
 extern t_arguments* invocated_arguments;
+extern TYPES current_symbol;
 
 extern char* invalid_string;
 extern int first_line_error;
@@ -134,6 +136,7 @@ extern char* type_aux;
 extern int semicolon_flag; 
 extern int size_vec_arguments;
 extern int position; 
+extern int init_flag;
 
 typedef int (*compare_element)(void* data, void* wanted); // Es un alias para llamar en la funcion fetch y que resulte mucho mas legible
 
@@ -192,6 +195,7 @@ void handle_redeclaration(int redeclaration_line, int redeclaration_column, cons
 void check_function_redeclaration(t_symbol_table* function, int redeclaration_line, int redeclaration_column, const char* identifier); 
 void check_variable_redeclaration(t_symbol_table* variable, int line, int column, const char* id); 
 void check_type_conflict(t_symbol_table* variable, int line, int column, const char* id); 
+void check_assignation_types (char* identifier, int line, int column);
 
 void reset_token_buffer();
 
@@ -201,7 +205,7 @@ void* get_parameter(GenericNode* list, int index);
 int get_quantity_parameters(GenericNode* list);
 void add_parameter(TYPES validation_type);
 void return_conflict_types(t_symbol_table* existing_symbol, int line, int column); 
-void manage_conflict_tpyes(int line, int column);
+void manage_conflict_types(int line, int column);
 void manage_conflict_arguments(char* identifier); 
 
 struct t_variable* getId(char* identificador) ;

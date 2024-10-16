@@ -49,6 +49,7 @@ void append_token(const char* token) {
             exit(EXIT_FAILURE);
         }
         token_buffer = new_buffer;
+        token_buffer[0] = '\0';
     }
 
     // Agregar un espacio si el buffer ya tiene contenido
@@ -364,6 +365,8 @@ void print_semantic_errors(GenericNode* list) {
             aux = aux->next;
         }
         printf("\n");
+    } else {
+        printf("-\n");
     }
 }
 
@@ -614,7 +617,7 @@ t_symbol_table* get_element(SYMBOL_TYPE symbol_type, void* wanted, compare_eleme
     }
     return NULL;
 }
-//TO DO: comentamos todo porque nos falla la función 'asprintf'
+
 void insert_sem_error_different_symbol(int column) {
     t_symbol_table* existing_symbol = get_element(FUNCTION, data_function, compare_ID_and_different_type_functions);
     if(existing_symbol) {
@@ -853,7 +856,7 @@ void* get_parameter(GenericNode* list, int index) {
     }
 }
 
-void manage_conflict_tpyes(int line, int column) {
+void manage_conflict_types(int line, int column) {
     if(!fetch_element(FUNCTION, data_function, compare_ID_in_declaration_or_definition) && !fetch_element(FUNCTION, data_function, compare_ID_and_different_type_functions)) {
         insert_node(&function, data_function, sizeof(t_function));
         data_symbol -> line = line;
@@ -867,7 +870,7 @@ void manage_conflict_tpyes(int line, int column) {
     }
 }
 
-void manage_conflict_arguments (char* identifier){ // ToDo: delegar cada "case"
+void manage_conflict_arguments (char* identifier) { // ToDo: delegar cada "case"
     t_symbol_table* existing_symbol = (t_symbol_table*)get_element(FUNCTION, identifier, compare_char_and_ID_function);
     if(existing_symbol) {
         t_function* func = (t_function*)existing_symbol->data;
@@ -900,4 +903,46 @@ void manage_conflict_arguments (char* identifier){ // ToDo: delegar cada "case"
             }
         }
     } 
+}
+
+TYPES string_to_type(const char* type_str) {
+    if (strcmp(type_str, "int") == 0) return INT;
+    if (strcmp(type_str, "char") == 0) return INT; // Para que char sea compatible con int
+    if (strcmp(type_str, "float") == 0) return NUMBER;
+    if (strcmp(type_str, "string") == 0) return STRING;
+    return UNKNOWN;
+}
+
+void check_assignation_types (char* identifier, int line, int column) {
+    t_symbol_table* existing_symbol = (t_symbol_table*)get_element(VARIABLE, identifier, compare_char_and_ID_function);
+    if (existing_symbol) {
+        t_variable* var = (t_variable*)existing_symbol->data;
+        
+        if (current_symbol == ID) {
+            t_symbol_table* id_symbol = (t_symbol_table*)get_element(VARIABLE, identifier, compare_char_and_ID_function);
+            if (!id_symbol) {
+                id_symbol = (t_symbol_table*)get_element(FUNCTION, identifier, compare_char_and_ID_function);
+            }
+            if (id_symbol) {
+                if (id_symbol->symbol == FUNCTION) {
+                    current_symbol = string_to_type(((t_function*)id_symbol->data)->return_type);
+                } else {
+                    current_symbol = string_to_type(((t_variable*)id_symbol->data)->type);
+                }
+            }
+        }
+
+        if(string_to_type(var->type) != current_symbol) {
+            _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", 
+            line, column, var->type, current_symbol);
+            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        }
+    }
+    else {
+        if (!init_flag) { // Si la variable no esta siendo inicializada (aun no estaria en la tabla de simbolos)
+            _asprintf(&data_sem_error->msg, "%i:%i: Se requiere un valor-L modificable como operando izquierdo de la asignacion", line, column);
+            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        }
+
+    }
 }

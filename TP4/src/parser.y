@@ -35,9 +35,12 @@ int parameter_flag = 0; // Si está dentro de los parametros de X funcion
 int quantity_parameters = 0; // Cantidad de parametros
 int assign_void_flag = 0; // Si se asigna una variable a una funcion void
 int string_flag = 0;
+int init_flag = 0; // Si se esta realizando una asignacion
 char* type_aux = "";
 int position = 1;
 int* vec_parameters = NULL;
+
+TYPES current_symbol = UNKNOWN;
 
 %}
 
@@ -176,6 +179,9 @@ expAsignacion
             insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
             assign_void_flag = 0;
         }
+        //check_assignation_types ($<string_type>1, @1.first_line, @1.first_column + 1);
+        // verificar que la expUnaria sea valor L modificable
+        // verificar coincidencia en tipos
     }
     | expUnaria operAsignacion error 
     ;
@@ -308,26 +314,31 @@ expPrimaria
         if(parameter_flag) {
             add_argument(@1.first_line, @1.first_column, ID);
         }
+        current_symbol = ID;
     }
     | ENTERO            { 
         if(parameter_flag) {  
             add_argument(@1.first_line, @1.first_column, INT);
         }
+        current_symbol = INT;
     } 
     | NUM               { 
         if(parameter_flag){
             add_argument(@1.first_line, @1.first_column, NUMBER);
         }   
+        current_symbol = NUMBER;
     }
     | CONSTANTE         {
         if(parameter_flag) {
             add_argument(@1.first_line, @1.first_column, INT);
         }
+        current_symbol = INT;
     }
     | LITERAL_CADENA    { 
         if(parameter_flag) {
             add_argument(@1.first_line, @1.first_column, STRING);
         }
+        current_symbol = STRING;
         string_flag = 1;
     }
     | '(' expresion ')' 
@@ -350,7 +361,7 @@ declaracionExterna
 definicionFuncion
     : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta { 
         save_function("definicion", $<string_type>1, $<string_type>2);
-        manage_conflict_tpyes(@2.first_line, @2.first_column + 1);    
+        manage_conflict_types(@2.first_line, @2.first_column + 1);    
     }
     ;
 
@@ -359,7 +370,7 @@ declaracion
     | especificadorDeclaracion decla ';' {
         if (parameter_flag) {
             save_function("declaracion", $<string_type>1, $<string_type>2);
-            manage_conflict_tpyes(@2.first_line, @2.first_column + 1);
+            manage_conflict_types(@2.first_line, @2.first_column + 1);
         } else {
             insert_node(&variable, data_variable, sizeof(t_variable));
             insert_symbol(VARIABLE);
@@ -400,7 +411,11 @@ listaDeclaracionOp
     
 declarador
     : decla
-    | decla '=' inicializador
+    | decla '=' inicializador {
+        init_flag = 1;
+        //check_assignation_types ($<string_type>1, @1.first_line, @1.first_column + 1);
+        // verificar coincidencia en tipos
+    }
     ;
 
 opcionComa
@@ -641,6 +656,7 @@ int main(int argc, char *argv[]) {
     }
     
     free_all_lists(); 
+    free(yylval.string_type);
 
     return 0;
 }
