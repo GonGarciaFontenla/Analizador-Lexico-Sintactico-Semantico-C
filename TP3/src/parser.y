@@ -75,12 +75,12 @@ sentencia
     ;
 
 sentCompuesta
-    : '{' opcionDeclaracion opcionSentencia '}' 
+    : '{' listaDeclaracionOp opcionSentencia '}' 
     ;
 
-opcionDeclaracion
-    : 
-    | listaDeclaraciones
+listaDeclaracionOp
+    : listaDeclaraciones
+    | 
     ;
 
 opcionSentencia
@@ -89,7 +89,7 @@ opcionSentencia
     ;
 
 listaDeclaraciones
-    : declaracion opcionDeclaracion
+    : declaracion listaDeclaracionOp
     | error
     ;
 
@@ -266,11 +266,6 @@ declaracionExterna
     | declaracion
     ; 
 
-declaracionExterna
-    : definicionFuncion
-    | declaracion
-    ;
-
 definicionFuncion
     : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta {
         data_function->return_type = strdup($<string_type>1);
@@ -313,11 +308,6 @@ listaDeclaradores
     | listaDeclaradores ',' declarador {
             insert_node((GenericNode**)&variable, data_variable, sizeof(t_variable));
     }
-    ;
-
-listaDeclaracionOp
-    : 
-    | listaDeclaraciones
     ;
     
 declarador
