@@ -53,7 +53,8 @@ t_sent* data_sent = NULL;
 %type <void_type> unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto
 
 %start programa
-
+%left INC_OP
+%left DEC_OP
 %%
 
 programa
@@ -80,12 +81,12 @@ sentCompuesta
 
 listaDeclaracionOp
     : listaDeclaraciones
-    | 
+    | vacio
     ;
 
 opcionSentencia
     : listaSentencias
-    | 
+    | vacio
     ;
 
 listaDeclaraciones
@@ -104,11 +105,26 @@ sentExpresion
     | expresion error { yerror(@1);}
     ;
 
+/* GRAMATICA ORIGINAL */
 sentSeleccion
     : IF '(' expresion ')' sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column);} 
     | IF '(' expresion ')' sentencia ELSE sentencia  {add_sent("if/else", @1.first_line, @1.first_column);} 
     | SWITCH '(' expresion ')' {reset_token_buffer(); } sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column); }
     ;
+
+/* GRAMATICA NUEVA */
+
+/*
+sentSeleccion
+    : IF '(' expresion ')' sentencia opcionElse {add_sent("if/else", @1.first_line, @1.first_column);} 
+    | SWITCH '(' expresion ')' {reset_token_buffer(); } sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column); }
+    ;
+
+opcionElse
+    : vacio
+    : ELSE sentencia
+    ;
+*/
 
 sentIteracion
     : WHILE '(' expresion ')' sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column);}
@@ -117,8 +133,8 @@ sentIteracion
     ;
 
 expresionOp
-    : 
-    | expresion
+    : expresion
+    | vacio
     ;
 
 sentEtiquetadas
@@ -204,6 +220,7 @@ expMultiplicativa
     : expUnaria
     | expMultiplicativa opcionMultiplicativa
     ;
+
 opcionMultiplicativa
     : '*' expUnaria
     | '/' expUnaria
@@ -238,13 +255,16 @@ opcionPostfijo
     ;
 
 listaArgumentosOp
-    : 
-    | listaArgumentos
+    : listaArgumentos
+    | vacio
     ;
 
 listaArgumentos
-    : expAsignacion 
-    | listaArgumentos ',' expAsignacion
+    : expAsignacion masListaArgumentos
+    ;
+
+masListaArgumentos
+    : masListaArgumentos ',' expAsignacion
     ;
 
 expPrimaria
@@ -289,8 +309,8 @@ declaracion
     ;
     
 especificadorDeclaracionOp
-    : 
-    | especificadorDeclaracion
+    : especificadorDeclaracion
+    | vacio
     ;
     
 especificadorDeclaracion 
@@ -316,8 +336,8 @@ declarador
     ;
 
 opcionComa
-    : 
-    | ','
+    : ','
+    | vacio
     ;
 
 listaInicializadores
@@ -346,8 +366,8 @@ cuerpoEspecificador
     ;
 
 cuerpoStructOp
-    : 
-    | '{' listaDeclaracionesStruct '}'
+    : '{' listaDeclaracionesStruct '}'
+    | vacio
     ;
 
 listaDeclaracionesStruct
@@ -365,8 +385,8 @@ listaCalificadores
     ;
 
 listaCalificadoresOp
-    : 
-    | listaCalificadores
+    : listaCalificadores
+    | vacio
     ;
 
 declaradoresStruct
@@ -384,17 +404,18 @@ declaSi
     ;
 
 expConstanteOp
-    : 
-    | ':' expresion
+    : ':' expresion
+    | vacio
     ;
 
 decla
-    : punteroOp declaradorDirecto { $<string_type>$ = strdup($<string_type>2);}
+    : puntero declaradorDirecto { $<string_type>$ = strdup($<string_type>2);}
+    | declaradorDirecto { $<string_type>$ = strdup($<string_type>1);}
     ;
 
 punteroOp
-    : 
-    | puntero
+    : puntero
+    | vacio
     ;
 
 puntero
@@ -402,8 +423,8 @@ puntero
     ;
 
 listaCalificadoresTipoOp
-    : 
-    | listaCalificadoresTipo
+    : listaCalificadoresTipo
+    | vacio
     ;
     
 listaCalificadoresTipo
@@ -423,18 +444,23 @@ declaradorDirecto
 
 continuacionDeclaradorDirecto
     : '[' expConstanteOp ']'
-    | '(' listaTiposParametrosOp ')' 
-    | '(' listaIdentificadoresOp ')' 
-    | '(' TIPO_DATO ')' { 
-        data_parameter.type = strdup($<string_type>2);
+    | '(' opcional 
+    ;
+
+opcional
+    : ')' 
+    | listaTiposParametros  ')' 
+    | listaIdentificadores ')' 
+    | TIPO_DATO ')' { 
+        data_parameter.type = strdup($<string_type>1);
         data_parameter.name = NULL;
         insert_node((GenericNode**)&(data_function->parameters), &data_parameter, sizeof(t_parameter));
         }
     ;
 
 listaTiposParametrosOp 
-    : 
-    | listaTiposParametros 
+    : listaTiposParametros 
+    | vacio 
     ;
     
 listaTiposParametros
@@ -442,8 +468,8 @@ listaTiposParametros
     ;
     
 opcionalListaParametros
-    : 
-    | ',' ELIPSIS
+    : ',' ELIPSIS
+    | vacio
     ;
 
 listaParametros
@@ -454,7 +480,7 @@ listaParametros
         insert_node((GenericNode**)&(data_function->parameters), &data_parameter, sizeof(t_parameter));
     }
     ;
-    
+
 declaracionParametro
     : especificadorDeclaracion opcionesDecla {
         data_parameter.type = strdup($<string_type>1);
@@ -470,7 +496,7 @@ opcionesDecla
 
 listaIdentificadoresOp
     : listaIdentificadores
-    | 
+    | vacio
     ;
 
 listaIdentificadores
@@ -488,22 +514,22 @@ opcionalEspecificadorEnum
     ;
 
 opcionalListaEnumeradores
-    : 
-    | '{' listaEnumeradores '}'
+    : '{' listaEnumeradores '}'
+    | vacio
     ;
 
 listaEnumeradores
     : enumerador
     | listaEnumeradores ',' enumerador
     ;
-
+  
 enumerador
     : IDENTIFICADOR opcionalEnumerador
     ;
 
 opcionalEnumerador
     : '=' expresion
-    | 
+    | vacio
     ;
 
 declaradorAbstracto
@@ -513,7 +539,7 @@ declaradorAbstracto
 
 declaradorAbstractoDirectoOp
     : declaradorAbstractoDirecto
-    | 
+    | vacio
     ;
 
 declaradorAbstractoDirecto
@@ -526,6 +552,10 @@ postOpcionDeclaradorAbstracto
     | '(' listaTiposParametrosOp ')'
     ;
 
+vacio 
+    :
+    ;
+    
 %%
 
 
