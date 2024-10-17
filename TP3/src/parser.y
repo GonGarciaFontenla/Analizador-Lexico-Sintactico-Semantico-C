@@ -90,7 +90,6 @@ listaDeclaracionOp
     | vacio
     ;
 
-/* GRAMATICA ORIGINAL */
 listaSentencias
     : sentencia opcionSentencia
     ;
@@ -156,7 +155,6 @@ opcionalExpresionExtra
 expAsignacion
     : expCondicional
     | expUnaria operAsignacion expAsignacion 
-    | expUnaria operAsignacion error 
     ;
 
 operAsignacion
@@ -169,7 +167,7 @@ operAsignacion
 
 expCondicional
     : expOr 
-    | expOr '?' expresion : expCondicional
+    | expOr '?' expresion ':' expCondicional
     ; 
 
 expOr
