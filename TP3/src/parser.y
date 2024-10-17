@@ -67,12 +67,12 @@ unidadTraduccion
     ;
 
 sentencia
-    : sentCompuesta {reset_token_buffer();}
-    | sentExpresion {reset_token_buffer();}
-    | sentSeleccion {reset_token_buffer();}
-    | sentIteracion {reset_token_buffer();}
-    | sentEtiquetadas {reset_token_buffer();}
-    | sentSalto {reset_token_buffer();}
+    : sentCompuesta {reset_token_buffer();} 
+    | sentExpresion {reset_token_buffer();} 
+    | sentSeleccion {reset_token_buffer();} 
+    | sentIteracion {reset_token_buffer();} 
+    | sentEtiquetadas {reset_token_buffer();}  
+    | sentSalto {reset_token_buffer();} 
     ;
 
 sentCompuesta
@@ -96,34 +96,27 @@ listaDeclaraciones
 
 listaSentencias
     : sentencia opcionSentencia
-    | error
     ;
 
 sentExpresion
     : ';'
-    | expresion ';' 
-    | expresion error { yerror(@1);}
+    | expresion opcionExpresion
     ;
 
-/* GRAMATICA ORIGINAL */
+opcionExpresion
+    : ';'
+    | error {yerror(@0);}
+    ;
+
 sentSeleccion
-    : IF '(' expresion ')' sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column);} 
-    | IF '(' expresion ')' sentencia ELSE sentencia  {add_sent("if/else", @1.first_line, @1.first_column);} 
+    : IF '(' expresion ')' sentencia opcionElse
     | SWITCH '(' expresion ')' {reset_token_buffer(); } sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column); }
     ;
 
-/* GRAMATICA NUEVA */
-/*
-sentSeleccion
-    : IF '(' expresion ')' sentencia opcionElse
-    | SWITCH '(' expresion ')'  sentencia 
-    ;
-
 opcionElse
-    : vacio {add_sent("if", @-5.first_line, @-5.first_column);}
-    : ELSE sentencia {add_sent("if/else", @-5.first_line, @-5.first_column);}
+    : vacio {add_sent("if", @-4.first_line, @-4.first_column);}
+    | ELSE sentencia {add_sent("if/else", @-4.first_line, @-4.first_column);}
     ;
-*/
 
 sentIteracion
     : WHILE '(' expresion ')' sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column);}
@@ -245,17 +238,18 @@ operUnario
 
 expPostfijo
     : expPrimaria 
-    | expPostfijo expPrimaria
     | expPostfijo opcionPostfijo
     ;
+
 opcionPostfijo
     : '[' expresion ']'
-    | '(' listaArgumentosOp ')'
+    | '(' listaArgumentosOp 
+    | expPrimaria
     ;
 
 listaArgumentosOp
-    : listaArgumentos
-    | vacio
+    : listaArgumentos ')'
+    | ')'
     ;
 
 listaArgumentos
