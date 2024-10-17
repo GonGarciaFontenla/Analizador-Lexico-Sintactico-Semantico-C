@@ -180,8 +180,6 @@ expAsignacion
             assign_void_flag = 0;
         }
         //check_assignation_types ($<string_type>1, @1.first_line, @1.first_column + 1);
-        // verificar que la expUnaria sea valor L modificable
-        // verificar coincidencia en tipos
     }
     | expUnaria operAsignacion error 
     ;
@@ -413,8 +411,7 @@ declarador
     : decla
     | decla '=' inicializador {
         init_flag = 1;
-        //check_assignation_types ($<string_type>1, @1.first_line, @1.first_column + 1);
-        // verificar coincidencia en tipos
+        //check_assignation_types($3, @1.first_line, @1.first_column + 1); // No se puede pasar el $ 3
     }
     ;
 

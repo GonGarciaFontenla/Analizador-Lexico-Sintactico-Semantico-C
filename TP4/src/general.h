@@ -195,7 +195,7 @@ void handle_redeclaration(int redeclaration_line, int redeclaration_column, cons
 void check_function_redeclaration(t_symbol_table* function, int redeclaration_line, int redeclaration_column, const char* identifier); 
 void check_variable_redeclaration(t_symbol_table* variable, int line, int column, const char* id); 
 void check_type_conflict(t_symbol_table* variable, int line, int column, const char* id); 
-void check_assignation_types (char* identifier, int line, int column);
+void check_assignation_types (void* initializer, int line, int column);
 
 void reset_token_buffer();
 

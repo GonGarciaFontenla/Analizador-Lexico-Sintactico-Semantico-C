@@ -913,36 +913,95 @@ TYPES string_to_type(const char* type_str) {
     return UNKNOWN;
 }
 
-void check_assignation_types (char* identifier, int line, int column) {
-    t_symbol_table* existing_symbol = (t_symbol_table*)get_element(VARIABLE, identifier, compare_char_and_ID_function);
-    if (existing_symbol) {
+void check_assignation_types (void* initializer, int line, int column) {
+    if (initializer == NULL) {
+        printf("Error: Identifier is NULL at line %d, column %d\n", line, column);
+        return;
+    }
+
+    t_symbol_table* existing_symbol = (t_symbol_table*)get_element(VARIABLE, data_variable->variable, compare_char_and_ID_variable); // verificar que data_variable no haya quedado desactualizado
+
+    if (existing_symbol) { // Asignacion
         t_variable* var = (t_variable*)existing_symbol->data;
         
         if (current_symbol == ID) {
-            t_symbol_table* id_symbol = (t_symbol_table*)get_element(VARIABLE, identifier, compare_char_and_ID_function);
+            char* name = (char*)initializer;
+            t_symbol_table* id_symbol = (t_symbol_table*)get_element(VARIABLE, name, compare_char_and_ID_variable);
+
             if (!id_symbol) {
-                id_symbol = (t_symbol_table*)get_element(FUNCTION, identifier, compare_char_and_ID_function);
+                id_symbol = (t_symbol_table*)get_element(FUNCTION, name, compare_char_and_ID_function);
             }
             if (id_symbol) {
+
+                if (id_symbol->symbol == FUNCTION) {
+                    t_function* func = (t_function*)id_symbol->data;
+
+                    if(strcmp(var->type, func->return_type) != 0) {
+                        char* parameters_concat = concat_parameters(func->parameters);
+                        _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s (*)(%s)'", 
+                        line, column, var->type, func->return_type, parameters_concat);
+                        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                    }
+
+                } else {
+                    t_variable* variab = (t_variable*)id_symbol->data;
+                    if (strcmp(var->type, variab->type) != 0) {
+                        _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", 
+                        line, column, var->type, variab->type);
+                        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                    }
+                }
+            }
+        } else { // Se asigna un valor, verificar tipo
+
+        }
+
+    } else { // Inicializacion o no declarada
+
+        if (!init_flag) { // Si la variable no esta siendo inicializada y no fue declarada (no es variable)
+            _asprintf(&data_sem_error->msg, "%i:%i: Se requiere un valor-L modificable como operando izquierdo de la asignacion", line, column);
+            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+
+        } else { // Inicializacion, ver el tipo de la variable que todavia no esta guardado
+            t_variable* var = (t_variable*)existing_symbol->data;
+
+            if (current_symbol == ID) {
+            t_symbol_table* id_symbol = (t_symbol_table*)get_element(VARIABLE, initializer, compare_char_and_ID_variable);
+
+            if (!id_symbol) {
+                id_symbol = (t_symbol_table*)get_element(FUNCTION, initializer, compare_char_and_ID_function);
+            }
+            if (id_symbol) {
+
                 if (id_symbol->symbol == FUNCTION) {
                     current_symbol = string_to_type(((t_function*)id_symbol->data)->return_type);
+
+                    if(string_to_type(var->type) != current_symbol) {
+                        t_function* func = (t_function*)id_symbol->data;
+                        char* parameters_concat = concat_parameters(func->parameters);
+                        _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s (*)(%s)'", 
+                        line, column, var->type, func->return_type, parameters_concat);
+                        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                    }
+
                 } else {
                     current_symbol = string_to_type(((t_variable*)id_symbol->data)->type);
                 }
             }
         }
 
-        if(string_to_type(var->type) != current_symbol) {
-            _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", 
-            line, column, var->type, current_symbol);
-            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-        }
-    }
-    else {
-        if (!init_flag) { // Si la variable no esta siendo inicializada (aun no estaria en la tabla de simbolos)
-            _asprintf(&data_sem_error->msg, "%i:%i: Se requiere un valor-L modificable como operando izquierdo de la asignacion", line, column);
-            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-        }
+        // if(string_to_type(var->type) != current_symbol) {
+        //     _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", 
+        //     line, column, var->type, current_symbol);
+        //     insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        // }
 
+        
+        if(string_to_type(data_variable->type) != current_symbol) {
+            _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", 
+            line, column, data_variable->type, "tipo dato inicializador");
+            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        }
+        }
     }
 }
