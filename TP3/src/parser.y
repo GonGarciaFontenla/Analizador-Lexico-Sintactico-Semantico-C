@@ -79,23 +79,24 @@ sentCompuesta
     : '{' listaDeclaracionOp opcionSentencia '}' 
     ;
 
-listaDeclaracionOp
-    : listaDeclaraciones
-    | vacio
-    ;
-
-opcionSentencia
-    : listaSentencias
-    | vacio
-    ;
-
 listaDeclaraciones
     : declaracion listaDeclaracionOp
     | error
     ;
 
+listaDeclaracionOp
+    : listaDeclaraciones
+    | vacio
+    ;
+
+/* GRAMATICA ORIGINAL */
 listaSentencias
     : sentencia opcionSentencia
+    ;
+
+opcionSentencia
+    : vacio
+    | sentencia listaSentencias
     ;
 
 sentExpresion
@@ -236,20 +237,29 @@ operUnario
     | '!' 
     ;
 
+
 expPostfijo
-    : expPrimaria 
+    : expPrimariaAdaptada 
     | expPostfijo opcionPostfijo
+    ;
+    
+expPrimariaAdaptada
+    : IDENTIFICADOR 
+    | ENTERO        
+    | NUM        
+    | CONSTANTE 
+    | LITERAL_CADENA 
+    | PALABRA_RESERVADA
+    ;
+listaArgumentosOp
+    : listaArgumentos ')'
+    | ')'
+    | expresion ')'
     ;
 
 opcionPostfijo
     : '[' expresion ']'
     | '(' listaArgumentosOp 
-    | expPrimaria
-    ;
-
-listaArgumentosOp
-    : listaArgumentos ')'
-    | ')'
     ;
 
 listaArgumentos
