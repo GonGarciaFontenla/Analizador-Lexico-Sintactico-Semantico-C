@@ -55,6 +55,7 @@ t_sent* data_sent = NULL;
 %start programa
 %left INC_OP
 %left DEC_OP
+
 %%
 
 programa
@@ -144,10 +145,14 @@ sentSalto
     ;
 
 expresion
-    : expAsignacion 
-    | expresion ',' expAsignacion
+    : expAsignacion opcionalExpresionExtra
     ;
-
+    
+opcionalExpresionExtra
+    : 
+    | ',' expresion
+    ;
+    
 expAsignacion
     : expCondicional
     | expUnaria operAsignacion expAsignacion 
@@ -228,15 +233,15 @@ expUnaria
     | expUnaria DEC_OP
     | operUnario expUnaria 
     | SIZEOF '(' nombreTipo ')' 
-    ;
+    ;  
 
+ 
 operUnario
     : '&' 
     | '*' 
     | '-' 
     | '!' 
     ;
-
 
 expPostfijo
     : expPrimariaAdaptada 
@@ -251,6 +256,7 @@ expPrimariaAdaptada
     | LITERAL_CADENA 
     | PALABRA_RESERVADA
     ;
+
 listaArgumentosOp
     : listaArgumentos ')'
     | ')'
@@ -327,7 +333,6 @@ listaDeclaradores
             insert_node((GenericNode**)&variable, data_variable, sizeof(t_variable));
     }
     ;
-    
     | listaDeclaradores ',' declarador {
             insert_node((GenericNode**)&variable, data_variable, sizeof(t_variable));
     }
