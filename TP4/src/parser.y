@@ -40,8 +40,6 @@ char* type_aux = "";
 int position = 1;
 int* vec_parameters = NULL;
 
-TYPES current_symbol = UNKNOWN;
-
 %}
 
 %error-verbose
@@ -314,7 +312,6 @@ expPrimaria
         if(parameter_flag) {
             add_argument(@1.first_line, @1.first_column, ID);
         }
-        current_symbol = ID;
 
         $<var_val>$.value.id_val = strdup($<string_type>1);
         $<var_val>$.type = ID;
@@ -323,7 +320,6 @@ expPrimaria
         if(parameter_flag) {  
             add_argument(@1.first_line, @1.first_column, INT);
         }
-        current_symbol = INT;
 
         $<var_val>$.value.int_val = $<int_type>1;
         $<var_val>$.type = INT;
@@ -332,7 +328,6 @@ expPrimaria
         if(parameter_flag){
             add_argument(@1.first_line, @1.first_column, NUMBER);
         }   
-        current_symbol = NUMBER;
 
         $<var_val>$.value.double_val = $<double_type>1;
         $<var_val>$.type = NUM;
@@ -341,7 +336,6 @@ expPrimaria
         if(parameter_flag) {
             add_argument(@1.first_line, @1.first_column, INT);
         }
-        current_symbol = INT;
 
         $<var_val>$.value.int_val = $<int_type>1;
         $<var_val>$.type = INT;
@@ -350,7 +344,6 @@ expPrimaria
         if(parameter_flag) {
             add_argument(@1.first_line, @1.first_column, STRING);
         }
-        current_symbol = STRING;
         string_flag = 1;
 
         $<var_val>$.value.string_val = strdup($<string_type>1);
@@ -428,7 +421,7 @@ declarador
     : decla
     | decla '=' inicializador {
         init_flag = 1;
-        t_variable_value var_val;     
+        t_variable_value var_val;
         var_val.type = ID;
         var_val.value.id_val = strdup($<string_type>1);
         

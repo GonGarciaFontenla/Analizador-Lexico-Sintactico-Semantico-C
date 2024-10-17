@@ -795,7 +795,7 @@ void return_conflict_types(t_symbol_table* existing_symbol, int line, int column
                 if(symbol) {
                     t_function* function = (t_function*)symbol->data;
                     char* parameters = concat_parameters(function->parameters);
-                    _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al retornar el tipo '%s(*)(%s)' pero se esperaba '%s'", 
+                    _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al retornar el tipo '%s (*)(%s)' pero se esperaba '%s'", 
                             line, column + 1, function->return_type, parameters, existing_function->return_type);
                     insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
                     }
@@ -891,7 +891,7 @@ void manage_conflict_arguments (char* identifier) { // ToDo: delegar cada "case"
                             t_function* function = (t_function*)sym->data;
                             t_parameter* param = (t_parameter*)get_parameter(func->parameters, i);
                             char* parameters_concat = concat_parameters(function->parameters);
-                            _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos para el argumento %i de '%s'\nNota: se esperaba '%s' pero el argumento es de tipo '%s(*)(%s)': %i:%i",
+                            _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos para el argumento %i de '%s'\nNota: se esperaba '%s' pero el argumento es de tipo '%s (*)(%s)': %i:%i",
                                     invocated_arguments[i].line, invocated_arguments[i].column, i + 1,
                                     func->name, param->type, function->return_type, parameters_concat, 
                                     param->line, param->column);
@@ -909,7 +909,7 @@ const char* type_to_string(TYPES type) { // Revisar
     switch (type) {
         case INT: return "int";
         case NUMBER: return "double";
-        case STRING: return "char*";
+        case STRING: return "char *";
         case ID: return "id";
         case UNKNOWN: return "otro";
         default: return "unknown"; 
@@ -919,7 +919,7 @@ const char* type_to_string(TYPES type) { // Revisar
 void check_assignation_types (t_variable_value declarator, t_variable_value initializer, int line, int column) {
 
     if (declarator.type != ID) { // No es un valor L modificable
-        _asprintf(&data_sem_error->msg, "%i:%i: Se requiere un valor-L modificable como operando izquierdo de la asignacion", line, column);
+        _asprintf(&data_sem_error->msg, "%i:%i: Se requiere un valor-L modificable como operando izquierdo de la asignacion", line, column - 2);
         insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
         return;
     }
@@ -928,17 +928,22 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
     t_symbol_table* existing_symbol = (t_symbol_table*)get_element(VARIABLE, decla_name, compare_char_and_ID_variable);
 
     if (!existing_symbol && strcmp(decla_name, data_variable->variable) != 0) { // Hay una funcion del lado izquierdo (no es variable guardada ni se esta inicializando)
-        _asprintf(&data_sem_error->msg, "%i:%i: Se requiere un valor-L modificable como operando izquierdo de la asignacion", line, column);
+        _asprintf(&data_sem_error->msg, "%i:%i: Se requiere un valor-L modificable como operando izquierdo de la asignacion", line, column - 2);
         insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
         return;
     }
 
     // El lado izquierdo es una variable
-    // ToDo: Revisar si es const: Ej. "30:23: Asignacion de la variable de solo lectura 'e'"
-
     t_variable* var = NULL;
     if (existing_symbol) {
         var = (t_variable*)existing_symbol->data;
+        if (is_const(var->type)) { // Actualizar variable de solo lectura
+            _asprintf(&data_sem_error->msg, "%i:%i: Asignacion de la variable de solo lectura '%s'", 
+            line, column - 2, var->variable);
+            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+            return;
+        }
+
     } else {
          var = malloc(sizeof(t_variable)); 
         if (var == NULL) {
@@ -957,14 +962,13 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
             const char* init_name = strdup(initializer.value.id_val);
 
             t_symbol_table* aux = (t_symbol_table*)get_element(VARIABLE, init_name, compare_char_and_ID_variable);
-            if (aux) {
+            if (aux) { // El lado derecho es una variable
                 t_variable* init = (t_variable*)aux->data;
-                if (check_type_match(init->type, expected_type) != 0) {
-                    _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", 
-                    line, column, expected_type, init->type);
+                if (check_type_match(init->type, expected_type) == 0) {
+                    _asprintf(&data_sem_error->msg, "%i:%i: Inicializacion de un '%s' con un '%s'", line, column, expected_type, init->type);
                     insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
                 }
-            } else {
+            } else { // El lado derecho es una funcion
                 aux = (t_symbol_table*)get_element(FUNCTION, init_name, compare_char_and_ID_function);
                 if (!aux) {
                     printf("ID no encontrado");
@@ -972,7 +976,7 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
                 }
                 t_function* init = (t_function*)aux->data;
                 char* parameters_concat = concat_parameters(init->parameters);
-                if (check_type_match(init->return_type, expected_type) != 0) {
+                if (check_type_match(init->return_type, expected_type) == 0) {
                     _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s (*)(%s)'", 
                     line, column, expected_type, init->return_type, parameters_concat);
                     insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
@@ -983,15 +987,70 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
         default:
             const char* init_type = type_to_string(initializer.type);
 
-            if (check_type_match(init_type, expected_type) != 0) {
-                _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", 
-                line, column, expected_type, init_type);
+            if (check_type_match(init_type, expected_type) == 0) {
+                _asprintf(&data_sem_error->msg, "%i:%i: Inicializacion de un '%s' con un '%s'", line, column, expected_type, init_type);
                 insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
             }
             break;
     }
 }
 
+int is_const(const char* type) {
+    return strncmp(type, "const ", 6) == 0;
+}
+
 int check_type_match(const char* a, const char* b) { // Mejorar para que reconozca tipos compatibles
-    return strcmp(a, b);
+    // Quitar prefijos 'unsigned' y 'const' de ambos tipos
+    const char* baseA = get_base_type(a);
+    const char* baseB = get_base_type(b);
+    
+    if (strcmp(baseA, baseB) == 0) {
+        return 1; 
+    }
+    
+    if ((strcmp(baseA, "float") == 0 && strcmp(baseB, "double") == 0) ||
+        (strcmp(baseA, "double") == 0 && strcmp(baseB, "float") == 0)) {
+        return 1; 
+    }
+
+    if ((strcmp(baseA, "int") == 0 && strcmp(baseB, "long") == 0) ||
+        (strcmp(baseA, "long") == 0 && strcmp(baseB, "int") == 0)) {
+        return 1; 
+    }
+
+    if ((strcmp(baseA, "int") == 0 && strcmp(baseB, "short") == 0) ||
+        (strcmp(baseA, "short") == 0 && strcmp(baseB, "int") == 0)) {
+        return 1; 
+    }
+
+    return 0;
+}
+
+const char* get_base_type(const char* type) { // Devuelve la ultima palabra del tipo para facilitar comparaciones
+    char* type_copy = strdup(type);
+    if (type_copy == NULL) {
+        perror("Error al asignar memoria");
+        return NULL;
+    }
+
+    // Dividir la cadena en tokens
+    char* token = strtok(type_copy, " ");
+    const char* base_type = NULL;
+
+    // Iterar a través de los tokens y guardar el último token
+    while (token != NULL) {
+        base_type = token;
+        token = strtok(NULL, " ");
+    }
+
+    char* result = strdup(base_type);
+    if (result == NULL) {
+        perror("Error al asignar memoria");
+        free(type_copy);
+        return NULL;
+    }
+
+    free(type_copy);
+
+    return result;
 }

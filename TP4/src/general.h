@@ -204,9 +204,12 @@ int fetch_type_parameter(t_function* function, char* wanted);
 void handle_redeclaration(int redeclaration_line, int redeclaration_column, const char* identifier); 
 void check_function_redeclaration(t_symbol_table* function, int redeclaration_line, int redeclaration_column, const char* identifier); 
 void check_variable_redeclaration(t_symbol_table* variable, int line, int column, const char* id); 
-void check_type_conflict(t_symbol_table* variable, int line, int column, const char* id); 
+void check_type_conflict(t_symbol_table* variable, int line, int column, const char* id);
+
 void check_assignation_types(t_variable_value declarator, t_variable_value initializer, int line, int column);
 int check_type_match(const char* a, const char* b);
+int is_const(const char* tipo);
+const char* get_base_type(const char* type);
 
 void reset_token_buffer();
 
