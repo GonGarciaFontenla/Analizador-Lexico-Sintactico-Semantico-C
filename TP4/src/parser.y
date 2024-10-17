@@ -52,6 +52,7 @@ TYPES current_symbol = UNKNOWN;
     int int_type;
     double double_type;
     char char_type;
+    t_variable_value var_val;
 }
 
 %token <string_type> IDENTIFICADOR
@@ -172,14 +173,15 @@ expresion
     ;
 
 expAsignacion
-    : expCondicional
+    : expCondicional { $<var_val>$ = $<var_val>1;}
     | expUnaria operAsignacion expAsignacion {
         if(assign_void_flag) {
             _asprintf(&data_sem_error->msg, "%i:%i: No se ignora el valor de retorno void como deberia ser", @1.first_line, @1.first_column);
             insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
             assign_void_flag = 0;
         }
-        //check_assignation_types ($<string_type>1, @1.first_line, @1.first_column + 1);
+
+        check_assignation_types ($<var_val>1, $<var_val>3, @3.first_line, @3.first_column);
     }
     | expUnaria operAsignacion error 
     ;
@@ -194,22 +196,22 @@ operAsignacion
     ;
 
 expCondicional
-    : expOr 
+    : expOr { $<var_val>$ = $<var_val>1;}
     | expOr '?' expresion ':' expCondicional
     ; 
 
 expOr
-    : expAnd
+    : expAnd { $<var_val>$ = $<var_val>1;}
     | expOr OR expAnd
     ;
 
 expAnd
-    : expIgualdad 
+    : expIgualdad { $<var_val>$ = $<var_val>1;}
     | expAnd AND expIgualdad 
     ;
 
 expIgualdad
-    : expRelacional 
+    : expRelacional { $<var_val>$ = $<var_val>1;}
     | expIgualdad opcionIgualdad
     ;
 
@@ -219,7 +221,7 @@ opcionIgualdad
     ;
 
 expRelacional
-    : expAditiva
+    : expAditiva { $<var_val>$ = $<var_val>1;}
     | expRelacional opcionRelacional
     ;
     
@@ -231,7 +233,7 @@ opcionRelacional
     ;
 
 expAditiva
-    : expMultiplicativa 
+    : expMultiplicativa { $<var_val>$ = $<var_val>1;}
     | expAditiva opcionAditiva
     ;
 
@@ -241,7 +243,7 @@ opcionAditiva
     ;
     
 expMultiplicativa
-    : expUnaria
+    : expUnaria { $<var_val>$ = $<var_val>1;}
     | expMultiplicativa '*' expUnaria/* { 
         if(data_variable_aux = getId($1)) {
             printf("El tipo del primer operando () es: %s \n", data_variable_aux->type);F
@@ -255,7 +257,7 @@ expMultiplicativa
     ;
 
 expUnaria
-    : expPostfijo
+    : expPostfijo { $<var_val>$ = $<var_val>1;}
     | INC_OP expUnaria 
     | DEC_OP expUnaria 
     | expUnaria INC_OP
@@ -272,7 +274,7 @@ operUnario
     ;
 
 expPostfijo
-    : expPrimaria  
+    : expPrimaria  { $<var_val>$ = $<var_val>1;}
     | expPostfijo expPrimaria
     | IDENTIFICADOR opcionPostfijo { 
         insert_sem_error_invocate_function(@1.first_line, @1.first_column, $<string_type>1, quantity_parameters);
@@ -313,24 +315,36 @@ expPrimaria
             add_argument(@1.first_line, @1.first_column, ID);
         }
         current_symbol = ID;
+
+        $<var_val>$.value.id_val = strdup($<string_type>1);
+        $<var_val>$.type = ID;
     }
     | ENTERO            { 
         if(parameter_flag) {  
             add_argument(@1.first_line, @1.first_column, INT);
         }
         current_symbol = INT;
+
+        $<var_val>$.value.int_val = $<int_type>1;
+        $<var_val>$.type = INT;
     } 
     | NUM               { 
         if(parameter_flag){
             add_argument(@1.first_line, @1.first_column, NUMBER);
         }   
         current_symbol = NUMBER;
+
+        $<var_val>$.value.double_val = $<double_type>1;
+        $<var_val>$.type = NUM;
     }
     | CONSTANTE         {
         if(parameter_flag) {
             add_argument(@1.first_line, @1.first_column, INT);
         }
         current_symbol = INT;
+
+        $<var_val>$.value.int_val = $<int_type>1;
+        $<var_val>$.type = INT;
     }
     | LITERAL_CADENA    { 
         if(parameter_flag) {
@@ -338,6 +352,9 @@ expPrimaria
         }
         current_symbol = STRING;
         string_flag = 1;
+
+        $<var_val>$.value.string_val = strdup($<string_type>1);
+        $<var_val>$.type = STRING;
     }
     | '(' expresion ')' 
     ;
@@ -411,9 +428,14 @@ declarador
     : decla
     | decla '=' inicializador {
         init_flag = 1;
-        //check_assignation_types($3, @1.first_line, @1.first_column + 1); // No se puede pasar el $ 3
+        t_variable_value var_val;     
+        var_val.type = ID;
+        var_val.value.id_val = strdup($<string_type>1);
+        
+        check_assignation_types(var_val, $<var_val>3, @3.first_line, @3.first_column);
     }
-    ;
+;
+
 
 opcionComa
     : 
@@ -426,7 +448,7 @@ listaInicializadores
     ;
 
 inicializador
-    : expAsignacion {declaration_flag = 1;}
+    : expAsignacion {declaration_flag = 1; $<var_val>$ = $<var_val>1;}
     | '{' listaInicializadores opcionComa '}' 
     ;
 

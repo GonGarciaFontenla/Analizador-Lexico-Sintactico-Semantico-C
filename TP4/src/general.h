@@ -108,6 +108,16 @@ typedef struct {
     char* name;
 } t_arguments;
 
+typedef struct {
+    TYPES type;
+    union {
+        int int_val;
+        double double_val;
+        char* string_val;
+        char* id_val; // para identificadores
+    } value;
+} t_variable_value;
+
 #define INICIO_CONTEO_LINEA 1
 #define INICIO_CONTEO_COLUMNA 1
 
@@ -195,7 +205,8 @@ void handle_redeclaration(int redeclaration_line, int redeclaration_column, cons
 void check_function_redeclaration(t_symbol_table* function, int redeclaration_line, int redeclaration_column, const char* identifier); 
 void check_variable_redeclaration(t_symbol_table* variable, int line, int column, const char* id); 
 void check_type_conflict(t_symbol_table* variable, int line, int column, const char* id); 
-void check_assignation_types (void* initializer, int line, int column);
+void check_assignation_types(t_variable_value declarator, t_variable_value initializer, int line, int column);
+int check_type_match(const char* a, const char* b);
 
 void reset_token_buffer();
 
