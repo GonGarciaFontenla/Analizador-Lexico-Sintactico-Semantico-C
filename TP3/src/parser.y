@@ -113,16 +113,15 @@ sentSeleccion
     ;
 
 /* GRAMATICA NUEVA */
-
 /*
 sentSeleccion
-    : IF '(' expresion ')' sentencia opcionElse {add_sent("if/else", @1.first_line, @1.first_column);} 
-    | SWITCH '(' expresion ')' {reset_token_buffer(); } sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column); }
+    : IF '(' expresion ')' sentencia opcionElse
+    | SWITCH '(' expresion ')'  sentencia 
     ;
 
 opcionElse
-    : vacio
-    : ELSE sentencia
+    : vacio {add_sent("if", @-5.first_line, @-5.first_column);}
+    : ELSE sentencia {add_sent("if/else", @-5.first_line, @-5.first_column);}
     ;
 */
 
@@ -482,17 +481,12 @@ listaParametros
     ;
 
 declaracionParametro
-    : especificadorDeclaracion opcionesDecla {
+    : especificadorDeclaracion decla { 
+        data_parameter.name = strdup($<string_type>2); 
         data_parameter.type = strdup($<string_type>1);
         }
     ;
 
-opcionesDecla
-    : decla { 
-        data_parameter.name = strdup($<string_type>1); 
-        }
-    | declaradorAbstracto
-    ;
 
 listaIdentificadoresOp
     : listaIdentificadores
@@ -530,26 +524,6 @@ enumerador
 opcionalEnumerador
     : '=' expresion
     | vacio
-    ;
-
-declaradorAbstracto
-    : puntero declaradorAbstractoDirectoOp
-    | declaradorAbstractoDirecto
-    ;
-
-declaradorAbstractoDirectoOp
-    : declaradorAbstractoDirecto
-    | vacio
-    ;
-
-declaradorAbstractoDirecto
-    : '(' declaradorAbstracto ')'
-    | declaradorAbstractoDirectoOp postOpcionDeclaradorAbstracto
-    ;
-
-postOpcionDeclaradorAbstracto
-    : '[' expresion ']'
-    | '(' listaTiposParametrosOp ')'
     ;
 
 vacio 
