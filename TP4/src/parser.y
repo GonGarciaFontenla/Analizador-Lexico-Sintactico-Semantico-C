@@ -35,7 +35,6 @@ int parameter_flag = 0; // Si está dentro de los parametros de X funcion
 int quantity_parameters = 0; // Cantidad de parametros
 int assign_void_flag = 0; // Si se asigna una variable a una funcion void
 int string_flag = 0;
-int init_flag = 0; // Si se esta realizando una asignacion
 char* type_aux = "";
 int position = 1;
 int* vec_parameters = NULL;
@@ -260,7 +259,7 @@ expUnaria
     | DEC_OP expUnaria 
     | expUnaria INC_OP
     | expUnaria DEC_OP
-    | operUnario expUnaria 
+    | operUnario expUnaria { $<var_val>$ = $<var_val>2;}
     | SIZEOF '(' nombreTipo ')' 
     ;
 
@@ -283,8 +282,14 @@ expPostfijo
             assign_void_flag = 1;
         }
         quantity_parameters = 0;
+
+        $<var_val>$.value.id_val = strdup($<string_type>1);
+        $<var_val>$.type = ID;
     }
-    | IDENTIFICADOR '(' ')'
+    | IDENTIFICADOR '(' ')' { 
+        $<var_val>$.value.id_val = strdup($<string_type>1);
+        $<var_val>$.type = ID;
+        }
     ;
 
 opcionPostfijo
@@ -330,7 +335,7 @@ expPrimaria
         }   
 
         $<var_val>$.value.double_val = $<double_type>1;
-        $<var_val>$.type = NUM;
+        $<var_val>$.type = NUMBER;
     }
     | CONSTANTE         {
         if(parameter_flag) {
@@ -420,7 +425,6 @@ listaDeclaracionOp
 declarador
     : decla
     | decla '=' inicializador {
-        init_flag = 1;
         t_variable_value var_val;
         var_val.type = ID;
         var_val.value.id_val = strdup($<string_type>1);

@@ -924,7 +924,7 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
         return;
     }
 
-    const char* decla_name = strdup(declarator.value.id_val);
+    char* decla_name = strdup(declarator.value.id_val);
     t_symbol_table* existing_symbol = (t_symbol_table*)get_element(VARIABLE, decla_name, compare_char_and_ID_variable);
 
     if (!existing_symbol && strcmp(decla_name, data_variable->variable) != 0) { // Hay una funcion del lado izquierdo (no es variable guardada ni se esta inicializando)
@@ -958,8 +958,8 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
     const char* expected_type = var->type; // Tipo a verificar con el lado derecho
 
     switch (initializer.type) {
-        case ID:
-            const char* init_name = strdup(initializer.value.id_val);
+        case ID: {
+            char* init_name = strdup(initializer.value.id_val);
 
             t_symbol_table* aux = (t_symbol_table*)get_element(VARIABLE, init_name, compare_char_and_ID_variable);
             if (aux) { // El lado derecho es una variable
@@ -983,8 +983,9 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
                 }
             }
             break;
+        }
 
-        default:
+        default: {
             const char* init_type = type_to_string(initializer.type);
 
             if (check_type_match(init_type, expected_type) == 0) {
@@ -992,6 +993,7 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
                 insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
             }
             break;
+        }
     }
 }
 
@@ -1000,7 +1002,6 @@ int is_const(const char* type) {
 }
 
 int check_type_match(const char* a, const char* b) { // Mejorar para que reconozca tipos compatibles
-    // Quitar prefijos 'unsigned' y 'const' de ambos tipos
     const char* baseA = get_base_type(a);
     const char* baseB = get_base_type(b);
     
