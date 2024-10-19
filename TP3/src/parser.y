@@ -77,7 +77,7 @@ sentencia
     ;
 
 sentCompuesta
-    : '{' listaDeclaracionOp opcionSentencia '}' 
+    : '{' listaDeclaracionOp listaSentencias '}' 
     ;
 
 listaDeclaraciones
@@ -91,13 +91,9 @@ listaDeclaracionOp
     ;
 
 listaSentencias
-    : sentencia opcionSentencia
-    ;
-
-opcionSentencia
-    : vacio
-    | sentencia listaSentencias
-    ;
+    : sentencia 
+    | vacio
+    ;   
 
 sentExpresion
     : ';'
