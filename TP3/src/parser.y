@@ -115,8 +115,8 @@ sentSeleccion
     ;
 
 opcionElse
-    : vacio {add_sent("if", @-4.first_line, @-4.first_column);}
-    | ELSE sentencia {add_sent("if/else", @-4.first_line, @-4.first_column);}
+    : ELSE sentencia {add_sent("if/else", @-4.first_line, @-4.first_column);}
+    | "\n" {add_sent("if", @-4.first_line, @-4.first_column);}
     ;
 
 sentIteracion
@@ -227,13 +227,16 @@ expUnaria
     : expPostfijo 
     | INC_OP expUnaria 
     | DEC_OP expUnaria 
-    | expUnaria INC_OP
-    | expUnaria DEC_OP
-    | operUnario expUnaria 
+    | expUnaria opcionIncDec
+    | operUnario expUnaria
     | SIZEOF '(' nombreTipo ')' 
     ;  
 
- 
+opcionIncDec
+    : INC_OP 
+    | DEC_OP
+    ;
+
 operUnario
     : '&' 
     | '*' 
@@ -314,7 +317,7 @@ declaracion
     }
     | especificadorDeclaracion error {yerror(@2);}
     ;
-    
+
 especificadorDeclaracionOp
     : especificadorDeclaracion
     | vacio
@@ -335,10 +338,14 @@ listaDeclaradores
             insert_node((GenericNode**)&variable, data_variable, sizeof(t_variable));
     }
     ;
-    
+
 declarador
-    : decla
-    | decla '=' inicializador
+    : decla opcionPostDeclarador
+    ;
+
+opcionPostDeclarador
+    : vacio
+    | '=' inicializador
     ;
 
 opcionComa
