@@ -57,6 +57,9 @@ t_sent* data_sent = NULL;
 %nonassoc THEN
 %nonassoc ELSE 
 
+%nonassoc VAC
+%nonassoc ','
+
 %%
 
 programa
@@ -103,12 +106,12 @@ sentExpresion
 
 opcionExpresion
     : ';'
-    | error {yerror(@1); yyerrok;}
+    | error {yerror(@0); yyerrok;}
     ;
 
 sentSeleccion
-    : IF '(' expresion ')' sentencia %prec THEN {add_sent("if", @-4.first_line, @-4.first_column);}
-    | IF '(' expresion ')' sentencia ELSE sentencia {add_sent("if/else", @-4.first_line, @-4.first_column);}
+    : IF '(' expresion ')' sentencia %prec THEN {add_sent("if", @1.first_line, @1.first_column);}
+    | IF '(' expresion ')' sentencia ELSE sentencia {add_sent("if/else", @1.first_line, @1.first_column);}
     | SWITCH '(' expresion ')' {reset_token_buffer(); } sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column); }
     ;
 
@@ -137,12 +140,8 @@ sentSalto
     ;
 
 expresion
-    : expAsignacion opcionalExpresionExtra
-    ;
-    
-opcionalExpresionExtra
-    :
-    | ',' expresion
+    : expAsignacion %prec VAC
+    | expAsignacion ',' expresion
     ;
     
 expAsignacion
