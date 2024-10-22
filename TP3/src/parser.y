@@ -91,7 +91,7 @@ listaDeclaracionOp
     ;
 
 listaSentencias
-    : sentencia 
+    : sentencia
     | vacio
     ;   
 
@@ -102,7 +102,7 @@ sentExpresion
 
 opcionExpresion
     : ';'
-    | error {yerror(@0);}
+    | error {yerror(@1); yyerrok;}
     ;
 
 sentSeleccion
@@ -112,7 +112,7 @@ sentSeleccion
 
 opcionElse
     : ELSE sentencia {add_sent("if/else", @-4.first_line, @-4.first_column);}
-    | "\n" {add_sent("if", @-4.first_line, @-4.first_column);}
+    | {add_sent("if", @-4.first_line, @-4.first_column);}
     ;
 
 sentIteracion
