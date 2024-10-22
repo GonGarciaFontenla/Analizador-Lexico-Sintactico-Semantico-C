@@ -221,9 +221,8 @@ opcionMultiplicativa
 
 expUnaria
     : expPostfijo 
-    | INC_OP expUnaria 
-    | DEC_OP expUnaria 
-    | expUnaria opcionIncDec
+    | opcionIncDec expPostfijo 
+    | expPostfijo opcionIncDec
     | operUnario expUnaria
     | SIZEOF '(' nombreTipo ')' 
     ;  
