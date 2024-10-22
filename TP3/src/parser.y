@@ -61,6 +61,7 @@ t_sent* data_sent = NULL;
 %nonassoc ','
 %nonassoc '='
 %nonassoc ';'
+
 %%
 
 programa
