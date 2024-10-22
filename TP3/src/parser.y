@@ -53,8 +53,9 @@ t_sent* data_sent = NULL;
 %type <void_type> unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto
 
 %start programa
-%left INC_OP
-%left DEC_OP
+
+%nonassoc THEN
+%nonassoc ELSE 
 
 %%
 
@@ -106,13 +107,9 @@ opcionExpresion
     ;
 
 sentSeleccion
-    : IF '(' expresion ')' sentencia opcionElse
+    : IF '(' expresion ')' sentencia %prec THEN {add_sent("if", @-4.first_line, @-4.first_column);}
+    | IF '(' expresion ')' sentencia ELSE sentencia {add_sent("if/else", @-4.first_line, @-4.first_column);}
     | SWITCH '(' expresion ')' {reset_token_buffer(); } sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column); }
-    ;
-
-opcionElse
-    : ELSE sentencia {add_sent("if/else", @-4.first_line, @-4.first_column);}
-    | {add_sent("if", @-4.first_line, @-4.first_column);}
     ;
 
 sentIteracion
