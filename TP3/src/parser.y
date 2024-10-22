@@ -130,7 +130,8 @@ expresionOp
 
 sentEtiquetadas
     : IDENTIFICADOR ':' sentencia 
-    | CASE expresion ':' listaSentencias {add_sent($<string_type>1, @1.first_line, @1.first_column);}
+    | CASE expresion ':' sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column);}
+    | CASE expresion ':' error sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column);}
     | DEFAULT ':' sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column);}
     ;
 
