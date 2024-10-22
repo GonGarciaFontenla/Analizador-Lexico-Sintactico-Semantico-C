@@ -57,9 +57,10 @@ t_sent* data_sent = NULL;
 %nonassoc THEN
 %nonassoc ELSE 
 
-%nonassoc VAC
+%nonassoc VACIO
 %nonassoc ','
-
+%nonassoc '='
+%nonassoc ';'
 %%
 
 programa
@@ -140,7 +141,7 @@ sentSalto
     ;
 
 expresion
-    : expAsignacion %prec VAC
+    : expAsignacion %prec VACIO
     | expAsignacion ',' expresion
     ;
     
@@ -335,7 +336,7 @@ declarador
     ;
 
 opcionPostDeclarador
-    : vacio
+    : %prec VACIO
     | '=' inicializador
     ;
 
