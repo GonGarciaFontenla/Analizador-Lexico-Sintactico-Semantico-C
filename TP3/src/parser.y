@@ -19,7 +19,7 @@ t_sent* data_sent = NULL;
 
 %}
 
-%error-verbose
+%define parse.error verbose
 %locations
 
 %union {
@@ -47,10 +47,10 @@ t_sent* data_sent = NULL;
 %token PTR_OP INC_OP DEC_OP
 %token ELIPSIS
 
-%type <void_type> expresion expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expMultiplicativa expUnaria expPostfijo
-%type <void_type> operAsignacion operUnario nombreTipo listaArgumentos expPrimaria
-%type <void_type> sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
-%type <void_type> unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto
+%type expresion expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expMultiplicativa expUnaria expPostfijo
+%type operAsignacion operUnario nombreTipo listaArgumentos expPrimaria
+%type sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
+%type unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto
 
 %start programa
 
@@ -93,12 +93,12 @@ listaDeclaraciones
 
 listaDeclaracionOp
     : listaDeclaraciones
-    | vacio
+    | %empty
     ;
 
 listaSentencias
     : sentencia
-    | vacio
+    | %empty
     ;   
 
 sentExpresion
@@ -125,7 +125,7 @@ sentIteracion
 
 expresionOp
     : expresion
-    | vacio
+    | %empty
     ;
 
 sentEtiquetadas
@@ -314,7 +314,7 @@ declaracion
 
 especificadorDeclaracionOp
     : especificadorDeclaracion
-    | vacio
+    | %empty
     ;
     
 especificadorDeclaracion 
@@ -338,13 +338,13 @@ declarador
     ;
 
 opcionPostDeclarador
-    : %prec VACIO
+    : %prec VACIO %empty
     | '=' inicializador
     ;
 
 opcionComa
     : ','
-    | vacio
+    | %empty
     ;
 
 listaInicializadores
@@ -374,7 +374,7 @@ cuerpoEspecificador
 
 cuerpoStructOp
     : '{' listaDeclaracionesStruct '}'
-    | vacio
+    | %empty
     ;
 
 listaDeclaracionesStruct
@@ -393,7 +393,7 @@ listaCalificadores
 
 listaCalificadoresOp
     : listaCalificadores
-    | vacio
+    | %empty
     ;
 
 declaradoresStruct
@@ -412,7 +412,7 @@ declaSi
 
 expConstanteOp
     : ':' expresion
-    | vacio
+    | %empty
     ;
 
 decla
@@ -422,7 +422,7 @@ decla
 
 punteroOp
     : puntero
-    | vacio
+    | %empty
     ;
 
 puntero
@@ -431,7 +431,7 @@ puntero
 
 listaCalificadoresTipoOp
     : listaCalificadoresTipo
-    | vacio
+    | %empty
     ;
     
 listaCalificadoresTipo
@@ -467,7 +467,7 @@ opcional
 
 listaTiposParametrosOp 
     : listaTiposParametros 
-    | vacio 
+    | %empty 
     ;
     
 listaTiposParametros
@@ -476,7 +476,7 @@ listaTiposParametros
     
 opcionalListaParametros
     : ',' ELIPSIS
-    | vacio
+    | %empty
     ;
 
 listaParametros
@@ -498,7 +498,7 @@ declaracionParametro
 
 listaIdentificadoresOp
     : listaIdentificadores
-    | vacio
+    | %empty
     ;
 
 listaIdentificadores
@@ -517,7 +517,7 @@ opcionalEspecificadorEnum
 
 opcionalListaEnumeradores
     : '{' listaEnumeradores '}'
-    | vacio
+    | %empty
     ;
 
 listaEnumeradores
@@ -531,11 +531,7 @@ enumerador
 
 opcionalEnumerador
     : '=' expresion
-    | vacio
-    ;
-
-vacio 
-    :
+    | %empty
     ;
     
 %%
