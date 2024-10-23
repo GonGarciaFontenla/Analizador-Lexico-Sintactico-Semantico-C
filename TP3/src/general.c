@@ -96,7 +96,7 @@ void free_token_buffer() {
 void init_structures() { // Iniciar todas las estructuras
     data_variable = (t_variable*)malloc(sizeof(t_variable));
     if (!data_variable) {
-        printf("Error al asignar memoria para data_variable\n");
+        perror("Error al asignar memoria para data_variable\n");
         exit(EXIT_FAILURE);
     }
     data_variable->line = 0;
@@ -105,7 +105,7 @@ void init_structures() { // Iniciar todas las estructuras
 
     data_function = (t_function*)malloc(sizeof(t_function));
     if (!data_function) {
-        printf("Error al asignar memoria para data_function\n");
+        perror("Error al asignar memoria para data_function\n");
         exit(EXIT_FAILURE);
     }
     data_function->name = NULL;
@@ -116,7 +116,7 @@ void init_structures() { // Iniciar todas las estructuras
 
     data_intoken = (t_token_unrecognised*)malloc(sizeof(t_token_unrecognised));
     if(!data_intoken) {
-        printf("Error al asignar memoria para data_intoken");
+        perror("Error al asignar memoria para data_intoken");
         exit(EXIT_FAILURE);
     }
     data_intoken->column = 0;
@@ -125,7 +125,7 @@ void init_structures() { // Iniciar todas las estructuras
 
     data_sent = (t_sent*)malloc(sizeof(t_sent));
     if (!data_sent) {
-        ("Error al asignar memoria para data_sent");
+        perror("Error al asignar memoria para data_sent");
         exit(EXIT_FAILURE);
     }
     data_sent->column = 0;
@@ -133,7 +133,7 @@ void init_structures() { // Iniciar todas las estructuras
 
     new_error = (t_error*)malloc(sizeof(t_error));
     if (!new_error) {
-        printf("Error al asignar memoria para el nuevo error!\n");
+        perror("Error al asignar memoria para el nuevo error!\n");
         exit(EXIT_FAILURE);
     }
     new_error->line = 0;
@@ -142,7 +142,7 @@ void init_structures() { // Iniciar todas las estructuras
     // Inicialización de invalid_string
     invalid_string = (char*)malloc(1);
     if (!invalid_string) {
-        printf("Error al asignar memoria para invalid_string\n");
+        perror("Error al asignar memoria para invalid_string\n");
         return;
     }
     invalid_string[0] = '\0';
@@ -158,7 +158,7 @@ void add_unrecognised_token(const char* intoken) {
 void add_sent(const char* tipo_sentencia, int line, int column) {
     data_sent->type = strdup(tipo_sentencia);
     if (!data_sent->type) {
-        ("Error al asignar memoria para el tipo de sentencia");
+        perror("Error al asignar memoria para el tipo de sentencia");
         exit(EXIT_FAILURE);
     }
     data_sent->line = line;
@@ -169,12 +169,12 @@ void add_sent(const char* tipo_sentencia, int line, int column) {
 void insert_sorted_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*)) {
     GenericNode* new_node = (GenericNode*)malloc(sizeof(GenericNode));
     if (!new_node) {
-        ("Error al asignar memoria para el nuevo nodo");
+        perror("Error al asignar memoria para el nuevo nodo");
         exit(EXIT_FAILURE);
     }
     new_node->data = malloc(data_size);
     if (!new_node->data) {
-        ("Error al asignar memoria para los datos del nuevo nodo");
+        perror("Error al asignar memoria para los datos del nuevo nodo");
         exit(EXIT_FAILURE);
     }
     memcpy(new_node->data, new_data, data_size);
@@ -204,7 +204,7 @@ void insert_node(GenericNode** list, void* new_data, size_t data_size) {
 
     new_node->data = malloc(data_size);
     if (!new_node->data) {
-        printf("Error al asignar memoria para los datos del nuevo nodo");
+        perror("Error al asignar memoria para los datos del nuevo nodo");
         free(new_node);
         exit(EXIT_FAILURE);
     }

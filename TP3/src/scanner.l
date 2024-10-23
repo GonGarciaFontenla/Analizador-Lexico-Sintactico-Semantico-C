@@ -21,6 +21,7 @@ DIGITO_OCTAL [0-7]
 DIGITO_HEXA [0-9a-fA-F]
 ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
 
+%option noinput nounput
 %pointer
 %option noyywrap
 %x tokenNoReconocido
