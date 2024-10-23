@@ -104,11 +104,12 @@ sentencia
     ;
 
 sentCompuesta
-    : '{' {parameter_flag = 0;} listaDeclaracionOp listaSentenciasOp '}' 
+    : '{' {parameter_flag = 0;} listaDeclaraciones listaSentenciasOp '}' 
     ;
 
 listaDeclaraciones
-    : declaracion listaDeclaracionOp
+    : declaracion listaDeclaraciones
+    | declaracion
     | error
     ;
 
@@ -117,6 +118,7 @@ listaDeclaracionOp
     | %empty
     ;
 
+/* TODO: genera 28 conflicts */
 listaSentencias
     : sentencia listaSentencias
     | sentencia
@@ -647,7 +649,6 @@ opcionalEnumerador
     ;
 
 %%
-
 
 int main(int argc, char *argv[]) {
     if (argc > 1) {
