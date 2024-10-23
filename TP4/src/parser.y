@@ -526,8 +526,8 @@ decla
     ;
 
 punteroOp
-    : 
-    | puntero
+    : puntero
+    | %empty 
     ;
 
 puntero
@@ -535,8 +535,8 @@ puntero
     ;
 
 listaCalificadoresTipoOp
-    : 
-    | listaCalificadoresTipo
+    : listaCalificadoresTipo
+    | %empty  
     ;
     
 listaCalificadoresTipo
@@ -570,11 +570,6 @@ opcional
         insert_node((GenericNode**)&(data_function->parameters), &data_parameter, sizeof(t_parameter));
         }
     ;
-
-listaTiposParametrosOp 
-    : listaTiposParametros 
-    | %empty 
-    ;
     
 listaTiposParametros
     : listaParametros opcionalListaParametros
@@ -604,15 +599,10 @@ declaracionParametro
     ;
 
 opcionesDecla
-    :  {data_parameter.name = (char*)malloc(1); data_parameter.name = '\0';}
+    : %empty {data_parameter.name = (char*)malloc(1); data_parameter.name = '\0';}
     | decla { 
         data_parameter.name = strdup($<string_type>1); 
         }
-    ;
-/*TODO: si genera muchos conflictos sacar el empty */
-listaIdentificadoresOp
-    : listaIdentificadores
-    | %empty
     ;
 
 listaIdentificadores

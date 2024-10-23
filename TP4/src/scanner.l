@@ -23,6 +23,8 @@ ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
 
 %pointer
 %option noyywrap
+%option noinput
+%option nounput
 %x tokenNoReconocido
 
 %%
