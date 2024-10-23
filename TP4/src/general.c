@@ -657,11 +657,13 @@ void insert_sem_error_invalid_identifier(int line, int column, char* identifier)
 }
 
 void insert_sem_error_too_many_or_few_parameters(int line, int column, char* identifier, int quant_parameters) {
-    t_symbol_table* existing_symbol = get_element(FUNCTION, identifier, compare_char_and_ID_variable);
+    t_symbol_table* existing_symbol = get_element(FUNCTION, identifier, compare_char_and_ID_function);
     if(existing_symbol) {
         t_function* existing_function = (t_function*)existing_symbol->data;
-
+        printf("ID: %s\n", existing_function -> name);
+        printf("Cantidad: %i | Pasados: %i\n", get_quantity_parameters(existing_function -> parameters), quant_parameters);
         if(get_quantity_parameters(existing_function -> parameters) > quant_parameters) {
+            printf("Cantidad: %i\n", quant_parameters);
             _asprintf(&data_sem_error -> msg, "%i:%i: Insuficientes argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
                     line, column, identifier,
                     existing_symbol->line, existing_symbol->column);
@@ -965,7 +967,7 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
             if (aux) { // El lado derecho es una variable
                 t_variable* init = (t_variable*)aux->data;
                 if (check_type_match(init->type, expected_type) == 0) {
-                    _asprintf(&data_sem_error->msg, "%i:%i: Inicializacion de un '%s' con un '%s'", line, column, expected_type, init->type);
+                    _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", line, column, expected_type, init->type);
                     insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
                 }
             } else { // El lado derecho es una funcion
@@ -989,7 +991,7 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
             const char* init_type = type_to_string(initializer.type);
 
             if (check_type_match(init_type, expected_type) == 0) {
-                _asprintf(&data_sem_error->msg, "%i:%i: Inicializacion de un '%s' con un '%s'", line, column, expected_type, init_type);
+                _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", line, column, expected_type, init_type);
                 insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
             }
             break;

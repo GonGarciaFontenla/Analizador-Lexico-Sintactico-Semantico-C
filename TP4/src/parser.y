@@ -177,7 +177,7 @@ sentSalto
     ;
 
 expresion
-    : expAsignacion %prec VACIO
+    : expAsignacion %prec VACIO 
     | expAsignacion ',' expresion
     ;
 
@@ -289,7 +289,7 @@ operUnario
 expPostfijo
     : expPrimaria  { $<var_val>$ = $<var_val>1;}
     | expPostfijo expPrimaria
-    | IDENTIFICADOR opcionPostfijo { 
+    | IDENTIFICADOR opcionPostfijo{ 
         insert_sem_error_invocate_function(@1.first_line, @1.first_column, $<string_type>1, quantity_parameters);
         manage_conflict_arguments($<string_type>1); 
         free_invocated_arguments();
@@ -302,7 +302,9 @@ expPostfijo
         $<var_val>$.value.id_val = strdup($<string_type>1);
         $<var_val>$.type = ID;
     }
-    | IDENTIFICADOR '(' ')' { 
+    | IDENTIFICADOR '(' ')' {
+        quantity_parameters = 0;
+        insert_sem_error_invocate_function(@1.first_line, @1.first_column, $<string_type>1, quantity_parameters);
         $<var_val>$.value.id_val = strdup($<string_type>1);
         $<var_val>$.type = ID;
         }
@@ -310,7 +312,7 @@ expPostfijo
 
 opcionPostfijo
     : '[' expresion ']'
-    | '(' { parameter_flag = 1;} listaArgumentos ')' { parameter_flag = 0;}
+    | '(' { parameter_flag = 1;} listaArgumentos ')' { parameter_flag = 0; }
     ;
 
 listaArgumentos
@@ -318,8 +320,8 @@ listaArgumentos
     ;
 
 masListaArgumentos
-    : masListaArgumentos ',' expAsignacion
-    | %empty
+    : masListaArgumentos ',' expAsignacion { quantity_parameters ++;}
+    | %empty 
     ;
 
 expPrimaria
