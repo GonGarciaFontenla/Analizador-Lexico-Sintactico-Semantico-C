@@ -302,7 +302,7 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
     
     found = 0;
     printf("\n");
-    printf("* Listado de estructuras sintacticas no reconocidas\n");
+    printf("* Listado de estructuras sintácticas no reconocidas\n");
     if (error_list) {
         GenericNode* temp = error_list;
         while (temp) {
