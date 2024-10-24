@@ -129,7 +129,6 @@ extern t_sent_or_unrecognised_token* data_sent;
 extern t_error* new_error;
 extern t_semantic_error* data_sem_error;
 extern t_arguments* invocated_arguments;
-extern TYPES current_symbol;
 
 extern char* invalid_string;
 extern int first_line_error;
@@ -206,6 +205,7 @@ void check_assignation_types(t_variable_value declarator, t_variable_value initi
 int check_type_match(const char* a, const char* b);
 int is_const(const char* tipo);
 const char* get_base_type(const char* type);
+t_parameter* get_param(const char* wanted);
 
 void reset_token_buffer();
 

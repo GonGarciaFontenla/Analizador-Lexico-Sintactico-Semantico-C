@@ -50,7 +50,6 @@ int incremento(int x) {
         continue;
     } while (x < 5);
 
-
     if (x > 5)
         if (x == 6 || x >= 10)
             return ++x;
