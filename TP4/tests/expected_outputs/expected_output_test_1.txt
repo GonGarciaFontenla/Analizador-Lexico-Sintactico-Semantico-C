@@ -51,7 +51,6 @@ Nota: la definicion previa de 'incremento' es de tipo 'int(int)': 43:5
 62:8: conflicto de tipos para 'potencia'; la ultima es de tipo 'double(double, unsigned int)'
 Nota: la declaracion previa de 'potencia' es de tipo 'float(float, unsigned long)': 8:7
 
-
 * Listado de errores sintacticos:
 "c = a": linea 26
 
