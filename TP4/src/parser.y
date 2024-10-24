@@ -185,12 +185,10 @@ expAsignacion
     : expCondicional { $<var_val>$ = $<var_val>1;}
     | expUnaria operAsignacion expAsignacion {
         if(assign_void_flag) {
-            _asprintf(&data_sem_error->msg, "%i:%i: No se ignora el valor de retorno void como deberia ser", @1.first_line, @1.first_column);
+            _asprintf(&data_sem_error->msg, "%i:%i: No se ignora el valor de retorno void como deberia ser", @1.first_line, @2.first_column);
             insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
             assign_void_flag = 0;
-        }
-
-        check_assignation_types ($<var_val>1, $<var_val>3, @3.first_line, @3.first_column);
+        } else{check_assignation_types ($<var_val>1, $<var_val>3, @3.first_line, @3.first_column);}
     }
     | expUnaria operAsignacion error 
     ;
@@ -295,6 +293,7 @@ expPostfijo
         free_invocated_arguments();
 
         if(fetch_element(FUNCTION, $<string_type>1, compare_void_function)) {
+            printf("fONZAAAAA 1\n");
             assign_void_flag = 1;
         }
         quantity_parameters = 0;
@@ -307,6 +306,10 @@ expPostfijo
         insert_sem_error_invocate_function(@1.first_line, @1.first_column, $<string_type>1, quantity_parameters);
         $<var_val>$.value.id_val = strdup($<string_type>1);
         $<var_val>$.type = ID;
+
+        if(fetch_element(FUNCTION, $<string_type>1, compare_void_function)) {
+            assign_void_flag = 1;
+        }
         }
     ;
 
@@ -316,7 +319,8 @@ opcionPostfijo
     ;
 
 listaArgumentos
-    : expAsignacion masListaArgumentos { quantity_parameters ++;}
+    : 
+    |expAsignacion masListaArgumentos { quantity_parameters ++;}
     ;
 
 masListaArgumentos

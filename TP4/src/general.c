@@ -660,10 +660,7 @@ void insert_sem_error_too_many_or_few_parameters(int line, int column, char* ide
     t_symbol_table* existing_symbol = get_element(FUNCTION, identifier, compare_char_and_ID_function);
     if(existing_symbol) {
         t_function* existing_function = (t_function*)existing_symbol->data;
-        printf("ID: %s\n", existing_function -> name);
-        printf("Cantidad: %i | Pasados: %i\n", get_quantity_parameters(existing_function -> parameters), quant_parameters);
         if(get_quantity_parameters(existing_function -> parameters) > quant_parameters) {
-            printf("Cantidad: %i\n", quant_parameters);
             _asprintf(&data_sem_error -> msg, "%i:%i: Insuficientes argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
                     line, column, identifier,
                     existing_symbol->line, existing_symbol->column);
