@@ -314,7 +314,7 @@ opcionPostfijo
     ;
 
 listaArgumentos
-    : 
+    : %empty
     |expAsignacion masListaArgumentos { quantity_parameters ++;}
     ;
 
@@ -392,7 +392,7 @@ declaracionExterna
     ;        
 
 definicionFuncion
-    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta { 
+    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta {
         save_function("definicion", $<string_type>1, $<string_type>2);
         manage_conflict_types(@2.first_line, @2.first_column + 1);    
     }

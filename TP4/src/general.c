@@ -1063,9 +1063,6 @@ void check_multiplication (t_variable_value left_side, t_variable_value right_si
 
     if(!(left_correct && right_correct)){
 
-        // printf("Error de multiplicacion en linea: %d, columna: %d, tipos: %s y %s\n", line, column, left_type, right_type);
-        // printf("Error de multiplicacion en linea: %d, columna: %d // left_type: %s, right_type: %s\n", line, column, left_type, right_type);
-
         _asprintf(&data_sem_error->msg, "%i:%i: Operandos invalidos del operador binario * (tienen \'%s\' y \'%s\')", line, column, left_type, right_type);
         insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
         return;
@@ -1135,10 +1132,33 @@ char* find_id_type(char* id, int line, int column) {
         return identificador->type;
     } else if(existing_function){
         t_function* identificador = (t_function*)existing_function->data;
+        int quant = get_quantity_parameters(identificador->parameters);
+        if(quant == 0){
+            char* tipo_compuesto = concat_types(identificador->return_type);
+            return tipo_compuesto;
+        }
         return identificador->return_type;
     }
     else {
         printf("Error en multiplicación, line: %d, column: %d \n", line, column);
         return NULL;
     }
+}
+
+char* concat_types(char* return_type) {
+    const char* ending_type = " (*)(void)";
+    
+    size_t len_return_type = strlen(return_type);
+    size_t len_ending_type = strlen(ending_type);
+    
+    char* tipo_compuesto = (char*) malloc((len_return_type + len_ending_type + 1) * sizeof(char));
+
+    if (tipo_compuesto == NULL) {
+        printf("Error al asignar memoria\n");
+        exit(1);
+    }
+    strcpy(tipo_compuesto, return_type);
+    strcat(tipo_compuesto, ending_type);
+
+    return tipo_compuesto;
 }
