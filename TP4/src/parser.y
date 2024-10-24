@@ -72,7 +72,6 @@ int* vec_parameters = NULL;
 %type sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
 %type unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto
 
-
 %start programa
 
 %nonassoc THEN
@@ -252,7 +251,9 @@ opcionAditiva
 expMultiplicativa
     : expUnaria { $<var_val>$ = $<var_val>1; }
     | expMultiplicativa '*' expUnaria { 
-        check_multiplication($<var_val>1, $<var_val>3, @1.first_line, @1.first_column);
+
+        check_multiplication($<var_val>1, $<var_val>3, @1.first_line, @2.first_column);
+        
     } 
     | expMultiplicativa '/' expUnaria
     | expMultiplicativa '%' expUnaria 
@@ -374,7 +375,9 @@ expPrimaria
         $<var_val>$.value.string_val = strdup($<string_type>1);
         $<var_val>$.type = STRING; 
     }
-    | '(' expresion ')' 
+    | '(' expresion ')' {
+        $<var_val>$.type = NUMBER;
+    }
     ;
 
 

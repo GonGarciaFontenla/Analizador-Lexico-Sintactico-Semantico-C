@@ -950,7 +950,7 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
             } else { // El lado derecho es una funcion
                 aux = (t_symbol_table*)get_element(FUNCTION, init_name, compare_char_and_ID_function);
                 if (!aux) {
-                    printf("ID no encontrado");
+                    printf("ID no encontrado\n");
                     return;
                 }
                 t_function* init = (t_function*)aux->data;
@@ -1039,21 +1039,21 @@ void check_multiplication (t_variable_value left_side, t_variable_value right_si
     // Vamos a chequear que los tipos de los operandos de la multiplicación sean válidos
     
     bool left_correct, right_correct;
-    char* left_type, right_type;
+    char* left_type;
+    char* right_type;
 
     if (left_side.type == ID) {
 
-        left_type = find_id_type(left_side.value.id_val);
-        left_correct = check_multiplication_aux_ids(left_type);
-        
+        left_type = find_id_type(left_side.value.id_val, line, column);
+        left_correct = check_multiplication_aux_ids(left_type);        
     } else{
+
         left_correct = check_multiplication_aux_enums(left_side.type);
         left_type = change_enum_for_type(left_side.type);
     }
     
     if (right_side.type == ID) { 
-        
-        right_type = find_id_type(right_side.value.id_val);
+        right_type = find_id_type(right_side.value.id_val, line, column);
         right_correct = check_multiplication_aux_ids(right_type);
         
     } else{
@@ -1062,14 +1062,13 @@ void check_multiplication (t_variable_value left_side, t_variable_value right_si
     }
 
     if(!(left_correct && right_correct)){
-        // Hacemos el print del error (no sé qué onda las columnas, ya tenemos los tipos izq y derecha)
 
-        printf("Error de multiplicacion en linea: %d, columna: %d, tipos: %s y %s\n", line, column, left_type, right_type);
+        // printf("Error de multiplicacion en linea: %d, columna: %d, tipos: %s y %s\n", line, column, left_type, right_type);
+        // printf("Error de multiplicacion en linea: %d, columna: %d // left_type: %s, right_type: %s\n", line, column, left_type, right_type);
 
-
-        // _asprintf(&data_sem_error->msg, "%i:%i: Se requiere un valor-L modificable como operando izquierdo de la asignacion", line, column - 2);
-        // insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-        // return;
+        _asprintf(&data_sem_error->msg, "%i:%i: Operandos invalidos del operador binario * (tienen \'%s\' y \'%s\')", line, column, left_type, right_type);
+        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        return;
     }    
 }
 
@@ -1127,13 +1126,19 @@ bool check_multiplication_aux_ids(char* type) {
     }
 }
 
-char* find_id_type(char* id) {
+char* find_id_type(char* id, int line, int column) {
     t_symbol_table* existing_symbol = (t_symbol_table*)get_element(VARIABLE, id, compare_char_and_ID_variable);
+    t_symbol_table* existing_function = (t_symbol_table*)get_element(FUNCTION, id, compare_char_and_ID_function);
+
     if(existing_symbol){
         t_variable* identificador = (t_variable*)existing_symbol->data;
         return identificador->type;
-    } else {
-        perror("Error en multiplicación");
+    } else if(existing_function){
+        t_function* identificador = (t_function*)existing_function->data;
+        return identificador->return_type;
+    }
+    else {
+        printf("Error en multiplicación, line: %d, column: %d \n", line, column);
         return NULL;
     }
 }

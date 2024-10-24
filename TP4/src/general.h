@@ -224,7 +224,7 @@ void manage_conflict_types(int line, int column);
 void manage_conflict_arguments(char* identifier); 
 
 void check_multiplication (t_variable_value left_side, t_variable_value right_side, int line, int column) ;
-char* find_id_type(char* id) ;
+char* find_id_type(char* id, int line, int column) ;
 bool check_multiplication_aux_enums(TYPES type);
 bool check_multiplication_aux_ids(char* type);
 char* change_enum_for_type(TYPES type);
