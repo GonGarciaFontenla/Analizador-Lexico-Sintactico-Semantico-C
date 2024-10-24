@@ -288,7 +288,6 @@ expPostfijo
         free_invocated_arguments();
 
         if(fetch_element(FUNCTION, $<string_type>1, compare_void_function)) {
-            printf("fONZAAAAA 1\n");
             assign_void_flag = 1;
         }
         quantity_parameters = 0;
@@ -379,7 +378,6 @@ expPrimaria
     ;
 
 
-/* TODO: revisar falta PALABRA_RESERVADA */
 
 nombreTipo
     : TIPO_DATO 
