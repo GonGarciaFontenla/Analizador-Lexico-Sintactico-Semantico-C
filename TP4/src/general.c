@@ -726,26 +726,6 @@ void check_type_conflict(t_symbol_table* symbol, int line, int column, const cha
     insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
 }
 
-
-// struct t_variable* getId(char* identificador) {
-//     GenericNode* nodo_aux = variable; // Asegúrate de que 'variable' esté inicializado correctamente
-//     t_variable* var;
-//     // Iterar a través de la lista enlazada
-//     while (nodo_aux != NULL) {
-//         var = nodo_aux->data; // Obtener el dato del nodo actual
-
-//         // Comprobar si 'var' no es NULL y comparar
-//         if (var != NULL && strcmp(identificador, var->variable) == 0) {
-//             return var; // Retornar la variable si hay coincidencia
-//         }
-
-//         nodo_aux = nodo_aux->next; // Mover al siguiente nodo
-//     }
-
-//     // Si no se encontró el identificador, retornar NULL
-//     return NULL;
-// }
-
 int _asprintf(char **strp, const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
@@ -1056,4 +1036,107 @@ const char* get_base_type(const char* type) { // Devuelve la ultima palabra del 
     free(type_copy);
 
     return result;
+}
+
+void check_multiplication (t_variable_value left_side, t_variable_value right_side, int line, int column) {
+    // Vamos a chequear que los tipos de los operandos de la multiplicación sean válidos
+    
+    bool left_correct, right_correct;
+    char* left_type, right_type;
+
+    if (left_side.type == ID) {
+
+        left_type = find_id_type(left_side.value.id_val);
+        left_correct = check_multiplication_aux_ids(left_type);
+        
+    } else{
+        left_correct = check_multiplication_aux_enums(left_side.type);
+        left_type = change_enum_for_type(left_side.type);
+    }
+    
+    if (right_side.type == ID) { 
+        
+        right_type = find_id_type(right_side.value.id_val);
+        right_correct = check_multiplication_aux_ids(right_type);
+        
+    } else{
+        right_correct = check_multiplication_aux_enums(right_side.type);
+        right_type = change_enum_for_type(right_side.type);
+    }
+
+    if(!(left_correct && right_correct)){
+        // Hacemos el print del error (no sé qué onda las columnas, ya tenemos los tipos izq y derecha)
+
+        printf("Error de multiplicacion en linea: %d, columna: %d, tipos: %s y %s\n", line, column, left_type, right_type);
+
+
+        // _asprintf(&data_sem_error->msg, "%i:%i: Se requiere un valor-L modificable como operando izquierdo de la asignacion", line, column - 2);
+        // insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        // return;
+    }    
+}
+
+char* change_enum_for_type(TYPES type){
+    switch(type){
+        case STRING:
+            return "char*";
+            break;
+        case INT:
+            return "int";
+            break;
+        case NUMBER: 
+            return "float";
+            break;
+        case UNKNOWN:
+            return "null";
+            break;
+        default:
+            return "null";
+            break;
+    }
+}
+
+bool check_multiplication_aux_enums(TYPES type){
+    switch(type){
+        case STRING:
+        case UNKNOWN:
+            return false;
+            break;
+        case NUMBER:
+        case INT:
+            return true;
+            break;
+        default:
+            return false;
+            break;
+    }
+}
+
+bool check_multiplication_aux_ids(char* type) {
+    if (strcmp(type, "float") == 0 || strcmp(type, "int") == 0 ||
+        strcmp(type, "double") == 0 || strcmp(type, "short") == 0 ||
+        strcmp(type, "long") == 0 || strcmp(type, "unsigned") == 0 ||
+        strcmp(type, "signed") == 0 || strcmp(type, "unsigned int") == 0 ||
+        strcmp(type, "unsigned long") == 0 || strcmp(type, "signed int") == 0 ||
+        strcmp(type, "short int") == 0 || strcmp(type, "signed short int") == 0 ||
+        strcmp(type, "unsigned short int") == 0 || strcmp(type, "long int") == 0 ||
+        strcmp(type, "signed long int") == 0 || strcmp(type, "const float") == 0) {
+        return true;
+    } else if (strcmp(type, "char") == 0 || strcmp(type, "void") == 0 ||
+               strcmp(type, "char*") == 0 || strcmp(type, "void (*)(void)") == 0) {
+        return false;
+    } else {
+        return false;
+    }
+}
+
+char* find_id_type(char* id) {
+    t_symbol_table* existing_symbol = (t_symbol_table*)get_element(VARIABLE, id, compare_char_and_ID_variable);
+    if(existing_symbol){
+        t_variable* identificador = (t_variable*)existing_symbol->data;
+        return identificador->type;
+    } else {
+        perror("Error en multiplicación");
+        return NULL;
+    }
 }
