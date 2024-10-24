@@ -38,6 +38,7 @@ int string_flag = 0;
 char* type_aux = "";
 int position = 1;
 int* vec_parameters = NULL;
+int definition_flag = 0;
 
 %}
 
@@ -252,7 +253,7 @@ opcionAditiva
 expMultiplicativa
     : expUnaria { $<var_val>$ = $<var_val>1; }
     | expMultiplicativa '*' expUnaria { 
-        check_multiplication($<var_val>1, $<var_val>3, @1.first_line, @1.first_column);
+        // check_multiplication($<var_val>1, $<var_val>3, @1.first_line, @1.first_column);
     } 
     | expMultiplicativa '/' expUnaria
     | expMultiplicativa '%' expUnaria 
@@ -389,9 +390,9 @@ declaracionExterna
     ;        
 
 definicionFuncion
-    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta { 
+    : especificadorDeclaracion {definition_flag = 1;} decla listaDeclaracionOp sentCompuesta { 
         save_function("definicion", $<string_type>1, $<string_type>2);
-        manage_conflict_types(@2.first_line, @2.first_column + 1);    
+        manage_conflict_types(@2.first_line, @2.first_column + 1); 
     }
     ;
 
@@ -551,6 +552,12 @@ declaradorDirecto
         data_variable->variable = strdup($<string_type>1);
         data_variable->line = data_symbol->line = yylloc.first_line;
         data_variable->column =  data_symbol->column = yylloc.first_column;
+        if(fetch_element(FUNCTION, data_function, compare_ID_functions) && definition_flag) {
+            printf("Caca de vac");
+            _asprintf(&data_sem_error->msg, "%i:%i: Redifinicion de '%s' ", @1.first_line, @1.first_column + 1, $<string_type>1);
+            insert_node(&semantic_errors, data_sem_error, sizeof(semantic_errors));
+            definition_flag = 0;
+        }
     }
     | '(' decla ')'
     | declaradorDirecto continuacionDeclaradorDirecto { data_function->line = yylloc.first_line; parameter_flag = 1;}

@@ -193,6 +193,7 @@ int compare_char_and_ID_variable(void* data, void* wanted);
 int compare_ID_parameter(void* data, void* wanted);
 int compare_void_function(void* data, void* wanted);
 void compare_arguments(t_symbol_table* function);
+int compare_ID_functions(void* data, void* wanted);
 
 void print_lists();
 void print_semantic_errors(GenericNode* list);

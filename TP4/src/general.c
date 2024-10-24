@@ -476,6 +476,26 @@ int compare_ID_and_different_type_functions(void* data, void* wanted) {
     return 0;
 }
 
+int compare_ID_functions(void* data, void* wanted) {
+    t_function* function_var = (t_function*)data;
+    t_function* data_wanted = (t_function*)wanted;
+
+    if (strcmp(function_var->type, "definicion") == 0 && strcmp(data_wanted->type, "definicion") == 0) 
+        return strcmp(function_var->name, data_wanted->name) == 0;
+}
+
+// int compare_ID_functions(void* data, char* wanted) {
+//     t_function* function_var = (t_function*)data;
+
+//     // Compara el tipo de la función y si es "definicion", compara el nombre con "wanted"
+//     if (strcmp(function_var->type, "definicion") == 0) {
+//         return strcmp(function_var->name, wanted) == 0;
+//     }
+
+//     return 0;
+// }
+
+
 // Busca una variable en la lista de variables declaradas que tenga mismo IDENTIFICADOR y distinto tipo
 int compare_ID_and_diff_type_variable(void* data, void* wanted) {
     t_variable* var_data = (t_variable*)data;
