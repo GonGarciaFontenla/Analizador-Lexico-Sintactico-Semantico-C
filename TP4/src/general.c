@@ -977,6 +977,22 @@ void manage_conflict_arguments (char* identifier) { // ToDo: delegar cada "case"
     } 
 }
 
+// Devuelve, si existe, un paramtro de la funcion actual dado un nombre
+t_parameter* get_param(const char* wanted) {
+    GenericNode* current = data_function->parameters; 
+
+    while (current) {
+        t_parameter* param = (t_parameter*)current->data;
+        if (param && strcmp(param->name, wanted) == 0) {
+            return param;
+        }
+        current = current->next;
+    }
+
+    // Si no se encuentra el parametro devuelve NULL
+    return NULL;
+}
+
 const char* type_to_string(TYPES type) { // Revisar
     switch (type) {
         case INT: return "int";
@@ -1009,6 +1025,7 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
     t_variable* var = NULL;
     if (existing_symbol) {
         var = (t_variable*)existing_symbol->data;
+
         if (is_const(var->type)) { // Actualizar variable de solo lectura
             _asprintf(&data_sem_error->msg, "%i:%i: Asignacion de la variable de solo lectura '%s'", 
             line, column - 2, var->variable);
@@ -1039,19 +1056,28 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
                 if (check_type_match(init->type, expected_type) == 0) {
                     _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", line, column, expected_type, init->type);
                     insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
-                }
-            } else { // El lado derecho es una funcion
-                aux = (t_symbol_table*)get_element(FUNCTION, init_name, compare_char_and_ID_function);
-                if (!aux) {
-                    //printf("ID no encontrado\n");
                     return;
                 }
+            } else { 
+                aux = (t_symbol_table*)get_element(FUNCTION, init_name, compare_char_and_ID_function);
+                if (!aux) {
+                    if (fetch_parameter(init_name)) { // El lado derecho es un parametro
+                        t_parameter* param = get_param(init_name); 
+                        if (check_type_match(param->type, expected_type) == 0) {
+                            _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", line, column, expected_type, param->type);
+                            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                            return;
+                        }
+                    }
+                    return;
+                } // El lado derecho es una funcion
                 t_function* init = (t_function*)aux->data;
                 char* parameters_concat = concat_parameters(init->parameters);
                 if (check_type_match(init->return_type, expected_type) == 0) {
                     _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s (*)(%s)'", 
                     line, column, expected_type, init->return_type, parameters_concat);
                     insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                    return;
                 }
             }
             break;
@@ -1063,6 +1089,7 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
             if (check_type_match(init_type, expected_type) == 0) {
                 _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", line, column, expected_type, init_type);
                 insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                return;
             }
             break;
         }
