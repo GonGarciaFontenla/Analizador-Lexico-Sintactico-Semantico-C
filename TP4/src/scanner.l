@@ -9,7 +9,7 @@
 
 int inicializar = 1;
 GenericNode* intokens = NULL;
-t_token_unrecognised* data_intoken;
+t_sent_or_unrecognised_token* data_intoken;
 
 
 %}

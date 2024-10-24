@@ -126,14 +126,14 @@ void init_structures() { // Iniciar todas las estructuras
     data_parameter->name = NULL;
     data_parameter->type = NULL;
 
-    data_intoken = (t_token_unrecognised*)malloc(sizeof(t_token_unrecognised));
+    data_intoken = (t_sent_or_unrecognised_token*)malloc(sizeof(t_sent_or_unrecognised_token));
     if(!data_intoken) {
         printf("Error al asignar memoria para data_intoken");
         exit(EXIT_FAILURE);
     }
     data_intoken->column = 0;
     data_intoken->line = 0;
-    data_intoken->token = NULL;
+    data_intoken->type = NULL;
 
     data_sem_error = (t_semantic_error*)malloc(sizeof(t_semantic_error));
     if(!data_sem_error) {
@@ -142,7 +142,7 @@ void init_structures() { // Iniciar todas las estructuras
     }
     data_sem_error->msg = NULL;
 
-    data_sent = (t_sent*)malloc(sizeof(t_sent));
+    data_sent = (t_sent_or_unrecognised_token*)malloc(sizeof(t_sent_or_unrecognised_token));
     if (!data_sent) {
         printf("Error al asignar memoria para data_sent");
         exit(EXIT_FAILURE);
@@ -179,10 +179,10 @@ void init_structures() { // Iniciar todas las estructuras
 }
 
 void add_unrecognised_token(const char* intoken) {
-    data_intoken -> token = strdup(intoken);
+    data_intoken -> type = strdup(intoken);
     data_intoken -> line = yylloc.first_line;
     data_intoken -> column = yylloc.first_column;
-    insert_node(&intokens, data_intoken, sizeof(t_token_unrecognised));
+    insert_node(&intokens, data_intoken, sizeof(t_sent_or_unrecognised_token));
 }
 
 void add_sent(const char* tipo_sentencia, int line, int column) {
@@ -193,7 +193,7 @@ void add_sent(const char* tipo_sentencia, int line, int column) {
     }
     data_sent->line = line;
     data_sent->column = column;
-    insert_sorted_node(&sentencias, data_sent, sizeof(t_sent), compare_lines);
+    insert_sorted_node(&sentencias, data_sent, sizeof(t_sent_or_unrecognised_token), compare_lines);
 }
 
 void insert_sorted_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*)) {
@@ -253,145 +253,238 @@ void insert_node(GenericNode** list, void* new_data, size_t data_size) {
     current->next = new_node;
 }
 
-void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HACIENDO UN PRINT PARTICULAR GENERICO
-    int found = 0;
+// void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HACIENDO UN PRINT PARTICULAR GENERICO
+//     int found = 0;
 
-    printf("* Listado de variables declaradas (tipo de dato y numero de linea):\n");
+//     printf("* Listado de variables declaradas (tipo de dato y numero de linea):\n");
 
-    if(variable) {
-        GenericNode* aux = variable;
-        while(aux) {
-            t_variable* temp = (t_variable*)aux->data;
-            printf("%s: %s, linea %i, columna %i\n", temp->variable, temp->type, temp->line, temp->column);
-            aux = aux->next;
-            found = 1;
-        }
-    }
+//     if(variable) {
+//         GenericNode* aux = variable;
+//         while(aux) {
+//             t_variable* temp = (t_variable*)aux->data;
+//             printf("%s: %s, linea %i, columna %i\n", temp->variable, temp->type, temp->line, temp->column);
+//             aux = aux->next;
+//             found = 1;
+//         }
+//     }
 
-    if(!found) {
-        printf("-\n");
-    }
+//     if(!found) {
+//         printf("-\n");
+//     }
 
-    found = 0;
-    printf("\n\n");
+//     found = 0;
+//     printf("\n\n");
 
-    printf("* Listado de funciones declaradas y definidas:\n");
-    if(function) {
-        GenericNode* aux = function;
-        while(aux) {
-            t_function* temp = (t_function*)aux->data;
-            printf("%s: %s, input: ", temp->name, temp->type);
-            if (temp->parameters) {
-                GenericNode* aux2 = (GenericNode*) temp->parameters;
-                while (aux2) {
-                    t_parameter* param = (t_parameter*)aux2->data;
-                    if (param->type && param->name) {
-                        printf(strcmp(param->name, "") == 0 ? "%s" : "%s %s", param->type, param->name);
-                    } else if (param->type){
-                        printf("%s", param->type);
-                    } else {
-                        printf("Tipo de parametro nulo");
-                    }
-                    aux2 = aux2->next;
+//     printf("* Listado de funciones declaradas y definidas:\n");
+//     if(function) {
+//         GenericNode* aux = function;
+//         while(aux) {
+//             t_function* temp = (t_function*)aux->data;
+//             printf("%s: %s, input: ", temp->name, temp->type);
+//             if (temp->parameters) {
+//                 GenericNode* aux2 = (GenericNode*) temp->parameters;
+//                 while (aux2) {
+//                     t_parameter* param = (t_parameter*)aux2->data;
+//                     if (param->type && param->name) {
+//                         printf(strcmp(param->name, "") == 0 ? "%s" : "%s %s", param->type, param->name);
+//                     } else if (param->type){
+//                         printf("%s", param->type);
+//                     } else {
+//                         printf("Tipo de parametro nulo");
+//                     }
+//                     aux2 = aux2->next;
                     
-                    if (aux2) {
-                        printf(", ");
-                    }
-                }
-            } else {
-                printf("void");
-            }
-            printf(", retorna: %s, linea %i\n", temp->return_type, temp->line);
-            aux = aux->next;
-            found = 1;
-        }
-    }
+//                     if (aux2) {
+//                         printf(", ");
+//                     }
+//                 }
+//             } else {
+//                 printf("void");
+//             }
+//             printf(", retorna: %s, linea %i\n", temp->return_type, temp->line);
+//             aux = aux->next;
+//             found = 1;
+//         }
+//     }
 
-    if(!found) {
-        printf("-\n");
-    }
+//     if(!found) {
+//         printf("-\n");
+//     }
 
-    printf("\n\n");
-    found = 0;
+//     printf("\n\n");
+//     found = 0;
 
 
-    printf("* Listado de errores semanticos:\n");
-    print_semantic_errors(semantic_errors);
+//     printf("* Listado de errores semanticos:\n");
+//     print_semantic_errors(semantic_errors);
 
-    found = 0;
-    printf("\n");
-    printf("* Listado de errores sintacticos:\n");
-    if (error_list) {
-        GenericNode* temp = error_list;
-        while (temp) {
-            t_error* err = (t_error*) temp->data;
-            printf("\"%s\": linea %d\n", err->message, err->line);
-            temp = temp->next;
-            found = 1;
-        }
-    }  
+//     found = 0;
+//     printf("\n");
+//     printf("* Listado de errores sintacticos:\n");
+//     if (error_list) {
+//         GenericNode* temp = error_list;
+//         while (temp) {
+//             t_error* err = (t_error*) temp->data;
+//             printf("\"%s\": linea %d\n", err->message, err->line);
+//             temp = temp->next;
+//             found = 1;
+//         }
+//     }  
 
-    if(!found) {
-        printf("-\n");
-    }
+//     if(!found) {
+//         printf("-\n");
+//     }
 
-    found = 0;
-    printf("\n");
+//     found = 0;
+//     printf("\n\n");
 
-    printf("* Listado de errores lexicos:\n");
-    if(intokens) {
-        GenericNode* aux = intokens;
-        while(aux) {
-            t_token_unrecognised* aux_intoken = (t_token_unrecognised*)aux->data;
-            printf("%s: linea %i, columna %i\n", aux_intoken->token, aux_intoken->line, aux_intoken->column);
-            aux = aux->next;
-            found = 1;
-        }
-        printf("\n");
-    }
+//     printf("* Listado de errores lexicos:\n");
+//     if(intokens) {
+//         GenericNode* aux = intokens;
+//         while(aux) {
+//             t_sent_or_unrecognised_token* aux_intoken = (t_sent_or_unrecognised_token*)aux->data;
+//             printf("%s: linea %i, columna %i\n", aux_intoken->type, aux_intoken->line, aux_intoken->column);
+//             aux = aux->next;
+//             found = 1;
+//         }
+//         printf("\n");
+//     }
 
-    if(!found) {
-        printf("-\n");
-    }
+//     if(!found) {
+//         printf("-\n");
+//     }
 
-}
+// }
 
-void print_semantic_errors(GenericNode* list) {
+void print_list(GenericNode* list, void (*print_node)(void*)) {
     if(list) {
         GenericNode* aux = list;
         while(aux) {
-            t_semantic_error* aux_error = (t_semantic_error*)aux->data;
-            printf("%s\n", aux_error->msg);
+            print_node(aux->data);
             aux = aux->next;
         }
-        printf("\n");
     } else {
         printf("-\n");
     }
+    printf("\n\n");
 }
 
-void free_list(GenericNode** head) { // ToDo: hay memory leaks, los free no estan pensados para sublistas
-    GenericNode* temp;
-    while (*head) {
-        temp = *head;
-        *head = (*head)->next;
-        free(temp->data);
-        free(temp);
+void print_variable(void* data) {
+    t_variable* var = (t_variable*)data;
+    printf("%s: %s, linea %i, columna %i\n", var->variable, var->type, var->line, var->column);
+}
+
+void print_function(void* data) {
+    t_function* func = (t_function*)data;
+    printf("%s: %s, input: ", func->name, func->type);
+    
+    if (func->parameters) {
+        GenericNode* aux = func->parameters;
+        while (aux) {
+            t_parameter* param = (t_parameter*)aux->data;
+            if (param->type && param->name) {
+                printf("%s %s", param->type, param->name);
+            } else if (param->type) {
+                printf("%s", param->type);
+            } else {
+                printf("Tipo de parametro nulo");
+            }
+            aux = aux->next;
+            if (aux) {
+                printf(", ");
+            }
+        }
+    } else {
+        printf("void");
     }
-    *head = NULL; // Evita referencias a memoria liberada
+    printf(", retorna: %s, linea %i\n", func->return_type, func->line);
 }
 
-void free_all_lists() { 
-    free_list(&variable);
-    free_list(&function);
-    free_list(&error_list);
-    free_list(&intokens);
-    free_list(&sentencias);
+void print_syntax_error(void* data) {
+    t_error* err = (t_error*)data;
+    printf("\"%s\": linea %d\n", err->message, err->line);
+}
+
+void print_lexical_error(void* data) {
+    t_sent_or_unrecognised_token* token = (t_sent_or_unrecognised_token*)data;
+    printf("%s: linea %i, columna %i\n", token->type, token->line, token->column);
+}
+
+void print_semantic_error(void* data) {
+    t_semantic_error* err = (t_semantic_error*)data;
+    printf("%s\n", err->msg);
+}
+
+void print_lists() {
+    printf("* Listado de variables declaradas (tipo de dato y numero de linea):\n");
+    print_list(variable, print_variable);
+
+    printf("* Listado de funciones declaradas y definidas:\n");
+    print_list(function, print_function);
+
+    printf("* Listado de errores semanticos:\n");
+    print_list(semantic_errors, print_semantic_error);
+
+    printf("* Listado de errores sintacticos:\n");
+    print_list(error_list, print_syntax_error);
+
+    printf("* Listado de errores lexicos:\n");
+    print_list(intokens, print_lexical_error);
+}
+
+// void print_semantic_errors(GenericNode* list) {
+//     if(list) {
+//         GenericNode* aux = list;
+//         while(aux) {
+//             t_semantic_error* aux_error = (t_semantic_error*)aux->data;
+//             printf("%s\n", aux_error->msg);
+//             aux = aux->next;
+//         }
+//         printf("\n");
+//     } else {
+//         printf("-\n");
+//     }
+// }
+
+void free_list(GenericNode** list, void (*free_data)(void*)) { 
+    GenericNode* temp;
+    while (*list) {
+        temp = *list;
+        *list = (*list)->next;
+        if(free_data) {
+            free_data(temp->data);  
+        }
+        if(temp)
+            free(temp);
+    }
+    *list = NULL; 
+}
+
+void free_function(void* data) {
+    t_function* func = (t_function*) data;
+    
+    if (func && func->parameters) {
+        free_list(&(func->parameters), free);
+    }
+
+    free(func->name);
+    free(func->return_type);
+    free(func); 
+}
+
+void free_all_lists() {
+    free_list(&variable, free); 
+    free_list(&function, free_function);  // Como function tiene sublsita por nodo, usamos free_function
+    free_list(&error_list, free);
+    free_list(&intokens, free);
+    free_list(&sentencias, free);
+    free_list(&semantic_errors, free);
+    free_list(&symbol_table, free);
 }
 
 int compare_lines(const void* a, const void* b) {
-    const t_sent* sent_a = (const t_sent*)a;
-    const t_sent* sent_b = (const t_sent*)b;
+    const t_sent_or_unrecognised_token* sent_a = (const t_sent_or_unrecognised_token*)a;
+    const t_sent_or_unrecognised_token* sent_b = (const t_sent_or_unrecognised_token*)b;
 
     return sent_a->line - sent_b->line;
 }
@@ -950,7 +1043,7 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
             } else { // El lado derecho es una funcion
                 aux = (t_symbol_table*)get_element(FUNCTION, init_name, compare_char_and_ID_function);
                 if (!aux) {
-                    printf("ID no encontrado\n");
+                    //printf("ID no encontrado\n");
                     return;
                 }
                 t_function* init = (t_function*)aux->data;

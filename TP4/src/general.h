@@ -70,20 +70,9 @@ typedef struct {
 
 typedef struct {
     int line;
-    char* structure;
-} t_structure_unrecognised;
-
-typedef struct {
-    int line;
     int column;
-    char* token;
-} t_token_unrecognised;
-
-typedef struct {
     char* type;
-    int line;
-    int column;
-} t_sent;
+} t_sent_or_unrecognised_token; // Unificado en un struct
 
 typedef struct {
     int line;
@@ -132,11 +121,11 @@ extern GenericNode* sentencias;
 extern GenericNode* semantic_errors;
 extern GenericNode* symbol_table;
 extern t_symbol_table* data_symbol;
-extern t_token_unrecognised* data_intoken;
+extern t_sent_or_unrecognised_token* data_intoken;
 extern t_variable* data_variable;
 extern t_function* data_function;
 extern t_parameter data_parameter;
-extern t_sent* data_sent;
+extern t_sent_or_unrecognised_token* data_sent;
 extern t_error* new_error;
 extern t_semantic_error* data_sem_error;
 extern t_arguments* invocated_arguments;
@@ -158,10 +147,9 @@ void inicializarUbicacion(void);
 void reinicializarUbicacion(void);
 void init_structures();
 
-// ToDo: Hay una manera de mejorar los free
-// con un struct que tenga un union y un enum, pero lo dejamos para la entrega final, muy dificil de pensar ahora 
-void free_list(GenericNode** head);
+void free_list(GenericNode** list, void (*free_data)(void*));
 void free_all_lists(void);
+void free_function(void* data);
 void free_invocated_arguments();
 
 int _asprintf(char **strp, const char *fmt, ...);
@@ -196,8 +184,13 @@ int compare_ID_parameter(void* data, void* wanted);
 int compare_void_function(void* data, void* wanted);
 void compare_arguments(t_symbol_table* function);
 
-void print_lists();
-void print_semantic_errors(GenericNode* list);
+void print_list(GenericNode* list, void (*print_node)(void*));
+void print_variable(void* data);
+void print_function(void* data);
+void print_syntax_error(void* data);
+void print_lexical_error(void* data);
+void print_semantic_error(void* data);
+void print_lists(void);
 
 t_symbol_table* get_element(SYMBOL_TYPE symbol_type, void* wanted, compare_element cmp);
 int fetch_element(SYMBOL_TYPE sym, void* wanted, compare_element cmp);

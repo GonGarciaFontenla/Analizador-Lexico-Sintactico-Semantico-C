@@ -25,7 +25,7 @@ t_variable* data_variable_aux_2 = NULL;
 t_arguments* invocated_arguments = NULL;
 t_function* data_function = NULL;
 t_parameter data_parameter;
-t_sent* data_sent = NULL;
+t_sent_or_unrecognised_token* data_sent = NULL;
 t_semantic_error* data_sem_error = NULL; 
 t_symbol_table* data_symbol = NULL;
 
