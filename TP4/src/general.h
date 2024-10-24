@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 /* En los archivos de cabecera (header files) (*.h) poner DECLARACIONES (evitar DEFINICIONES) de C, así como directivas de preprocesador */
 /* Recordar solamente indicar archivos *.h en las directivas de preprocesador #include, nunca archivos *.c */
@@ -222,6 +223,10 @@ void return_conflict_types(t_symbol_table* existing_symbol, int line, int column
 void manage_conflict_types(int line, int column);
 void manage_conflict_arguments(char* identifier); 
 
-struct t_variable* getId(char* identificador) ;
+void check_multiplication (t_variable_value left_side, t_variable_value right_side, int line, int column) ;
+char* find_id_type(char* id) ;
+bool check_multiplication_aux_enums(TYPES type);
+bool check_multiplication_aux_ids(char* type);
+char* change_enum_for_type(TYPES type);
 
 #endif 

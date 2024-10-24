@@ -250,15 +250,10 @@ opcionAditiva
     ;
     
 expMultiplicativa
-    : expUnaria { $<var_val>$ = $<var_val>1;}
-    | expMultiplicativa '*' expUnaria/* { 
-        if(data_variable_aux = getId($1)) {
-            printf("El tipo del primer operando () es: %s \n", data_variable_aux->type);F
-            printf("El tipo del segundo operando () es: %s \n", tipo_auxiliar);
-        } else { 
-            printf("No esta \n"); 
-        }
-    } */
+    : expUnaria { $<var_val>$ = $<var_val>1; }
+    | expMultiplicativa '*' expUnaria { 
+        check_multiplication($<var_val>1, $<var_val>3, @1.first_line, @1.first_column);
+    } 
     | expMultiplicativa '/' expUnaria
     | expMultiplicativa '%' expUnaria 
     ;
@@ -378,10 +373,12 @@ expPrimaria
         string_flag = 1;
 
         $<var_val>$.value.string_val = strdup($<string_type>1);
-        $<var_val>$.type = STRING;
+        $<var_val>$.type = STRING; 
     }
     | '(' expresion ')' 
     ;
+
+
 /* TODO: revisar falta PALABRA_RESERVADA */
 
 nombreTipo
