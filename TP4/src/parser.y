@@ -598,7 +598,13 @@ declaracionParametro
         data_parameter.type = strdup($<string_type>1);
         data_parameter.line = @1.first_line;
         data_parameter.column = @1.first_column;
-        
+        if($<string_type>2){
+            data_parameter.name_line= @2.first_line;
+            data_parameter.name_column= @2.first_column+1;
+        }else{
+            data_parameter.name_line= @1.first_line;
+            data_parameter.name_column= @1.first_column;
+        }        
     }
     ;
 

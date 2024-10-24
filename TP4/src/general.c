@@ -262,7 +262,7 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
         GenericNode* aux = variable;
         while(aux) {
             t_variable* temp = (t_variable*)aux->data;
-            printf("%s: %s, linea %i, columna %i \n", temp->variable, temp->type, temp->line, temp->column);
+            printf("%s: %s, linea %i, columna %i\n", temp->variable, temp->type, temp->line, temp->column);
             aux = aux->next;
             found = 1;
         }
@@ -273,9 +273,9 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
     }
 
     found = 0;
-    printf("\n");
+    printf("\n\n");
 
-    printf("* Listado de funciones declaradas o definidas:\n");
+    printf("* Listado de funciones declaradas y definidas:\n");
     if(function) {
         GenericNode* aux = function;
         while(aux) {
@@ -301,7 +301,7 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
             } else {
                 printf("void");
             }
-            printf(", retorna: %s, linea %i \n", temp->return_type, temp->line);
+            printf(", retorna: %s, linea %i\n", temp->return_type, temp->line);
             aux = aux->next;
             found = 1;
         }
@@ -311,7 +311,7 @@ void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HA
         printf("-\n");
     }
 
-    printf("\n");
+    printf("\n\n");
     found = 0;
 
 
@@ -625,7 +625,7 @@ void insert_sem_error_different_symbol(int column) {
         if(existing_function) {
             char* new_parameters = concat_parameters(data_function -> parameters);
             char* old_parameters = concat_parameters(existing_function -> parameters);
-            _asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la ultima es de tipo '%s(%s)'\nNota: la declaracion previa de '%s' es de tipo '%s(%s)': %i:%i",
+            _asprintf(&data_sem_error->msg, "%i:%i: conflicto de tipos para '%s'; la ultima es de tipo '%s(%s)'\nNota: la declaracion previa de '%s' es de tipo '%s(%s)': %i:%i",
                     data_function->line, column, data_function->name,
                     data_function->return_type, new_parameters, existing_function->name, 
                     existing_function->return_type, old_parameters,
@@ -697,9 +697,9 @@ void handle_redeclaration(int redeclaration_line, int redeclaration_column, cons
 
 void check_function_redeclaration(t_symbol_table* symbol, int line, int column, const char* id) {
     t_function* existing_function = (t_function*)symbol->data;
-    _asprintf(&data_sem_error->msg, "%i:%i: '%s' redeclarado como un tipo diferente de simbolo\nNota: la declaracion previa de '%s' es de tipo '%s': %i:%i", 
+    _asprintf(&data_sem_error->msg, "%i:%i: '%s' redeclarado como un tipo diferente de simbolo\nNota: la declaracion previa de '%s' es de tipo '%s(%s)': %i:%i", 
             line, column, id, 
-            existing_function->name, existing_function->return_type, 
+            existing_function->name, existing_function->return_type, existing_function->return_type, 
             symbol->line, symbol->column);
     insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
 }
@@ -715,7 +715,7 @@ void check_variable_redeclaration(t_symbol_table* symbol, int line, int column, 
 
 void check_type_conflict(t_symbol_table* symbol, int line, int column, const char* id) {
     t_variable* existing_variable = (t_variable*)symbol->data;
-    _asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la ultima es de tipo '%s'\nNota: la declaracion previa de '%s' es de tipo '%s': %i:%i",
+    _asprintf(&data_sem_error->msg, "%i:%i: conflicto de tipos para '%s'; la ultima es de tipo '%s'\nNota: la declaracion previa de '%s' es de tipo '%s': %i:%i",
             line, column, id,
             data_variable->type, existing_variable->variable, 
             existing_variable->type, existing_variable->line, 
@@ -860,7 +860,7 @@ void manage_conflict_arguments (char* identifier) { // ToDo: delegar cada "case"
                     t_parameter* param = (t_parameter*)get_parameter(func->parameters, i);
                     _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos para el argumento %i de '%s'\nNota: se esperaba '%s' pero el argumento es de tipo '%s': %i:%i",
                             invocated_arguments[i].line, invocated_arguments[i].column, i + 1,
-                            func->name, param->type, "char*", param->line, param->column);
+                            func->name, param->type, "char *", param->name_line, param->name_column);
                     insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
                     break;
                 case ID:
@@ -1072,7 +1072,7 @@ void check_multiplication (t_variable_value left_side, t_variable_value right_si
 char* change_enum_for_type(TYPES type){
     switch(type){
         case STRING:
-            return "char*";
+            return "char *";
             break;
         case INT:
             return "int";

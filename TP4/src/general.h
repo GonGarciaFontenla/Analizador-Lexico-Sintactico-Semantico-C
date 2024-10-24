@@ -56,6 +56,8 @@ typedef struct {
     char* name;
     int line;
     int column;
+    int name_line;
+    int name_column;
 } t_parameter;
 
 typedef struct {
