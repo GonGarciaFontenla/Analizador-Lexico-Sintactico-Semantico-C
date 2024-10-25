@@ -808,6 +808,7 @@ void handle_function_redefinition(int line, int column, char* identifier) {
                 line, column, identifier, existing_function->name, existing_function->return_type,
                 old_parameters, existing_symbol->line, existing_symbol->column);
             insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+            data_function->parameters = NULL;
         }
     }
 }
@@ -1070,6 +1071,10 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
     
     const char* expected_type = var->type; // Tipo a verificar con el lado derecho
 
+    if (is_const(expected_type)) {
+        expected_type = get_base_type(var->type);
+    }
+
     switch (initializer.type) {
         case ID: {
             char* init_name = strdup(initializer.value.id_val);
@@ -1078,7 +1083,8 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
             if (aux) { // El lado derecho es una variable
                 t_variable* init = (t_variable*)aux->data;
                 if (check_type_match(init->type, expected_type) == 0) {
-                    _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", line, column, expected_type, init->type);
+                    _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", 
+                    line, column, expected_type, init->type);
                     insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
                     return;
                 }
@@ -1088,7 +1094,8 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
                     if (fetch_parameter(init_name)) { // El lado derecho es un parametro
                         t_parameter* param = get_param(init_name); 
                         if (check_type_match(param->type, expected_type) == 0) {
-                            _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", line, column, expected_type, param->type);
+                            _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", 
+                            line, column, expected_type, param->type);
                             insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
                             return;
                         }
@@ -1111,7 +1118,8 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
             const char* init_type = type_to_string(initializer.type);
 
             if (check_type_match(init_type, expected_type) == 0) {
-                _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", line, column, expected_type, init_type);
+                _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", 
+                line, column, expected_type, init_type);
                 insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
                 return;
             }
