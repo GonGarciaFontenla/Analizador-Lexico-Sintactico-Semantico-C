@@ -120,9 +120,9 @@ listaDeclaracionOp
     ;
 
 /* TODO: genera 28 conflicts */
+
 listaSentencias
-    : sentencia listaSentencias
-    | sentencia
+    : sentencia listaSentenciasOp
     | error
     ;
 
@@ -298,32 +298,35 @@ expPostfijo
         $<var_val>$.value.id_val = strdup($<string_type>1);
         $<var_val>$.type = ID;
     }
-    | IDENTIFICADOR '(' ')' {
-        quantity_parameters = 0;
-        insert_sem_error_invocate_function(@1.first_line, @1.first_column, $<string_type>1, quantity_parameters);
-        $<var_val>$.value.id_val = strdup($<string_type>1);
-        $<var_val>$.type = ID;
+    | IDENTIFICADOR llamadaFuncionVacia {
+                quantity_parameters = 0;
+                insert_sem_error_invocate_function(@1.first_line, @1.first_column, $<string_type>1, quantity_parameters);
+                $<var_val>$.value.id_val = strdup($<string_type>1);
+                $<var_val>$.type = ID;
 
-        if(fetch_element(FUNCTION, $<string_type>1, compare_void_function)) {
-            assign_void_flag = 1;
-        }
-        }
-    ;
+                if(fetch_element(FUNCTION, $<string_type>1, compare_void_function)) {
+                    assign_void_flag = 1;
+                }
+           }
+           ;
 
-opcionPostfijo
-    : '[' expresion ']'
-    | '(' { parameter_flag = 1;} listaArgumentos ')' { parameter_flag = 0; }
-    ;
+llamadaFuncionVacia: '(' ')' 
+                   ;
 
-listaArgumentos
-    : %empty
-    |expAsignacion masListaArgumentos { quantity_parameters ++;}
-    ;
+opcionPostfijo: '[' expresion ']'
+              | '(' { parameter_flag = 1;} listaArgumentosNoVacia ')' { parameter_flag = 0; }
+              ;
 
-masListaArgumentos
-    : masListaArgumentos ',' expAsignacion { quantity_parameters ++;}
-    | %empty 
-    ;
+listaArgumentosNoVacia: expAsignacion masListaArgumentos { 
+                        quantity_parameters++; 
+                      }
+                     ;
+
+masListaArgumentos: masListaArgumentos ',' expAsignacion { 
+                    quantity_parameters++; 
+                  }
+                 | %empty
+                 ;
 
 expPrimaria
     : IDENTIFICADOR %prec IDENT_PREC {
