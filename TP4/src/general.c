@@ -798,6 +798,19 @@ void handle_redeclaration(int redeclaration_line, int redeclaration_column, cons
     }
 }
 
+void handle_function_redefinition(int line, int column, char* identifier) {
+    t_symbol_table* existing_symbol = (t_symbol_table*)get_element(FUNCTION, identifier, compare_ID_functions);
+    if(existing_symbol){ 
+        t_function* existing_function = (t_function*)existing_symbol->data;
+        if(existing_function){
+            char* old_parameters = concat_parameters(existing_function -> parameters);
+            _asprintf(&data_sem_error->msg, "%i:%i: Redefinicion de '%s' \nNota: la definicion previa de '%s' es de tipo '%s(%s)': %i:%i", 
+                line, column, identifier, existing_function->name, existing_function->return_type,
+                old_parameters, existing_symbol->line, existing_symbol->column);
+            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        }
+    }
+}
 
 void check_function_redeclaration(t_symbol_table* symbol, int line, int column, const char* id) {
     t_function* existing_function = (t_function*)symbol->data;

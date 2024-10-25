@@ -199,6 +199,7 @@ int fetch_parameter(const char* wanted);
 int fetch_type_parameter(t_function* function, char* wanted);
 
 void handle_redeclaration(int redeclaration_line, int redeclaration_column, const char* identifier); 
+void handle_function_redefinition(int line, int column, char* identifier);
 void check_function_redeclaration(t_symbol_table* function, int redeclaration_line, int redeclaration_column, const char* identifier); 
 void check_variable_redeclaration(t_symbol_table* variable, int line, int column, const char* id); 
 void check_type_conflict(t_symbol_table* variable, int line, int column, const char* id);
