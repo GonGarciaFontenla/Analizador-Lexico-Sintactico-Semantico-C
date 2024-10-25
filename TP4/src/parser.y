@@ -82,6 +82,9 @@ int* vec_parameters = NULL;
 %nonassoc '='
 %nonassoc ';'
 
+%precedence IDENT_PREC
+%precedence '('
+
 %%
 
 programa
@@ -323,7 +326,7 @@ masListaArgumentos
     ;
 
 expPrimaria
-    : IDENTIFICADOR {
+    : IDENTIFICADOR %prec IDENT_PREC {
         if(!declaration_flag) {
             if(!fetch_element(VARIABLE, $<string_type>1, compare_ID_parameter) && !fetch_parameter($<string_type>1) && !fetch_element(FUNCTION, $<string_type>1, compare_char_and_ID_function)) {
                _asprintf(&data_sem_error -> msg, "%i:%i: '%s' sin declarar", @1.first_line, @1.first_column, $<string_type>1);
