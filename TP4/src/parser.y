@@ -108,7 +108,6 @@ sentCompuesta
 
 listaDeclaraciones
     : declaracion listaDeclaraciones
-    | declaracion
     | error
     ;
 
