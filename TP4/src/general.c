@@ -569,6 +569,16 @@ int compare_ID_and_different_type_functions(void* data, void* wanted) {
     return 0;
 }
 
+int compare_ID_functions(void* data, char* wanted) {
+    t_function* function_var = (t_function*)data;
+
+    if (strcmp(function_var->type, "definicion") == 0) 
+        return strcmp(function_var->name, wanted) == 0;
+
+    return 0;
+}
+
+
 // Busca una variable en la lista de variables declaradas que tenga mismo IDENTIFICADOR y distinto tipo
 int compare_ID_and_diff_type_variable(void* data, void* wanted) {
     t_variable* var_data = (t_variable*)data;
@@ -787,6 +797,7 @@ void handle_redeclaration(int redeclaration_line, int redeclaration_column, cons
         check_type_conflict(existing_symbol, redeclaration_line, redeclaration_column, identifier);
     }
 }
+
 
 void check_function_redeclaration(t_symbol_table* symbol, int line, int column, const char* id) {
     t_function* existing_function = (t_function*)symbol->data;

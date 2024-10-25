@@ -63,6 +63,7 @@ typedef struct {
 typedef struct {
     char* name;
     int line;
+    int column;
     char* type;                             // Si es declaracion o definicion
     GenericNode* parameters;                
     char* return_type;
@@ -182,6 +183,7 @@ int compare_char_and_ID_variable(void* data, void* wanted);
 int compare_ID_parameter(void* data, void* wanted);
 int compare_void_function(void* data, void* wanted);
 void compare_arguments(t_symbol_table* function);
+int compare_ID_functions(void* data, char* wanted) ;
 
 void print_list(GenericNode* list, void (*print_node)(void*));
 void print_variable(void* data);

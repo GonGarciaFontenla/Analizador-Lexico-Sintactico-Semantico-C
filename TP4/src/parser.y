@@ -393,10 +393,32 @@ declaracionExterna
 
 definicionFuncion
     : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta {
-        save_function("definicion", $<string_type>1, $<string_type>2);
-        manage_conflict_types(@2.first_line, @2.first_column + 1);    
+        if(fetch_element(FUNCTION, $<string_type>2, compare_ID_functions)) {
+            t_symbol_table* existing_symbol = (t_symbol_table*)get_element(FUNCTION, $<string_type>2, compare_ID_functions);
+            if(existing_symbol){ 
+                t_function* existing_function = (t_function*)existing_symbol->data;
+                if(existing_function){
+                    char* old_parameters = concat_parameters(existing_function -> parameters);
+                    _asprintf(&data_sem_error->msg, 
+                            "%i:%i: Redefinicion de '%s' \nNota: la definicion previa de '%s' es de tipo '%s(%s)': %i:%i", 
+                            @2.first_line, 
+                            @2.first_column+1, 
+                            $<string_type>2,
+                            existing_function->name,
+                            existing_function->return_type,
+                            old_parameters,
+                            existing_symbol->line, 
+                            existing_symbol->column);
+                    insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                    }
+            }
+        } else {
+            save_function("definicion", $<string_type>1, $<string_type>2);
+            manage_conflict_types(@2.first_line, @2.first_column + 1);
+        }
     }
     ;
+
 
 declaracion
     : especificadorDeclaracion listaDeclaradores ';'
