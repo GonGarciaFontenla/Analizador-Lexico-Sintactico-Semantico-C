@@ -298,7 +298,7 @@ expPostfijo
         $<var_val>$.value.id_val = strdup($<string_type>1);
         $<var_val>$.type = ID;
     }
-    | IDENTIFICADOR llamadaFuncionVacia {
+    | IDENTIFICADOR '(' ')' {
                 quantity_parameters = 0;
                 insert_sem_error_invocate_function(@1.first_line, @1.first_column, $<string_type>1, quantity_parameters);
                 $<var_val>$.value.id_val = strdup($<string_type>1);
@@ -309,9 +309,6 @@ expPostfijo
                 }
            }
            ;
-
-llamadaFuncionVacia: '(' ')' 
-                   ;
 
 opcionPostfijo: '[' expresion ']'
               | '(' { parameter_flag = 1;} listaArgumentosNoVacia ')' { parameter_flag = 0; }
