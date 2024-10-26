@@ -85,6 +85,7 @@ int* vec_parameters = NULL;
 %nonassoc '='
 %nonassoc ';'
 %nonassoc ')'
+%precedence AUXSENTENCIA
 
 %precedence IDENT_PREC
 %precedence '('
@@ -129,8 +130,8 @@ listaSentencias
     ;
 
 listaSentenciasOp
-    : listaSentencias
-    | %empty
+    : %prec AUXSENTENCIA listaSentencias 
+    | VACIO
     ; 
 
 sentExpresion
@@ -160,7 +161,6 @@ expresionOp
     | %empty 
     ;
 
-/* TODO: VER CASE, EN TP3 ANDA DE PEDO*/
 sentEtiquetadas
     : IDENTIFICADOR ':' sentencia 
     | CASE expresion ':' listaSentencias {add_sent($<string_type>1, @1.first_line, @1.first_column);}
@@ -283,7 +283,6 @@ operUnario
     | '!' 
     ;
 
-/* TODO: ver expPostFijo */
 expPostfijo
     : expPrimaria  { $<var_val>$ = $<var_val>1;}
     | expPostfijo expPrimaria
@@ -312,20 +311,23 @@ expPostfijo
            }
            ;
 
-opcionPostfijo: '[' expresion ']'
-              | '(' { parameter_flag = 1;} listaArgumentosNoVacia ')' { parameter_flag = 0; }
-              ;
+opcionPostfijo
+    : '[' expresion ']'
+    | '(' { parameter_flag = 1;} listaArgumentosNoVacia ')' { parameter_flag = 0; }
+    ;
 
-listaArgumentosNoVacia: expAsignacion masListaArgumentos { 
-                        quantity_parameters++; 
-                      }
-                     ;
+listaArgumentosNoVacia
+    : expAsignacion masListaArgumentos { 
+        quantity_parameters++; 
+    }
+    ;
 
-masListaArgumentos: masListaArgumentos ',' expAsignacion { 
-                    quantity_parameters++; 
-                  }
-                 | %empty
-                 ;
+masListaArgumentos
+    : masListaArgumentos ',' expAsignacion { 
+        quantity_parameters++; 
+    }
+    | %empty
+    ;
 
 expPrimaria
     : IDENTIFICADOR %prec IDENT_PREC {
@@ -424,7 +426,6 @@ definicionFuncion
         }
     }
     ;
-
 
 declaracion
     : especificadorDeclaracion listaDeclaradores ';'
@@ -705,5 +706,5 @@ int main(int argc, char *argv[]) {
 }
 
 void yyerror(const char *s) {
-    //fprintf(stderr, "Error sintactico");
+    fprintf(stderr, "Error de sintaxis: %s\n", s);
 }
