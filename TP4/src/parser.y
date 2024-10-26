@@ -68,7 +68,7 @@ int* vec_parameters = NULL;
 %token ELIPSIS
 
 %type expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expUnaria expMultiplicativa expPostfijo
-%type operAsignacion operUnario nombreTipo listaArgumentos expPrimaria
+%type operAsignacion operUnario nombreTipo expPrimaria
 %type sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
 %type unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto
 
@@ -81,6 +81,8 @@ int* vec_parameters = NULL;
 %nonassoc ','
 %nonassoc '='
 %nonassoc ';'
+%nonassoc ')'
+%nonassoc AUXILIARSENTENCIA
 
 %precedence IDENT_PREC
 %precedence '('
@@ -119,16 +121,14 @@ listaDeclaracionOp
     | %empty
     ;
 
-/* TODO: genera 28 conflicts */
-
 listaSentencias
     : sentencia listaSentenciasOp
     | error
     ;
 
 listaSentenciasOp
-    : listaSentencias
-    | %empty
+    : %prec AUXILIARSENTENCIA listaSentencias
+    | VACIO
     ; 
 
 sentExpresion
@@ -475,7 +475,7 @@ inicializador
     ;
 
 especificadorTipo
-    : TIPO_DATO { data_variable->type = strdup($<string_type>1);}
+    : TIPO_DATO %prec VACIO {data_variable->type = strdup($<string_type>1);}
     | especificadorStructUnion
     | especificadorEnum
     ;
