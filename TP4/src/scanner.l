@@ -67,17 +67,26 @@ ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
     return NUM; 
 }
 
-int|float|double|char|void|short|long|unsigned|signed {
-    yylval.string_type = strdup(yytext);  // Asigna el valor del token reconocido
-    yylloc.last_column += yyleng;
-    return TIPO_DATO;
-}
 
-"unsigned int"|"unsigned long"|"signed int"|"short int"|"signed short int"|"unsigned short int"|"long int"|"signed long int"|"const float" {
-    yylval.string_type = strdup(yytext); 
-    yylloc.last_column += yyleng;
-    return TIPO_DATO;
-}
+int      { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return INT_TYPE; }
+float    { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return FLOAT; }
+double   { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return DOUBLE; }
+char     { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return CHAR; }
+void     { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return VOID; }
+short    { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return SHORT; }
+long     { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return LONG; }
+unsigned { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return UNSIGNED; }
+signed   { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return SIGNED; }
+
+"unsigned int"       { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return UNSIGNED_INT; }
+"unsigned long"      { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return UNSIGNED_LONG; }
+"signed int"         { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return SIGNED_INT; }
+"short int"          { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return SHORT_INT; }
+"signed short int"   { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return SIGNED_SHORT_INT; }
+"unsigned short int" { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return UNSIGNED_SHORT_INT; }
+"long int"           { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return LONG_INT; }
+"signed long int"    { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return SIGNED_LONG_INT; }
+"const float"        { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return CONST_FLOAT; }
 
 return  {
     yylloc.last_column += yyleng;
