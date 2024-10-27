@@ -78,16 +78,6 @@ long     { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; re
 unsigned { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return UNSIGNED; }
 signed   { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return SIGNED; }
 
-"unsigned int"       { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return UNSIGNED_INT; }
-"unsigned long"      { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return UNSIGNED_LONG; }
-"signed int"         { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return SIGNED_INT; }
-"short int"          { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return SHORT_INT; }
-"signed short int"   { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return SIGNED_SHORT_INT; }
-"unsigned short int" { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return UNSIGNED_SHORT_INT; }
-"long int"           { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return LONG_INT; }
-"signed long int"    { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return SIGNED_LONG_INT; }
-"const float"        { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return CONST_FLOAT; }
-
 return  {
     yylloc.last_column += yyleng;
     yylval.string_type = strdup(yytext);
@@ -166,15 +156,14 @@ continue {
     return CONTINUE;
 }
 
-volatile|const {
-    yylloc.last_column += yyleng;
-    return TIPO_CALIFICADOR;
-}
+volatile    { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return VOLATILE; }
+const       { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return CONST; }
 
-typedef|static|extern|auto|register {
-    yylloc.last_column += yyleng;
-    return TIPO_ALMACENAMIENTO;
-}
+typedef     { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return TYPEDEF; }
+static      { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return STATIC; }
+extern      { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return EXTERN; }
+auto        { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return AUTO; }
+register    { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return REGISTER; }
 
 union {
     yylloc.last_column += yyleng;

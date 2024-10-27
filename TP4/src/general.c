@@ -1313,3 +1313,23 @@ char* concat_types(char* return_type) {
 
     return tipo_compuesto;
 }
+
+char* concat_strings(const char* string1, const char* string2) {
+    // Calcula el tamaño necesario para la cadena concatenada
+    size_t len1 = string1 ? strlen(string1) : 0;
+    size_t len2 = string2 ? strlen(string2) : 0;
+    char* result = malloc(len1 + len2 + 2);  // +1 para el carácter nulo
+
+    if (result == NULL) {
+        fprintf(stderr, "Error de asignación de memoria.\n");
+        exit(1);
+    }
+
+    result[0] = '\0';
+
+    if (string1) strcpy(result, string1);
+    if (string1 && string2) strcat(result, " ");
+    if (string2) strcat(result, string2);
+
+    return result;
+}

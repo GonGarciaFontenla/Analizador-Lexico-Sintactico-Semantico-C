@@ -227,5 +227,6 @@ bool check_multiplication_aux_enums(TYPES type);
 bool check_multiplication_aux_ids(char* type);
 char* change_enum_for_type(TYPES type);
 char* concat_types(char* return_type);
+char* concat_strings(const char* string1, const char* string2);
 
 #endif 

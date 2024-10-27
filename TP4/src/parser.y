@@ -55,7 +55,7 @@ int* vec_parameters = NULL;
 %token <string_type> IDENTIFICADOR
 %token <string_type> LITERAL_CADENA
 %token CONSTANTE
-%token <string_type> TIPO_ALMACENAMIENTO TIPO_CALIFICADOR ENUM STRUCT UNION
+%token <string_type> ENUM STRUCT UNION
 %token <string_type> RETURN IF ELSE WHILE DO FOR DEFAULT CASE  
 %token <string_type> CONTINUE BREAK GOTO SWITCH SIZEOF
 %token <int_type> ENTERO
@@ -66,14 +66,13 @@ int* vec_parameters = NULL;
 %token PTR_OP INC_OP DEC_OP
 %token ELIPSIS
 
-%token INT_TYPE FLOAT DOUBLE CHAR VOID SHORT LONG UNSIGNED SIGNED
-%token UNSIGNED_INT UNSIGNED_LONG SIGNED_INT SHORT_INT SIGNED_SHORT_INT
-%token UNSIGNED_SHORT_INT LONG_INT SIGNED_LONG_INT CONST_FLOAT
+%token INT_TYPE FLOAT DOUBLE CHAR VOID SHORT LONG UNSIGNED SIGNED CONST VOLATILE TYPEDEF STATIC EXTERN AUTO REGISTER
 
 %type expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expUnaria expMultiplicativa expPostfijo tipoDato
 %type operAsignacion operUnario nombreTipo expPrimaria
 %type sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
-%type unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto
+%type unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion especificadorCompleto listaDeclaradores listaDeclaracionOp declarador declaradorDirecto
+%type calificadorTipo tipoAlmacenamiento structUnion
 
 %start programa
 
@@ -396,15 +395,6 @@ tipoDato
     | LONG
     | UNSIGNED
     | SIGNED
-    | UNSIGNED_INT
-    | UNSIGNED_LONG
-    | SIGNED_INT
-    | SHORT_INT
-    | SIGNED_SHORT_INT
-    | UNSIGNED_SHORT_INT
-    | LONG_INT
-    | SIGNED_LONG_INT
-    | CONST_FLOAT
     ;
 
 nombreTipo
@@ -440,15 +430,34 @@ declaracion
     }
     ;
 
-especificadorDeclaracionOp
-    : especificadorDeclaracion
-    | %empty
+especificadorDeclaracion
+    : especificadorCompleto {
+        $<string_type>$ = strdup($<string_type>1);
+        data_variable->type = strdup($<string_type>1);
+    }
     ;
 
-especificadorDeclaracion 
-    : TIPO_ALMACENAMIENTO especificadorDeclaracionOp
-    | especificadorTipo especificadorDeclaracionOp 
-    | TIPO_CALIFICADOR especificadorDeclaracionOp 
+especificadorDeclaracionOp
+    : especificadorCompleto { $<string_type>$ = strdup($<string_type>1);}
+    | %empty    { $<string_type>$ = NULL;}
+    ;
+
+especificadorCompleto 
+    : tipoAlmacenamiento especificadorDeclaracionOp    { $<string_type>$ = concat_strings($<string_type>1, $<string_type>2);}
+    | especificadorTipo especificadorDeclaracionOp      { $<string_type>$ = concat_strings($<string_type>1, $<string_type>2);}
+    | calificadorTipo especificadorDeclaracionOp       { $<string_type>$ = concat_strings($<string_type>1, $<string_type>2);}
+    ;
+
+tipoAlmacenamiento
+    : CONST | VOLATILE
+    ;
+
+calificadorTipo
+    : TYPEDEF
+    | STATIC
+    | EXTERN
+    | AUTO
+    | REGISTER
     ;
     
 listaDeclaradores
@@ -497,13 +506,17 @@ inicializador
     ;
 
 especificadorTipo
-    : tipoDato %prec VACIO {data_variable->type = strdup($<string_type>1);}
+    : tipoDato %prec VACIO //{data_variable->type = concat_strings(data_variable->type, $<string_type>1);} 
     | especificadorStructUnion
     | especificadorEnum
     ;
 
 especificadorStructUnion
-    : STRUCT cuerpoEspecificador
+    : structUnion cuerpoEspecificador
+    ;
+
+structUnion
+    : STRUCT | UNION
     ;
 
 cuerpoEspecificador
@@ -527,7 +540,7 @@ declaracionStruct
 
 listaCalificadores
     : especificadorTipo listaCalificadoresOp
-    | TIPO_CALIFICADOR listaCalificadoresOp
+    | calificadorTipo listaCalificadoresOp
     ;
 
 listaCalificadoresOp
@@ -573,8 +586,8 @@ listaCalificadoresTipoOp
     ;
     
 listaCalificadoresTipo
-    : TIPO_CALIFICADOR
-    | listaCalificadoresTipo TIPO_CALIFICADOR
+    : calificadorTipo
+    | listaCalificadoresTipo calificadorTipo
     ;
 
 declaradorDirecto
