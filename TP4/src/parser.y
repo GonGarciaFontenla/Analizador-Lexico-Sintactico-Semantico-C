@@ -10,27 +10,12 @@ void yyerror(const char *s);
 
 /* Declaracion de variables */
 GenericNode* variable = NULL;
-<<<<<<< HEAD
-t_variable* data_variable = NULL;
-t_variable* data_variable_aux = NULL;
-t_function* data_function = NULL;
-=======
->>>>>>> origin/main
 GenericNode* function = NULL;
 GenericNode* error_list = NULL;
 GenericNode* sentencias = NULL;
 GenericNode* semantic_errors = NULL;
 GenericNode* symbol_table = NULL;
 
-<<<<<<< HEAD
-char* type = NULL;
-char* loco = NULL;
-int parameter_flag = 0; 
-
-char* tipoAuxiliar1 = "";
-char* tipoAuxiliar2 = "";
-int validacionBinaria = 0;
-=======
 //int* invocated_arguments = NULL;
 t_variable* data_variable = NULL;
 
@@ -40,7 +25,7 @@ t_variable* data_variable_aux_2 = NULL;
 t_arguments* invocated_arguments = NULL;
 t_function* data_function = NULL;
 t_parameter data_parameter;
-t_sent* data_sent = NULL;
+t_sent_or_unrecognised_token* data_sent = NULL;
 t_semantic_error* data_sem_error = NULL; 
 t_symbol_table* data_symbol = NULL;
 
@@ -53,11 +38,10 @@ int string_flag = 0;
 char* type_aux = "";
 int position = 1;
 int* vec_parameters = NULL;
->>>>>>> origin/main
 
 %}
 
-%error-verbose
+%define parse.error verbose
 %locations
 
 %union {
@@ -65,12 +49,12 @@ int* vec_parameters = NULL;
     int int_type;
     double double_type;
     char char_type;
+    t_variable_value var_val;
 }
 
 %token <string_type> IDENTIFICADOR
 %token <string_type> LITERAL_CADENA
 %token CONSTANTE
-%token <string_type> TIPO_DATO
 %token <string_type> TIPO_ALMACENAMIENTO TIPO_CALIFICADOR ENUM STRUCT UNION
 %token <string_type> RETURN IF ELSE WHILE DO FOR DEFAULT CASE  
 %token <string_type> CONTINUE BREAK GOTO SWITCH SIZEOF
@@ -82,24 +66,39 @@ int* vec_parameters = NULL;
 %token PTR_OP INC_OP DEC_OP
 %token ELIPSIS
 
-%type expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expUnaria expMultiplicativa expPostfijo
-%type operAsignacion operUnario nombreTipo listaArgumentos expPrimaria
+%token INT_TYPE FLOAT DOUBLE CHAR VOID SHORT LONG UNSIGNED SIGNED
+%token UNSIGNED_INT UNSIGNED_LONG SIGNED_INT SHORT_INT SIGNED_SHORT_INT
+%token UNSIGNED_SHORT_INT LONG_INT SIGNED_LONG_INT CONST_FLOAT
+
+%type expAsignacion expCondicional expOr expAnd expIgualdad expRelacional expAditiva expUnaria expMultiplicativa expPostfijo tipoDato
+%type operAsignacion operUnario nombreTipo expPrimaria
 %type sentExpresion sentSalto sentSeleccion sentIteracion sentEtiquetadas sentCompuesta sentencia
 %type unidadTraduccion declaracionExterna definicionFuncion declaracion especificadorDeclaracion listaDeclaradores listaDeclaracionOp declarador declaradorDirecto
 
 %start programa
 
+%nonassoc THEN
+%nonassoc ELSE 
+
+%nonassoc VACIO
+%nonassoc ','
+%nonassoc '='
+%nonassoc ';'
+%nonassoc ')'
+%precedence AUXSENTENCIA
+
+%precedence IDENT_PREC
+%precedence '('
+
 %%
 
 programa
-    : input
+    : unidadTraduccion
     ;
 
-input
-    : 
-    | input expresion {reset_token_buffer();}
-    | input sentencia {reset_token_buffer();}
-    | input unidadTraduccion {reset_token_buffer();}
+unidadTraduccion
+    : declaracionExterna {reset_token_buffer();}
+    | unidadTraduccion declaracionExterna {reset_token_buffer();}
     ;
 
 sentencia
@@ -112,40 +111,42 @@ sentencia
     ;
 
 sentCompuesta
-    : '{' {parameter_flag = 0;} opcionDeclaracion opcionSentencia '}' 
-    ;
-
-opcionDeclaracion
-    : 
-    | listaDeclaraciones
-    ;
-
-opcionSentencia
-    : 
-    | listaSentencias
+    : '{' {parameter_flag = 0;} listaDeclaraciones listaSentenciasOp '}' 
     ;
 
 listaDeclaraciones
-    : listaDeclaraciones declaracion
-    | declaracion 
+    : declaracion listaDeclaraciones
     | error
+    ;
+
+listaDeclaracionOp
+    : listaDeclaraciones
+    | %empty
     ;
 
 listaSentencias
-    : listaSentencias sentencia 
-    | sentencia
-    | error
+    : sentencia listaSentenciasOp
+    | error {yyerrok;}
     ;
+
+listaSentenciasOp
+    : %prec AUXSENTENCIA listaSentencias 
+    | VACIO
+    ; 
 
 sentExpresion
     : ';' { semicolon_flag = 1;}
-    | expresion ';' 
-    | expresion error { yerror(@1);}
+    | expresion opcionExpresion
+    ; 
+
+opcionExpresion
+    : ';'
+    | error {yerror(@0); yyerrok;}
     ;
 
 sentSeleccion
-    : IF '(' expresion ')' sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column);} 
-    | IF '(' expresion ')' sentencia ELSE sentencia  {add_sent("if/else", @1.first_line, @1.first_column);} 
+    : IF '(' expresion ')' sentencia %prec THEN {add_sent("if", @1.first_line, @1.first_column);}
+    | IF '(' expresion ')' sentencia ELSE sentencia {add_sent("if/else", @1.first_line, @1.first_column);}
     | SWITCH '(' expresion ')' {reset_token_buffer(); } sentencia {add_sent($<string_type>1, @1.first_line, @1.first_column); }
     ;
 
@@ -156,8 +157,8 @@ sentIteracion
     ;
 
 expresionOp
-    : 
-    | expresion
+    : expresion
+    | %empty 
     ;
 
 sentEtiquetadas
@@ -167,39 +168,30 @@ sentEtiquetadas
     ;
 
 sentSalto
-<<<<<<< HEAD
-    : RETURN sentExpresion {
-        add_sent($<string_type>1, @1.first_line, @1.first_column);
-
-        /* Tomar último elemento de la lista de funciones y chequear que el tipo 
-        de return sea == al tipo de return dentro de la función*/    
-        
-=======
     : RETURN sentExpresion {add_sent($<string_type>1, @1.first_line, @1.first_column);
         t_symbol_table* existing_symbol = (t_symbol_table*)get_element(FUNCTION, data_function->name, compare_char_and_ID_function);
         if(existing_symbol) {
             return_conflict_types(existing_symbol, @1.first_line, @1.last_column);
         }
->>>>>>> origin/main
     }
     | CONTINUE ';' {add_sent($<string_type>1, @1.first_line, @1.first_column);}
     | BREAK ';' {add_sent($<string_type>1, @1.first_line, @1.first_column);}
     | GOTO IDENTIFICADOR ';'{add_sent($<string_type>1, @1.first_line, @1.first_column);}
     ;
 
-expresion 
-    : expAsignacion
-    | expresion ',' expAsignacion
+expresion
+    : expAsignacion %prec VACIO 
+    | expAsignacion ',' expresion
     ;
 
 expAsignacion
-    : expCondicional
+    : expCondicional { $<var_val>$ = $<var_val>1;}
     | expUnaria operAsignacion expAsignacion {
         if(assign_void_flag) {
-            _asprintf(&data_sem_error->msg, "%i:%i: No se ignora el valor de retorno void como deberia ser", @1.first_line, @1.first_column);
+            _asprintf(&data_sem_error->msg, "%i:%i: No se ignora el valor de retorno void como deberia ser", @1.first_line, @2.first_column);
             insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
             assign_void_flag = 0;
-        }
+        } else{check_assignation_types ($<var_val>1, $<var_val>3, @3.first_line, @3.first_column);}
     }
     | expUnaria operAsignacion error 
     ;
@@ -214,22 +206,22 @@ operAsignacion
     ;
 
 expCondicional
-    : expOr 
+    : expOr { $<var_val>$ = $<var_val>1;}
     | expOr '?' expresion ':' expCondicional
     ; 
 
 expOr
-    : expAnd
+    : expAnd { $<var_val>$ = $<var_val>1;}
     | expOr OR expAnd
     ;
 
 expAnd
-    : expIgualdad 
+    : expIgualdad { $<var_val>$ = $<var_val>1;}
     | expAnd AND expIgualdad 
     ;
 
 expIgualdad
-    : expRelacional 
+    : expRelacional { $<var_val>$ = $<var_val>1;}
     | expIgualdad opcionIgualdad
     ;
 
@@ -239,7 +231,7 @@ opcionIgualdad
     ;
 
 expRelacional
-    : expAditiva
+    : expAditiva { $<var_val>$ = $<var_val>1;}
     | expRelacional opcionRelacional
     ;
     
@@ -251,7 +243,7 @@ opcionRelacional
     ;
 
 expAditiva
-    : expMultiplicativa 
+    : expMultiplicativa { $<var_val>$ = $<var_val>1;}
     | expAditiva opcionAditiva
     ;
 
@@ -261,37 +253,27 @@ opcionAditiva
     ;
     
 expMultiplicativa
-    : expUnaria
-<<<<<<< HEAD
-    | expMultiplicativa opcionMultiplicativa
-    ;
+    : expUnaria { $<var_val>$ = $<var_val>1; }
+    | expMultiplicativa '*' expUnaria { 
 
-opcionMultiplicativa 
-    : '*' expUnaria { printf("\n\n\nLos tipos encontrados son %s y %s\n\n\n", tipoAuxiliar1, tipoAuxiliar2); validacionTipos(tipoAuxiliar1, tipoAuxiliar2); }
-    | '/' expUnaria
-    | '%' expUnaria
-=======
-    | expMultiplicativa '*' expUnaria/* { 
-        if(data_variable_aux = getId($1)) {
-            printf("El tipo del primer operando () es: %s \n", data_variable_aux->type);F
-            printf("El tipo del segundo operando () es: %s \n", tipo_auxiliar);
-        } else { 
-            printf("No esta \n"); 
-        }
-    } */
+        check_multiplication($<var_val>1, $<var_val>3, @1.first_line, @2.first_column);
+        
+    } 
     | expMultiplicativa '/' expUnaria
     | expMultiplicativa '%' expUnaria 
->>>>>>> origin/main
     ;
 
 expUnaria
-    : expPostfijo
-    | INC_OP expUnaria 
-    | DEC_OP expUnaria 
-    | expUnaria INC_OP
-    | expUnaria DEC_OP
-    | operUnario expUnaria 
+    : expPostfijo { $<var_val>$ = $<var_val>1;}
+    | opcionIncDec expPostfijo 
+    | expPostfijo opcionIncDec
+    | operUnario expUnaria  { $<var_val>$ = $<var_val>2;}
     | SIZEOF '(' nombreTipo ')' 
+    ;  
+
+opcionIncDec
+    : INC_OP 
+    | DEC_OP
     ;
 
 operUnario
@@ -302,9 +284,9 @@ operUnario
     ;
 
 expPostfijo
-    : expPrimaria  
+    : expPrimaria  { $<var_val>$ = $<var_val>1;}
     | expPostfijo expPrimaria
-    | IDENTIFICADOR opcionPostfijo { 
+    | IDENTIFICADOR opcionPostfijo{ 
         insert_sem_error_invocate_function(@1.first_line, @1.first_column, $<string_type>1, quantity_parameters);
         manage_conflict_arguments($<string_type>1); 
         free_invocated_arguments();
@@ -313,39 +295,42 @@ expPostfijo
             assign_void_flag = 1;
         }
         quantity_parameters = 0;
+
+        $<var_val>$.value.id_val = strdup($<string_type>1);
+        $<var_val>$.type = ID;
     }
-    | IDENTIFICADOR '(' ')'
-    ;
+    | IDENTIFICADOR '(' ')' {
+                quantity_parameters = 0;
+                insert_sem_error_invocate_function(@1.first_line, @1.first_column, $<string_type>1, quantity_parameters);
+                $<var_val>$.value.id_val = strdup($<string_type>1);
+                $<var_val>$.type = ID;
+
+                if(fetch_element(FUNCTION, $<string_type>1, compare_void_function)) {
+                    assign_void_flag = 1;
+                }
+           }
+           ;
 
 opcionPostfijo
     : '[' expresion ']'
-    | '(' { parameter_flag = 1;} listaArgumentos ')' { parameter_flag = 0;}
+    | '(' { parameter_flag = 1;} listaArgumentosNoVacia ')' { parameter_flag = 0; }
     ;
 
-listaArgumentos
-    : expAsignacion { quantity_parameters ++;}
-    | listaArgumentos ',' expAsignacion { quantity_parameters ++; }
+listaArgumentosNoVacia
+    : expAsignacion masListaArgumentos { 
+        quantity_parameters++; 
+    }
+    ;
+
+masListaArgumentos
+    : masListaArgumentos ',' expAsignacion { 
+        quantity_parameters++; 
+    }
+    | %empty
     ;
 
 expPrimaria
-<<<<<<< HEAD
-    : IDENTIFICADOR  { 
-        data_variable_aux = getId($1); 
-        if(data_variable_aux != NULL) {  /* Si obtengo la variable de la lista de variables */
-            (validacionBinaria == 0)
-            ? (tipoAuxiliar1 = data_variable_aux->type) 
-            : (tipoAuxiliar2 = data_variable_aux->type); 
-            validacionBinaria = 1; 
-        }
-    }  
-    | ENTERO  { (validacionBinaria == 0) ? (tipoAuxiliar1 = "int"  ) : (tipoAuxiliar2 = "int"  ); validacionBinaria = 1; } 
-    | NUM    { (validacionBinaria == 0) ? (tipoAuxiliar1 = "int"  ) : (tipoAuxiliar2 = "int"  ); validacionBinaria = 1; }     
-    | CONSTANTE { (validacionBinaria == 0) ? (tipoAuxiliar1 = "int"  ) : (tipoAuxiliar2 = "int"  ); validacionBinaria = 1; } 
-    | LITERAL_CADENA { (validacionBinaria == 0) ? (tipoAuxiliar1 = "char*"  ) : (tipoAuxiliar2 = "char*"  ); validacionBinaria = 1; } 
-    | '(' expresion ')'
-    | PALABRA_RESERVADA
-=======
-    : IDENTIFICADOR {
+    : IDENTIFICADOR %prec IDENT_PREC {
         if(!declaration_flag) {
             if(!fetch_element(VARIABLE, $<string_type>1, compare_ID_parameter) && !fetch_parameter($<string_type>1) && !fetch_element(FUNCTION, $<string_type>1, compare_char_and_ID_function)) {
                _asprintf(&data_sem_error -> msg, "%i:%i: '%s' sin declarar", @1.first_line, @1.first_column, $<string_type>1);
@@ -359,40 +344,72 @@ expPrimaria
         if(parameter_flag) {
             add_argument(@1.first_line, @1.first_column, ID);
         }
+
+        $<var_val>$.value.id_val = strdup($<string_type>1);
+        $<var_val>$.type = ID;
     }
     | ENTERO            { 
         if(parameter_flag) {  
             add_argument(@1.first_line, @1.first_column, INT);
         }
+
+        $<var_val>$.value.int_val = $<int_type>1;
+        $<var_val>$.type = INT;
     } 
     | NUM               { 
         if(parameter_flag){
             add_argument(@1.first_line, @1.first_column, NUMBER);
         }   
+
+        $<var_val>$.value.double_val = $<double_type>1;
+        $<var_val>$.type = NUMBER;
     }
     | CONSTANTE         {
         if(parameter_flag) {
             add_argument(@1.first_line, @1.first_column, INT);
         }
+
+        $<var_val>$.value.int_val = $<int_type>1;
+        $<var_val>$.type = INT;
     }
     | LITERAL_CADENA    { 
         if(parameter_flag) {
             add_argument(@1.first_line, @1.first_column, STRING);
         }
         string_flag = 1;
+
+        $<var_val>$.value.string_val = strdup($<string_type>1);
+        $<var_val>$.type = STRING; 
     }
-    | '(' expresion ')' 
->>>>>>> origin/main
+    | '(' expresion ')' {
+        $<var_val>$.type = NUMBER;
+    }
+    ;
+
+tipoDato
+    : INT_TYPE
+    | FLOAT
+    | DOUBLE
+    | CHAR
+    | VOID
+    | SHORT
+    | LONG
+    | UNSIGNED
+    | SIGNED
+    | UNSIGNED_INT
+    | UNSIGNED_LONG
+    | SIGNED_INT
+    | SHORT_INT
+    | SIGNED_SHORT_INT
+    | UNSIGNED_SHORT_INT
+    | LONG_INT
+    | SIGNED_LONG_INT
+    | CONST_FLOAT
     ;
 
 nombreTipo
-    : TIPO_DATO 
+    : tipoDato
     ;
-
-unidadTraduccion
-    : declaracionExterna 
-    | unidadTraduccion declaracionExterna
-    ;    
 
 declaracionExterna
     : definicionFuncion    
@@ -400,9 +417,13 @@ declaracionExterna
     ;        
 
 definicionFuncion
-    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta { 
-        save_function("definicion", $<string_type>1, $<string_type>2);
-        manage_conflict_tpyes(@2.first_line, @2.first_column + 1);    
+    : especificadorDeclaracion decla listaDeclaracionOp sentCompuesta {
+        if(fetch_element(FUNCTION, $<string_type>2, compare_ID_functions)) {
+            handle_function_redefinition(@2.first_line,@2.first_column+1, $<string_type>2);
+        } else {
+            save_function("definicion", $<string_type>1, $<string_type>2);
+            manage_conflict_types(@2.first_line, @2.first_column + 1);
+        }
     }
     ;
 
@@ -411,12 +432,17 @@ declaracion
     | especificadorDeclaracion decla ';' {
         if (parameter_flag) {
             save_function("declaracion", $<string_type>1, $<string_type>2);
-            manage_conflict_tpyes(@2.first_line, @2.first_column + 1);
+            manage_conflict_types(@2.first_line, @2.first_column + 1);
         } else {
             insert_node(&variable, data_variable, sizeof(t_variable));
             insert_symbol(VARIABLE);
         }
     }
+    ;
+
+especificadorDeclaracionOp
+    : especificadorDeclaracion
+    | %empty
     ;
 
 especificadorDeclaracion 
@@ -425,11 +451,6 @@ especificadorDeclaracion
     | TIPO_CALIFICADOR especificadorDeclaracionOp 
     ;
     
-especificadorDeclaracionOp
-    : 
-    | especificadorDeclaracion
-    ;
-
 listaDeclaradores
     : declarador { 
         int redeclaration_line = data_variable->line;
@@ -445,19 +466,24 @@ listaDeclaradores
     }
     ;
 
-listaDeclaracionOp
-    : 
-    | listaDeclaraciones 
-    ;
-    
 declarador
-    : decla
-    | decla '=' inicializador
+    : decla opcionPostDeclarador
+    ;
+
+opcionPostDeclarador
+    : %prec VACIO %empty
+    | '=' inicializador {
+        t_variable_value var_val;
+        var_val.type = ID;
+        var_val.value.id_val = strdup($<string_type>0);
+        
+        check_assignation_types(var_val, $<var_val>2, @2.first_line, @2.first_column);
+    }
     ;
 
 opcionComa
-    : 
-    | ','
+    : ','
+    | %empty
     ;
 
 listaInicializadores
@@ -466,12 +492,12 @@ listaInicializadores
     ;
 
 inicializador
-    : expAsignacion {declaration_flag = 1;}
+    : expAsignacion {declaration_flag = 1; $<var_val>$ = $<var_val>1;}
     | '{' listaInicializadores opcionComa '}' 
     ;
 
 especificadorTipo
-    : TIPO_DATO { data_variable->type = strdup($<string_type>1);}
+    : tipoDato %prec VACIO {data_variable->type = strdup($<string_type>1);}
     | especificadorStructUnion
     | especificadorEnum
     ;
@@ -486,8 +512,8 @@ cuerpoEspecificador
     ;
 
 cuerpoStructOp
-    : 
-    | '{' listaDeclaracionesStruct '}'
+    : '{' listaDeclaracionesStruct '}'
+    | %empty
     ;
 
 listaDeclaracionesStruct
@@ -505,8 +531,8 @@ listaCalificadores
     ;
 
 listaCalificadoresOp
-    : 
-    | listaCalificadores
+    : listaCalificadores
+    | %empty
     ;
 
 declaradoresStruct
@@ -524,8 +550,8 @@ declaSi
     ;
 
 expConstanteOp
-    : 
-    | ':' expresion
+    : ':' expresion
+    | %empty
     ;
 
 decla
@@ -533,8 +559,8 @@ decla
     ;
 
 punteroOp
-    : 
-    | puntero
+    : puntero
+    | %empty 
     ;
 
 puntero
@@ -542,8 +568,8 @@ puntero
     ;
 
 listaCalificadoresTipoOp
-    : 
-    | listaCalificadoresTipo
+    : listaCalificadoresTipo
+    | %empty  
     ;
     
 listaCalificadoresTipo
@@ -564,18 +590,18 @@ declaradorDirecto
 
 continuacionDeclaradorDirecto
     : '[' expConstanteOp ']'
-    | '(' listaTiposParametrosOp ')'
-    | '(' listaIdentificadoresOp ')'
-    | '(' TIPO_DATO ')' {  
-            data_parameter.type = strdup($<string_type>2);
-            data_parameter.name = NULL;
-            insert_node(&data_function->parameters, &data_parameter, sizeof(t_parameter));
-        }
+    | '(' opcional 
     ;
 
-listaTiposParametrosOp 
-    : 
-    | listaTiposParametros 
+opcional
+    : ')' 
+    | listaTiposParametros  ')' 
+    | listaIdentificadores ')' 
+    | tipoDato ')' { 
+        data_parameter.type = strdup($<string_type>1);
+        data_parameter.name = NULL;
+        insert_node((GenericNode**)&(data_function->parameters), &data_parameter, sizeof(t_parameter));
+        }
     ;
     
 listaTiposParametros
@@ -583,37 +609,39 @@ listaTiposParametros
     ;
     
 opcionalListaParametros
-    : 
-    | ',' ELIPSIS
+    : ',' ELIPSIS
+    | %empty
     ;
 
 listaParametros
     : declaracionParametro  {
-        insert_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter));
+        insert_node((GenericNode**)&(data_function->parameters), &data_parameter, sizeof(t_parameter));
     }
     | listaParametros ',' declaracionParametro {
-        insert_node(&(data_function->parameters), &data_parameter, sizeof(t_parameter));
+        insert_node((GenericNode**)&(data_function->parameters), &data_parameter, sizeof(t_parameter));
     }
     ;
-    
+
 declaracionParametro
     : especificadorDeclaracion opcionesDecla {
         data_parameter.type = strdup($<string_type>1);
         data_parameter.line = @1.first_line;
         data_parameter.column = @1.first_column;
+        if($<string_type>2){
+            data_parameter.name_line= @2.first_line;
+            data_parameter.name_column= @2.first_column+1;
+        }else{
+            data_parameter.name_line= @1.first_line;
+            data_parameter.name_column= @1.first_column;
+        }        
     }
     ;
 
 opcionesDecla
-    :  {data_parameter.name = (char*)malloc(1); data_parameter.name = '\0';}
+    : %empty {data_parameter.name = (char*)malloc(1); data_parameter.name = '\0';}
     | decla { 
         data_parameter.name = strdup($<string_type>1); 
         }
-    | declaradorAbstracto
-    ;
-
-listaIdentificadoresOp
-    : listaIdentificadores
     ;
 
 listaIdentificadores
@@ -631,8 +659,8 @@ opcionalEspecificadorEnum
     ;
 
 opcionalListaEnumeradores
-    : 
-    | '{' listaEnumeradores '}'
+    : '{' listaEnumeradores '}'
+    | %empty
     ;
 
 listaEnumeradores
@@ -645,32 +673,11 @@ enumerador
     ;
 
 opcionalEnumerador
-    : 
-    | '=' expresion
-    ;
-
-declaradorAbstracto
-    : puntero declaradorAbstractoDirectoOp
-    | declaradorAbstractoDirecto
-    ;
-
-declaradorAbstractoDirectoOp
-    : 
-    | declaradorAbstractoDirecto
-    ;
-
-declaradorAbstractoDirecto
-    : '(' declaradorAbstracto ')'
-    | declaradorAbstractoDirectoOp postOpcionDeclaradorAbstracto
-    ;
-
-postOpcionDeclaradorAbstracto
-    : '[' expresion ']'
-    | '(' listaTiposParametrosOp ')'
+    : '=' expresion
+    | %empty
     ;
 
 %%
-
 
 int main(int argc, char *argv[]) {
     if (argc > 1) {
@@ -693,10 +700,11 @@ int main(int argc, char *argv[]) {
     }
     
     free_all_lists(); 
+    free(yylval.string_type);
 
     return 0;
 }
 
 void yyerror(const char *s) {
-    //fprintf(stderr, "Error sintactico");
+    // fprintf(stderr, "Error de sintaxis: %s\n", s);
 }
