@@ -126,7 +126,7 @@ listaDeclaracionOp
 
 listaSentencias
     : sentencia listaSentenciasOp
-    | error
+    | error {yyerrok;}
     ;
 
 listaSentenciasOp
@@ -706,5 +706,5 @@ int main(int argc, char *argv[]) {
 }
 
 void yyerror(const char *s) {
-    fprintf(stderr, "Error de sintaxis: %s\n", s);
+    // fprintf(stderr, "Error de sintaxis: %s\n", s);
 }

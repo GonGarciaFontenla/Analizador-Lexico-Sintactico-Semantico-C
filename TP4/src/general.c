@@ -569,13 +569,12 @@ int compare_ID_and_different_type_functions(void* data, void* wanted) {
     return 0;
 }
 
-int compare_ID_functions(void* data, char* wanted) {
+int compare_ID_functions(void* data, void* wanted) {
     t_function* function_var = (t_function*)data;
+    char* data_wanted = (char*)wanted;
 
-    if (strcmp(function_var->type, "definicion") == 0) 
-        return strcmp(function_var->name, wanted) == 0;
-
-    return 0;
+    return strcmp(function_var->name, data_wanted) == 0 && 
+           strcmp(function_var->type, "definicion") == 0;
 }
 
 
