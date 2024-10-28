@@ -253,109 +253,6 @@ void insert_node(GenericNode** list, void* new_data, size_t data_size) {
     current->next = new_node;
 }
 
-// void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HACIENDO UN PRINT PARTICULAR GENERICO
-//     int found = 0;
-
-//     printf("* Listado de variables declaradas (tipo de dato y numero de linea):\n");
-
-//     if(variable) {
-//         GenericNode* aux = variable;
-//         while(aux) {
-//             t_variable* temp = (t_variable*)aux->data;
-//             printf("%s: %s, linea %i, columna %i\n", temp->variable, temp->type, temp->line, temp->column);
-//             aux = aux->next;
-//             found = 1;
-//         }
-//     }
-
-//     if(!found) {
-//         printf("-\n");
-//     }
-
-//     found = 0;
-//     printf("\n\n");
-
-//     printf("* Listado de funciones declaradas y definidas:\n");
-//     if(function) {
-//         GenericNode* aux = function;
-//         while(aux) {
-//             t_function* temp = (t_function*)aux->data;
-//             printf("%s: %s, input: ", temp->name, temp->type);
-//             if (temp->parameters) {
-//                 GenericNode* aux2 = (GenericNode*) temp->parameters;
-//                 while (aux2) {
-//                     t_parameter* param = (t_parameter*)aux2->data;
-//                     if (param->type && param->name) {
-//                         printf(strcmp(param->name, "") == 0 ? "%s" : "%s %s", param->type, param->name);
-//                     } else if (param->type){
-//                         printf("%s", param->type);
-//                     } else {
-//                         printf("Tipo de parametro nulo");
-//                     }
-//                     aux2 = aux2->next;
-                    
-//                     if (aux2) {
-//                         printf(", ");
-//                     }
-//                 }
-//             } else {
-//                 printf("void");
-//             }
-//             printf(", retorna: %s, linea %i\n", temp->return_type, temp->line);
-//             aux = aux->next;
-//             found = 1;
-//         }
-//     }
-
-//     if(!found) {
-//         printf("-\n");
-//     }
-
-//     printf("\n\n");
-//     found = 0;
-
-
-//     printf("* Listado de errores semanticos:\n");
-//     print_semantic_errors(semantic_errors);
-
-//     found = 0;
-//     printf("\n");
-//     printf("* Listado de errores sintacticos:\n");
-//     if (error_list) {
-//         GenericNode* temp = error_list;
-//         while (temp) {
-//             t_error* err = (t_error*) temp->data;
-//             printf("\"%s\": linea %d\n", err->message, err->line);
-//             temp = temp->next;
-//             found = 1;
-//         }
-//     }  
-
-//     if(!found) {
-//         printf("-\n");
-//     }
-
-//     found = 0;
-//     printf("\n\n");
-
-//     printf("* Listado de errores lexicos:\n");
-//     if(intokens) {
-//         GenericNode* aux = intokens;
-//         while(aux) {
-//             t_sent_or_unrecognised_token* aux_intoken = (t_sent_or_unrecognised_token*)aux->data;
-//             printf("%s: linea %i, columna %i\n", aux_intoken->type, aux_intoken->line, aux_intoken->column);
-//             aux = aux->next;
-//             found = 1;
-//         }
-//         printf("\n");
-//     }
-
-//     if(!found) {
-//         printf("-\n");
-//     }
-
-// }
-
 void print_list(GenericNode* list, void (*print_node)(void*)) {
     if(list) {
         GenericNode* aux = list;
@@ -431,20 +328,6 @@ void print_lists() {
     printf("* Listado de errores lexicos:\n");
     print_list(intokens, print_lexical_error);
 }
-
-// void print_semantic_errors(GenericNode* list) {
-//     if(list) {
-//         GenericNode* aux = list;
-//         while(aux) {
-//             t_semantic_error* aux_error = (t_semantic_error*)aux->data;
-//             printf("%s\n", aux_error->msg);
-//             aux = aux->next;
-//         }
-//         printf("\n");
-//     } else {
-//         printf("-\n");
-//     }
-// }
 
 void free_list(GenericNode** list, void (*free_data)(void*)) { 
     GenericNode* temp;
@@ -1017,13 +900,11 @@ t_parameter* get_param(const char* wanted) {
     return NULL;
 }
 
-const char* type_to_string(TYPES type) { // Revisar
+char* type_to_string(TYPES type) {
     switch (type) {
         case INT: return "int";
         case NUMBER: return "double";
         case STRING: return "char *";
-        case ID: return "id";
-        case UNKNOWN: return "otro";
         default: return "unknown"; 
     }
 }
@@ -1114,7 +995,7 @@ void check_assignation_types (t_variable_value declarator, t_variable_value init
         }
 
         default: {
-            const char* init_type = type_to_string(initializer.type);
+            char* init_type = type_to_string(initializer.type);
 
             if (check_type_match(init_type, expected_type) == 0) {
                 _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", 
@@ -1200,7 +1081,7 @@ void check_multiplication (t_variable_value left_side, t_variable_value right_si
     } else{
 
         left_correct = check_multiplication_aux_enums(left_side.type);
-        left_type = change_enum_for_type(left_side.type);
+        left_type = type_to_string(left_side.type);
     }
     
     if (right_side.type == ID) { 
@@ -1209,7 +1090,7 @@ void check_multiplication (t_variable_value left_side, t_variable_value right_si
         
     } else{
         right_correct = check_multiplication_aux_enums(right_side.type);
-        right_type = change_enum_for_type(right_side.type);
+        right_type = type_to_string(right_side.type);
     }
 
     if(!(left_correct && right_correct)){
@@ -1218,26 +1099,6 @@ void check_multiplication (t_variable_value left_side, t_variable_value right_si
         insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
         return;
     }    
-}
-
-char* change_enum_for_type(TYPES type){
-    switch(type){
-        case STRING:
-            return "char *";
-            break;
-        case INT:
-            return "int";
-            break;
-        case NUMBER: 
-            return "float";
-            break;
-        case UNKNOWN:
-            return "null";
-            break;
-        default:
-            return "null";
-            break;
-    }
 }
 
 bool check_multiplication_aux_enums(TYPES type){
@@ -1318,7 +1179,7 @@ char* concat_strings(const char* string1, const char* string2) {
     // Calcula el tamaño necesario para la cadena concatenada
     size_t len1 = string1 ? strlen(string1) : 0;
     size_t len2 = string2 ? strlen(string2) : 0;
-    char* result = malloc(len1 + len2 + 2);  // +1 para el carácter nulo
+    char* result = malloc(len1 + len2 + 2);  // +2 para el carácter nulo y espacio
 
     if (result == NULL) {
         fprintf(stderr, "Error de asignación de memoria.\n");

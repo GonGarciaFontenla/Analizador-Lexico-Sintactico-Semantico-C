@@ -16,12 +16,7 @@ GenericNode* sentencias = NULL;
 GenericNode* semantic_errors = NULL;
 GenericNode* symbol_table = NULL;
 
-//int* invocated_arguments = NULL;
 t_variable* data_variable = NULL;
-
-t_variable* data_variable_aux = NULL;
-t_variable* data_variable_aux_2 = NULL;
-
 t_arguments* invocated_arguments = NULL;
 t_function* data_function = NULL;
 t_parameter data_parameter;
@@ -37,7 +32,6 @@ int assign_void_flag = 0; // Si se asigna una variable a una funcion void
 int string_flag = 0;
 char* type_aux = "";
 int position = 1;
-int* vec_parameters = NULL;
 
 %}
 
@@ -313,6 +307,7 @@ expPostfijo
 opcionPostfijo
     : '[' expresion ']'
     | '(' { parameter_flag = 1;} listaArgumentosNoVacia ')' { parameter_flag = 0; }
+    | PTR_OP IDENTIFICADOR
     ;
 
 listaArgumentosNoVacia
@@ -386,15 +381,15 @@ expPrimaria
     ;
 
 tipoDato
-    : INT_TYPE
-    | FLOAT
-    | DOUBLE
-    | CHAR
-    | VOID
-    | SHORT
-    | LONG
-    | UNSIGNED
-    | SIGNED
+    : INT_TYPE  { $<string_type>$ = "int";}
+    | FLOAT     { $<string_type>$ = "float";}
+    | DOUBLE    { $<string_type>$ = "double";}
+    | CHAR      { $<string_type>$ = "char";}
+    | VOID      { $<string_type>$ = "void";}
+    | SHORT     { $<string_type>$ = "short";}
+    | LONG      { $<string_type>$ = "long";}
+    | UNSIGNED  { $<string_type>$ = "unsigned";}
+    | SIGNED    { $<string_type>$ = "signed";}
     ;
 
 nombreTipo
@@ -449,15 +444,16 @@ especificadorCompleto
     ;
 
 tipoAlmacenamiento
-    : CONST | VOLATILE
+    : CONST     { $<string_type>$ = "const";}
+    | VOLATILE  { $<string_type>$ = "volatile";}
     ;
 
 calificadorTipo
-    : TYPEDEF
-    | STATIC
-    | EXTERN
-    | AUTO
-    | REGISTER
+    : TYPEDEF   { $<string_type>$ = "typedef";}
+    | STATIC    { $<string_type>$ = "static";}
+    | EXTERN    { $<string_type>$ = "extern";}
+    | AUTO      { $<string_type>$ = "auto";}
+    | REGISTER  { $<string_type>$ = "register";}
     ;
     
 listaDeclaradores
@@ -506,7 +502,7 @@ inicializador
     ;
 
 especificadorTipo
-    : tipoDato %prec VACIO //{data_variable->type = concat_strings(data_variable->type, $<string_type>1);} 
+    : tipoDato %prec VACIO
     | especificadorStructUnion
     | especificadorEnum
     ;
