@@ -67,26 +67,24 @@ ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
     return NUM; 
 }
 
+int         { yylloc.last_column += yyleng; return INT_TYPE; }
+float       { yylloc.last_column += yyleng; return FLOAT; }
+double      { yylloc.last_column += yyleng; return DOUBLE; }
+char        { yylloc.last_column += yyleng; return CHAR; }
+void        { yylloc.last_column += yyleng; return VOID; }
+short       { yylloc.last_column += yyleng; return SHORT; }
+long        { yylloc.last_column += yyleng; return LONG; }
+unsigned    { yylloc.last_column += yyleng; return UNSIGNED; }
+signed      { yylloc.last_column += yyleng; return SIGNED; }
 
-int      { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return INT_TYPE; }
-float    { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return FLOAT; }
-double   { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return DOUBLE; }
-char     { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return CHAR; }
-void     { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return VOID; }
-short    { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return SHORT; }
-long     { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return LONG; }
-unsigned { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return UNSIGNED; }
-signed   { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return SIGNED; }
+volatile    { yylloc.last_column += yyleng; return VOLATILE; }
+const       { yylloc.last_column += yyleng; return CONST; }
 
-"unsigned int"       { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return UNSIGNED_INT; }
-"unsigned long"      { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return UNSIGNED_LONG; }
-"signed int"         { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return SIGNED_INT; }
-"short int"          { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return SHORT_INT; }
-"signed short int"   { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return SIGNED_SHORT_INT; }
-"unsigned short int" { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return UNSIGNED_SHORT_INT; }
-"long int"           { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return LONG_INT; }
-"signed long int"    { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return SIGNED_LONG_INT; }
-"const float"        { yylval.string_type = strdup(yytext); yylloc.last_column += yyleng; return CONST_FLOAT; }
+typedef     { yylloc.last_column += yyleng; return TYPEDEF; }
+static      { yylloc.last_column += yyleng; return STATIC; }
+extern      { yylloc.last_column += yyleng; return EXTERN; }
+auto        { yylloc.last_column += yyleng; return AUTO; }
+register    { yylloc.last_column += yyleng; return REGISTER; }
 
 return  {
     yylloc.last_column += yyleng;
@@ -164,16 +162,6 @@ continue {
     yylloc.last_column += yyleng;
     yylval.string_type = strdup(yytext);
     return CONTINUE;
-}
-
-volatile|const {
-    yylloc.last_column += yyleng;
-    return TIPO_CALIFICADOR;
-}
-
-typedef|static|extern|auto|register {
-    yylloc.last_column += yyleng;
-    return TIPO_ALMACENAMIENTO;
 }
 
 union {

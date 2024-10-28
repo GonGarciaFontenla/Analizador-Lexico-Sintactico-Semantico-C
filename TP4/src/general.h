@@ -138,7 +138,6 @@ extern char* type_aux;
 extern int semicolon_flag; 
 extern int size_vec_arguments;
 extern int position; 
-extern int init_flag;
 
 typedef int (*compare_element)(void* data, void* wanted); // Es un alias para llamar en la funcion fetch y que resulte mucho mas legible
 
@@ -182,7 +181,6 @@ int compare_char_and_ID_function(void* data, void* wanted);
 int compare_char_and_ID_variable(void* data, void* wanted);
 int compare_ID_parameter(void* data, void* wanted);
 int compare_void_function(void* data, void* wanted);
-void compare_arguments(t_symbol_table* function);
 int compare_ID_functions(void* data, void* wanted) ;
 
 void print_list(GenericNode* list, void (*print_node)(void*));
@@ -216,7 +214,6 @@ void yerror(YYLTYPE ubicacion);
 
 void* get_parameter(GenericNode* list, int index);
 int get_quantity_parameters(GenericNode* list);
-void add_parameter(TYPES validation_type);
 void return_conflict_types(t_symbol_table* existing_symbol, int line, int column); 
 void manage_conflict_types(int line, int column);
 void manage_conflict_arguments(char* identifier); 
@@ -225,7 +222,7 @@ void check_multiplication (t_variable_value left_side, t_variable_value right_si
 char* find_id_type(char* id, int line, int column) ;
 bool check_multiplication_aux_enums(TYPES type);
 bool check_multiplication_aux_ids(char* type);
-char* change_enum_for_type(TYPES type);
 char* concat_types(char* return_type);
+char* concat_strings(const char* string1, const char* string2);
 
 #endif 
