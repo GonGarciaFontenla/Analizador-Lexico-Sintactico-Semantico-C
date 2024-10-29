@@ -49,6 +49,7 @@ void append_token(const char* token) {
             exit(EXIT_FAILURE);
         }
         token_buffer = new_buffer;
+        token_buffer[0] = '\0';
     }
 
     // Agregar un espacio si el buffer ya tiene contenido
@@ -125,14 +126,14 @@ void init_structures() { // Iniciar todas las estructuras
     data_parameter->name = NULL;
     data_parameter->type = NULL;
 
-    data_intoken = (t_token_unrecognised*)malloc(sizeof(t_token_unrecognised));
+    data_intoken = (t_sent_or_unrecognised_token*)malloc(sizeof(t_sent_or_unrecognised_token));
     if(!data_intoken) {
         printf("Error al asignar memoria para data_intoken");
         exit(EXIT_FAILURE);
     }
     data_intoken->column = 0;
     data_intoken->line = 0;
-    data_intoken->token = NULL;
+    data_intoken->type = NULL;
 
     data_sem_error = (t_semantic_error*)malloc(sizeof(t_semantic_error));
     if(!data_sem_error) {
@@ -141,7 +142,7 @@ void init_structures() { // Iniciar todas las estructuras
     }
     data_sem_error->msg = NULL;
 
-    data_sent = (t_sent*)malloc(sizeof(t_sent));
+    data_sent = (t_sent_or_unrecognised_token*)malloc(sizeof(t_sent_or_unrecognised_token));
     if (!data_sent) {
         printf("Error al asignar memoria para data_sent");
         exit(EXIT_FAILURE);
@@ -178,10 +179,10 @@ void init_structures() { // Iniciar todas las estructuras
 }
 
 void add_unrecognised_token(const char* intoken) {
-    data_intoken -> token = strdup(intoken);
+    data_intoken -> type = strdup(intoken);
     data_intoken -> line = yylloc.first_line;
     data_intoken -> column = yylloc.first_column;
-    insert_node(&intokens, data_intoken, sizeof(t_token_unrecognised));
+    insert_node(&intokens, data_intoken, sizeof(t_sent_or_unrecognised_token));
 }
 
 void add_sent(const char* tipo_sentencia, int line, int column) {
@@ -192,7 +193,7 @@ void add_sent(const char* tipo_sentencia, int line, int column) {
     }
     data_sent->line = line;
     data_sent->column = column;
-    insert_sorted_node(&sentencias, data_sent, sizeof(t_sent), compare_lines);
+    insert_sorted_node(&sentencias, data_sent, sizeof(t_sent_or_unrecognised_token), compare_lines);
 }
 
 void insert_sorted_node(GenericNode** list, void* new_data, size_t data_size, int (*compare)(const void*, const void*)) {
@@ -252,143 +253,121 @@ void insert_node(GenericNode** list, void* new_data, size_t data_size) {
     current->next = new_node;
 }
 
-void print_lists() { // Printear todas las listas aca, PERO REDUCIR LA LOGICA HACIENDO UN PRINT PARTICULAR GENERICO
-    int found = 0;
-
-    printf("* Listado de variables declaradas (tipo de dato y numero de linea):\n");
-
-    if(variable) {
-        GenericNode* aux = variable;
-        while(aux) {
-            t_variable* temp = (t_variable*)aux->data;
-            printf("%s: %s, linea %i, columna %i \n", temp->variable, temp->type, temp->line, temp->column);
-            aux = aux->next;
-            found = 1;
-        }
-    }
-
-    if(!found) {
-        printf("-\n");
-    }
-
-    found = 0;
-    printf("\n");
-
-    printf("* Listado de funciones declaradas o definidas:\n");
-    if(function) {
-        GenericNode* aux = function;
-        while(aux) {
-            t_function* temp = (t_function*)aux->data;
-            printf("%s: %s, input: ", temp->name, temp->type);
-            if (temp->parameters) {
-                GenericNode* aux2 = (GenericNode*) temp->parameters;
-                while (aux2) {
-                    t_parameter* param = (t_parameter*)aux2->data;
-                    if (param->type && param->name) {
-                        printf(strcmp(param->name, "") == 0 ? "%s" : "%s %s", param->type, param->name);
-                    } else if (param->type){
-                        printf("%s", param->type);
-                    } else {
-                        printf("Tipo de parametro nulo");
-                    }
-                    aux2 = aux2->next;
-                    
-                    if (aux2) {
-                        printf(", ");
-                    }
-                }
-            } else {
-                printf("void");
-            }
-            printf(", retorna: %s, linea %i \n", temp->return_type, temp->line);
-            aux = aux->next;
-            found = 1;
-        }
-    }
-
-    if(!found) {
-        printf("-\n");
-    }
-
-    printf("\n");
-    found = 0;
-
-
-    printf("* Listado de errores semanticos:\n");
-    print_semantic_errors(semantic_errors);
-
-    found = 0;
-    printf("\n");
-    printf("* Listado de errores sintacticos:\n");
-    if (error_list) {
-        GenericNode* temp = error_list;
-        while (temp) {
-            t_error* err = (t_error*) temp->data;
-            printf("\"%s\": linea %d\n", err->message, err->line);
-            temp = temp->next;
-            found = 1;
-        }
-    }  
-
-    if(!found) {
-        printf("-\n");
-    }
-
-    found = 0;
-    printf("\n");
-
-    printf("* Listado de errores lexicos:\n");
-    if(intokens) {
-        GenericNode* aux = intokens;
-        while(aux) {
-            t_token_unrecognised* aux_intoken = (t_token_unrecognised*)aux->data;
-            printf("%s: linea %i, columna %i\n", aux_intoken->token, aux_intoken->line, aux_intoken->column);
-            aux = aux->next;
-            found = 1;
-        }
-        printf("\n");
-    }
-
-    if(!found) {
-        printf("-\n");
-    }
-
-}
-
-void print_semantic_errors(GenericNode* list) {
+void print_list(GenericNode* list, void (*print_node)(void*)) {
     if(list) {
         GenericNode* aux = list;
         while(aux) {
-            t_semantic_error* aux_error = (t_semantic_error*)aux->data;
-            printf("%s\n", aux_error->msg);
+            print_node(aux->data);
             aux = aux->next;
         }
-        printf("\n");
+    } else {
+        printf("-\n");
     }
+    printf("\n\n");
 }
 
-void free_list(GenericNode** head) { // ToDo: hay memory leaks, los free no estan pensados para sublistas
+void print_variable(void* data) {
+    t_variable* var = (t_variable*)data;
+    printf("%s: %s, linea %i, columna %i\n", var->variable, var->type, var->line, var->column);
+}
+
+void print_function(void* data) {
+    t_function* func = (t_function*)data;
+    printf("%s: %s, input: ", func->name, func->type);
+    
+    if (func->parameters) {
+        GenericNode* aux = func->parameters;
+        while (aux) {
+            t_parameter* param = (t_parameter*)aux->data;
+            if (param->type && param->name) {
+                printf("%s %s", param->type, param->name);
+            } else if (param->type) {
+                printf("%s", param->type);
+            } else {
+                printf("Tipo de parametro nulo");
+            }
+            aux = aux->next;
+            if (aux) {
+                printf(", ");
+            }
+        }
+    } else {
+        printf("void");
+    }
+    printf(", retorna: %s, linea %i\n", func->return_type, func->line);
+}
+
+void print_syntax_error(void* data) {
+    t_error* err = (t_error*)data;
+    printf("\"%s\": linea %d\n", err->message, err->line);
+}
+
+void print_lexical_error(void* data) {
+    t_sent_or_unrecognised_token* token = (t_sent_or_unrecognised_token*)data;
+    printf("%s: linea %i, columna %i\n", token->type, token->line, token->column);
+}
+
+void print_semantic_error(void* data) {
+    t_semantic_error* err = (t_semantic_error*)data;
+    printf("%s\n", err->msg);
+}
+
+void print_lists() {
+    printf("* Listado de variables declaradas (tipo de dato y numero de linea):\n");
+    print_list(variable, print_variable);
+
+    printf("* Listado de funciones declaradas y definidas:\n");
+    print_list(function, print_function);
+
+    printf("* Listado de errores semanticos:\n");
+    print_list(semantic_errors, print_semantic_error);
+
+    printf("* Listado de errores sintacticos:\n");
+    print_list(error_list, print_syntax_error);
+
+    printf("* Listado de errores lexicos:\n");
+    print_list(intokens, print_lexical_error);
+}
+
+void free_list(GenericNode** list, void (*free_data)(void*)) { 
     GenericNode* temp;
-    while (*head) {
-        temp = *head;
-        *head = (*head)->next;
-        free(temp->data);
-        free(temp);
+    while (*list) {
+        temp = *list;
+        *list = (*list)->next;
+        if(free_data) {
+            free_data(temp->data);  
+        }
+        if(temp)
+            free(temp);
     }
-    *head = NULL; // Evita referencias a memoria liberada
+    *list = NULL; 
 }
 
-void free_all_lists() { 
-    free_list(&variable);
-    free_list(&function);
-    free_list(&error_list);
-    free_list(&intokens);
-    free_list(&sentencias);
+void free_function(void* data) {
+    t_function* func = (t_function*) data;
+    
+    if (func && func->parameters) {
+        free_list(&(func->parameters), free);
+    }
+
+    free(func->name);
+    free(func->return_type);
+    free(func); 
+}
+
+void free_all_lists() {
+    free_list(&variable, free); 
+    free_list(&function, free_function);  // Como function tiene sublsita por nodo, usamos free_function
+    free_list(&error_list, free);
+    free_list(&intokens, free);
+    free_list(&sentencias, free);
+    free_list(&semantic_errors, free);
+    free_list(&symbol_table, free);
 }
 
 int compare_lines(const void* a, const void* b) {
-    const t_sent* sent_a = (const t_sent*)a;
-    const t_sent* sent_b = (const t_sent*)b;
+    const t_sent_or_unrecognised_token* sent_a = (const t_sent_or_unrecognised_token*)a;
+    const t_sent_or_unrecognised_token* sent_b = (const t_sent_or_unrecognised_token*)b;
 
     return sent_a->line - sent_b->line;
 }
@@ -472,6 +451,15 @@ int compare_ID_and_different_type_functions(void* data, void* wanted) {
     
     return 0;
 }
+
+int compare_ID_functions(void* data, void* wanted) {
+    t_function* function_var = (t_function*)data;
+    char* data_wanted = (char*)wanted;
+
+    return strcmp(function_var->name, data_wanted) == 0 && 
+           strcmp(function_var->type, "definicion") == 0;
+}
+
 
 // Busca una variable en la lista de variables declaradas que tenga mismo IDENTIFICADOR y distinto tipo
 int compare_ID_and_diff_type_variable(void* data, void* wanted) {
@@ -614,7 +602,7 @@ t_symbol_table* get_element(SYMBOL_TYPE symbol_type, void* wanted, compare_eleme
     }
     return NULL;
 }
-//TO DO: comentamos todo porque nos falla la función 'asprintf'
+
 void insert_sem_error_different_symbol(int column) {
     t_symbol_table* existing_symbol = get_element(FUNCTION, data_function, compare_ID_and_different_type_functions);
     if(existing_symbol) {
@@ -622,7 +610,7 @@ void insert_sem_error_different_symbol(int column) {
         if(existing_function) {
             char* new_parameters = concat_parameters(data_function -> parameters);
             char* old_parameters = concat_parameters(existing_function -> parameters);
-            _asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la ultima es de tipo '%s(%s)'\nNota: la declaracion previa de '%s' es de tipo '%s(%s)': %i:%i",
+            _asprintf(&data_sem_error->msg, "%i:%i: conflicto de tipos para '%s'; la ultima es de tipo '%s(%s)'\nNota: la declaracion previa de '%s' es de tipo '%s(%s)': %i:%i",
                     data_function->line, column, data_function->name,
                     data_function->return_type, new_parameters, existing_function->name, 
                     existing_function->return_type, old_parameters,
@@ -654,10 +642,9 @@ void insert_sem_error_invalid_identifier(int line, int column, char* identifier)
 }
 
 void insert_sem_error_too_many_or_few_parameters(int line, int column, char* identifier, int quant_parameters) {
-    t_symbol_table* existing_symbol = get_element(FUNCTION, identifier, compare_char_and_ID_variable);
+    t_symbol_table* existing_symbol = get_element(FUNCTION, identifier, compare_char_and_ID_function);
     if(existing_symbol) {
         t_function* existing_function = (t_function*)existing_symbol->data;
-
         if(get_quantity_parameters(existing_function -> parameters) > quant_parameters) {
             _asprintf(&data_sem_error -> msg, "%i:%i: Insuficientes argumentos para la funcion '%s'\nNota: declarado aqui: %i:%i",
                     line, column, identifier,
@@ -693,11 +680,26 @@ void handle_redeclaration(int redeclaration_line, int redeclaration_column, cons
     }
 }
 
+void handle_function_redefinition(int line, int column, char* identifier) {
+    t_symbol_table* existing_symbol = (t_symbol_table*)get_element(FUNCTION, identifier, compare_ID_functions);
+    if(existing_symbol){ 
+        t_function* existing_function = (t_function*)existing_symbol->data;
+        if(existing_function){
+            char* old_parameters = concat_parameters(existing_function -> parameters);
+            _asprintf(&data_sem_error->msg, "%i:%i: Redefinicion de '%s' \nNota: la definicion previa de '%s' es de tipo '%s(%s)': %i:%i", 
+                line, column, identifier, existing_function->name, existing_function->return_type,
+                old_parameters, existing_symbol->line, existing_symbol->column);
+            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+            data_function->parameters = NULL;
+        }
+    }
+}
+
 void check_function_redeclaration(t_symbol_table* symbol, int line, int column, const char* id) {
     t_function* existing_function = (t_function*)symbol->data;
-    _asprintf(&data_sem_error->msg, "%i:%i: '%s' redeclarado como un tipo diferente de simbolo\nNota: la declaracion previa de '%s' es de tipo '%s': %i:%i", 
+    _asprintf(&data_sem_error->msg, "%i:%i: '%s' redeclarado como un tipo diferente de simbolo\nNota: la declaracion previa de '%s' es de tipo '%s(%s)': %i:%i", 
             line, column, id, 
-            existing_function->name, existing_function->return_type, 
+            existing_function->name, existing_function->return_type, existing_function->return_type, 
             symbol->line, symbol->column);
     insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
 }
@@ -713,33 +715,13 @@ void check_variable_redeclaration(t_symbol_table* symbol, int line, int column, 
 
 void check_type_conflict(t_symbol_table* symbol, int line, int column, const char* id) {
     t_variable* existing_variable = (t_variable*)symbol->data;
-    _asprintf(&data_sem_error->msg, "%i:%i: Conflicto de tipos para '%s'; la ultima es de tipo '%s'\nNota: la declaracion previa de '%s' es de tipo '%s': %i:%i",
+    _asprintf(&data_sem_error->msg, "%i:%i: conflicto de tipos para '%s'; la ultima es de tipo '%s'\nNota: la declaracion previa de '%s' es de tipo '%s': %i:%i",
             line, column, id,
             data_variable->type, existing_variable->variable, 
             existing_variable->type, existing_variable->line, 
             existing_variable->column);
     insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
 }
-
-
-// struct t_variable* getId(char* identificador) {
-//     GenericNode* nodo_aux = variable; // Asegúrate de que 'variable' esté inicializado correctamente
-//     t_variable* var;
-//     // Iterar a través de la lista enlazada
-//     while (nodo_aux != NULL) {
-//         var = nodo_aux->data; // Obtener el dato del nodo actual
-
-//         // Comprobar si 'var' no es NULL y comparar
-//         if (var != NULL && strcmp(identificador, var->variable) == 0) {
-//             return var; // Retornar la variable si hay coincidencia
-//         }
-
-//         nodo_aux = nodo_aux->next; // Mover al siguiente nodo
-//     }
-
-//     // Si no se encontró el identificador, retornar NULL
-//     return NULL;
-// }
 
 int _asprintf(char **strp, const char *fmt, ...) {
     va_list args;
@@ -792,7 +774,7 @@ void return_conflict_types(t_symbol_table* existing_symbol, int line, int column
                 if(symbol) {
                     t_function* function = (t_function*)symbol->data;
                     char* parameters = concat_parameters(function->parameters);
-                    _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al retornar el tipo '%s(*)(%s)' pero se esperaba '%s'", 
+                    _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al retornar el tipo '%s (*)(%s)' pero se esperaba '%s'", 
                             line, column + 1, function->return_type, parameters, existing_function->return_type);
                     insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
                     }
@@ -853,7 +835,7 @@ void* get_parameter(GenericNode* list, int index) {
     }
 }
 
-void manage_conflict_tpyes(int line, int column) {
+void manage_conflict_types(int line, int column) {
     if(!fetch_element(FUNCTION, data_function, compare_ID_in_declaration_or_definition) && !fetch_element(FUNCTION, data_function, compare_ID_and_different_type_functions)) {
         insert_node(&function, data_function, sizeof(t_function));
         data_symbol -> line = line;
@@ -867,7 +849,7 @@ void manage_conflict_tpyes(int line, int column) {
     }
 }
 
-void manage_conflict_arguments (char* identifier){ // ToDo: delegar cada "case"
+void manage_conflict_arguments (char* identifier) { // ToDo: delegar cada "case"
     t_symbol_table* existing_symbol = (t_symbol_table*)get_element(FUNCTION, identifier, compare_char_and_ID_function);
     if(existing_symbol) {
         t_function* func = (t_function*)existing_symbol->data;
@@ -878,7 +860,7 @@ void manage_conflict_arguments (char* identifier){ // ToDo: delegar cada "case"
                     t_parameter* param = (t_parameter*)get_parameter(func->parameters, i);
                     _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos para el argumento %i de '%s'\nNota: se esperaba '%s' pero el argumento es de tipo '%s': %i:%i",
                             invocated_arguments[i].line, invocated_arguments[i].column, i + 1,
-                            func->name, param->type, "char*", param->line, param->column);
+                            func->name, param->type, "char *", param->name_line, param->name_column);
                     insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
                     break;
                 case ID:
@@ -888,7 +870,7 @@ void manage_conflict_arguments (char* identifier){ // ToDo: delegar cada "case"
                             t_function* function = (t_function*)sym->data;
                             t_parameter* param = (t_parameter*)get_parameter(func->parameters, i);
                             char* parameters_concat = concat_parameters(function->parameters);
-                            _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos para el argumento %i de '%s'\nNota: se esperaba '%s' pero el argumento es de tipo '%s(*)(%s)': %i:%i",
+                            _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos para el argumento %i de '%s'\nNota: se esperaba '%s' pero el argumento es de tipo '%s (*)(%s)': %i:%i",
                                     invocated_arguments[i].line, invocated_arguments[i].column, i + 1,
                                     func->name, param->type, function->return_type, parameters_concat, 
                                     param->line, param->column);
@@ -900,4 +882,315 @@ void manage_conflict_arguments (char* identifier){ // ToDo: delegar cada "case"
             }
         }
     } 
+}
+
+// Devuelve, si existe, un paramtro de la funcion actual dado un nombre
+t_parameter* get_param(const char* wanted) {
+    GenericNode* current = data_function->parameters; 
+
+    while (current) {
+        t_parameter* param = (t_parameter*)current->data;
+        if (param && strcmp(param->name, wanted) == 0) {
+            return param;
+        }
+        current = current->next;
+    }
+
+    // Si no se encuentra el parametro devuelve NULL
+    return NULL;
+}
+
+char* type_to_string(TYPES type) {
+    switch (type) {
+        case INT: return "int";
+        case NUMBER: return "double";
+        case STRING: return "char *";
+        default: return "unknown"; 
+    }
+}
+
+void check_assignation_types (t_variable_value declarator, t_variable_value initializer, int line, int column) {
+
+    if (declarator.type != ID) { // No es un valor L modificable
+        _asprintf(&data_sem_error->msg, "%i:%i: Se requiere un valor-L modificable como operando izquierdo de la asignacion", line, column - 2);
+        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        return;
+    }
+
+    char* decla_name = strdup(declarator.value.id_val);
+    t_symbol_table* existing_symbol = (t_symbol_table*)get_element(VARIABLE, decla_name, compare_char_and_ID_variable);
+
+    if (!existing_symbol && strcmp(decla_name, data_variable->variable) != 0) { // Hay una funcion del lado izquierdo (no es variable guardada ni se esta inicializando)
+        _asprintf(&data_sem_error->msg, "%i:%i: Se requiere un valor-L modificable como operando izquierdo de la asignacion", line, column - 2);
+        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        return;
+    }
+
+    // El lado izquierdo es una variable
+    t_variable* var = NULL;
+    if (existing_symbol) {
+        var = (t_variable*)existing_symbol->data;
+
+        if (is_const(var->type)) { // Actualizar variable de solo lectura
+            _asprintf(&data_sem_error->msg, "%i:%i: Asignacion de la variable de solo lectura '%s'", 
+            line, column - 2, var->variable);
+            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+            return;
+        }
+
+    } else {
+         var = malloc(sizeof(t_variable)); 
+        if (var == NULL) {
+            perror("Error al asignar memoria");
+            return;
+        }
+        // Si llego hasta aca y existing_symbol es NULL, entonces se esta inicializando y data_variable->variable == decla_name
+        var->type = strdup(data_variable->type);
+        var->variable = strdup(data_variable->variable);
+    }
+    
+    const char* expected_type = var->type; // Tipo a verificar con el lado derecho
+
+    if (is_const(expected_type)) {
+        expected_type = get_base_type(var->type);
+    }
+
+    switch (initializer.type) {
+        case ID: {
+            char* init_name = strdup(initializer.value.id_val);
+
+            t_symbol_table* aux = (t_symbol_table*)get_element(VARIABLE, init_name, compare_char_and_ID_variable);
+            if (aux) { // El lado derecho es una variable
+                t_variable* init = (t_variable*)aux->data;
+                if (check_type_match(init->type, expected_type) == 0) {
+                    _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", 
+                    line, column, expected_type, init->type);
+                    insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                    return;
+                }
+            } else { 
+                aux = (t_symbol_table*)get_element(FUNCTION, init_name, compare_char_and_ID_function);
+                if (!aux) {
+                    if (fetch_parameter(init_name)) { // El lado derecho es un parametro
+                        t_parameter* param = get_param(init_name); 
+                        if (check_type_match(param->type, expected_type) == 0) {
+                            _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", 
+                            line, column, expected_type, param->type);
+                            insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                            return;
+                        }
+                    }
+                    return;
+                } // El lado derecho es una funcion
+                t_function* init = (t_function*)aux->data;
+                char* parameters_concat = concat_parameters(init->parameters);
+                if (check_type_match(init->return_type, expected_type) == 0) {
+                    _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s (*)(%s)'", 
+                    line, column, expected_type, init->return_type, parameters_concat);
+                    insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                    return;
+                }
+            }
+            break;
+        }
+
+        default: {
+            char* init_type = type_to_string(initializer.type);
+
+            if (check_type_match(init_type, expected_type) == 0) {
+                _asprintf(&data_sem_error->msg, "%i:%i: Incompatibilidad de tipos al inicializar el tipo '%s' usando el tipo '%s'", 
+                line, column, expected_type, init_type);
+                insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+                return;
+            }
+            break;
+        }
+    }
+}
+
+int is_const(const char* type) {
+    return strncmp(type, "const ", 6) == 0;
+}
+
+int check_type_match(const char* a, const char* b) { // Mejorar para que reconozca tipos compatibles
+    const char* baseA = get_base_type(a);
+    const char* baseB = get_base_type(b);
+    
+    if (strcmp(baseA, baseB) == 0) {
+        return 1; 
+    }
+    
+    if ((strcmp(baseA, "float") == 0 && strcmp(baseB, "double") == 0) ||
+        (strcmp(baseA, "double") == 0 && strcmp(baseB, "float") == 0)) {
+        return 1; 
+    }
+
+    if ((strcmp(baseA, "int") == 0 && strcmp(baseB, "long") == 0) ||
+        (strcmp(baseA, "long") == 0 && strcmp(baseB, "int") == 0)) {
+        return 1; 
+    }
+
+    if ((strcmp(baseA, "int") == 0 && strcmp(baseB, "short") == 0) ||
+        (strcmp(baseA, "short") == 0 && strcmp(baseB, "int") == 0)) {
+        return 1; 
+    }
+
+    return 0;
+}
+
+const char* get_base_type(const char* type) { // Devuelve la ultima palabra del tipo para facilitar comparaciones
+    char* type_copy = strdup(type);
+    if (type_copy == NULL) {
+        perror("Error al asignar memoria");
+        return NULL;
+    }
+
+    // Dividir la cadena en tokens
+    char* token = strtok(type_copy, " ");
+    const char* base_type = NULL;
+
+    // Iterar a través de los tokens y guardar el último token
+    while (token != NULL) {
+        base_type = token;
+        token = strtok(NULL, " ");
+    }
+
+    char* result = strdup(base_type);
+    if (result == NULL) {
+        perror("Error al asignar memoria");
+        free(type_copy);
+        return NULL;
+    }
+
+    free(type_copy);
+
+    return result;
+}
+
+void check_multiplication (t_variable_value left_side, t_variable_value right_side, int line, int column) {
+    // Vamos a chequear que los tipos de los operandos de la multiplicación sean válidos
+    
+    bool left_correct, right_correct;
+    char* left_type;
+    char* right_type;
+
+    if (left_side.type == ID) {
+
+        left_type = find_id_type(left_side.value.id_val, line, column);
+        left_correct = check_multiplication_aux_ids(left_type);        
+    } else{
+
+        left_correct = check_multiplication_aux_enums(left_side.type);
+        left_type = type_to_string(left_side.type);
+    }
+    
+    if (right_side.type == ID) { 
+        right_type = find_id_type(right_side.value.id_val, line, column);
+        right_correct = check_multiplication_aux_ids(right_type);
+        
+    } else{
+        right_correct = check_multiplication_aux_enums(right_side.type);
+        right_type = type_to_string(right_side.type);
+    }
+
+    if(!(left_correct && right_correct)){
+
+        _asprintf(&data_sem_error->msg, "%i:%i: Operandos invalidos del operador binario * (tienen \'%s\' y \'%s\')", line, column, left_type, right_type);
+        insert_node(&semantic_errors, data_sem_error, sizeof(t_semantic_error));
+        return;
+    }    
+}
+
+bool check_multiplication_aux_enums(TYPES type){
+    switch(type){
+        case STRING:
+        case UNKNOWN:
+            return false;
+            break;
+        case NUMBER:
+        case INT:
+            return true;
+            break;
+        default:
+            return false;
+            break;
+    }
+}
+
+bool check_multiplication_aux_ids(char* type) {
+    if (strcmp(type, "float") == 0 || strcmp(type, "int") == 0 ||
+        strcmp(type, "double") == 0 || strcmp(type, "short") == 0 ||
+        strcmp(type, "long") == 0 || strcmp(type, "unsigned") == 0 ||
+        strcmp(type, "signed") == 0 || strcmp(type, "unsigned int") == 0 ||
+        strcmp(type, "unsigned long") == 0 || strcmp(type, "signed int") == 0 ||
+        strcmp(type, "short int") == 0 || strcmp(type, "signed short int") == 0 ||
+        strcmp(type, "unsigned short int") == 0 || strcmp(type, "long int") == 0 ||
+        strcmp(type, "signed long int") == 0 || strcmp(type, "const float") == 0) {
+        return true;
+    } else if (strcmp(type, "char") == 0 || strcmp(type, "void") == 0 ||
+               strcmp(type, "char*") == 0 || strcmp(type, "void (*)(void)") == 0) {
+        return false;
+    } else {
+        return false;
+    }
+}
+
+char* find_id_type(char* id, int line, int column) {
+    t_symbol_table* existing_symbol = (t_symbol_table*)get_element(VARIABLE, id, compare_char_and_ID_variable);
+    t_symbol_table* existing_function = (t_symbol_table*)get_element(FUNCTION, id, compare_char_and_ID_function);
+
+    if(existing_symbol){
+        t_variable* identificador = (t_variable*)existing_symbol->data;
+        return identificador->type;
+    } else if(existing_function){
+        t_function* identificador = (t_function*)existing_function->data;
+        int quant = get_quantity_parameters(identificador->parameters);
+        if(quant == 0){
+            char* tipo_compuesto = concat_types(identificador->return_type);
+            return tipo_compuesto;
+        }
+        return identificador->return_type;
+    }
+    else {
+        printf("Error en multiplicación, line: %d, column: %d \n", line, column);
+        return NULL;
+    }
+}
+
+char* concat_types(char* return_type) {
+    const char* ending_type = " (*)(void)";
+    
+    size_t len_return_type = strlen(return_type);
+    size_t len_ending_type = strlen(ending_type);
+    
+    char* tipo_compuesto = (char*) malloc((len_return_type + len_ending_type + 1) * sizeof(char));
+
+    if (tipo_compuesto == NULL) {
+        printf("Error al asignar memoria\n");
+        exit(1);
+    }
+    strcpy(tipo_compuesto, return_type);
+    strcat(tipo_compuesto, ending_type);
+
+    return tipo_compuesto;
+}
+
+char* concat_strings(const char* string1, const char* string2) {
+    // Calcula el tamaño necesario para la cadena concatenada
+    size_t len1 = string1 ? strlen(string1) : 0;
+    size_t len2 = string2 ? strlen(string2) : 0;
+    char* result = malloc(len1 + len2 + 2);  // +2 para el carácter nulo y espacio
+
+    if (result == NULL) {
+        fprintf(stderr, "Error de asignación de memoria.\n");
+        exit(1);
+    }
+
+    result[0] = '\0';
+
+    if (string1) strcpy(result, string1);
+    if (string1 && string2) strcat(result, " ");
+    if (string2) strcat(result, string2);
+
+    return result;
 }

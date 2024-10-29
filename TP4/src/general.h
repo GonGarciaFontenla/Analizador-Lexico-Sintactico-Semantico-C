@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 /* En los archivos de cabecera (header files) (*.h) poner DECLARACIONES (evitar DEFINICIONES) de C, así como directivas de preprocesador */
 /* Recordar solamente indicar archivos *.h en las directivas de preprocesador #include, nunca archivos *.c */
@@ -46,7 +47,8 @@ typedef enum {
     STRING,   
     INT,
     NUMBER,
-    ID
+    ID,
+    UNKNOWN
 } TYPES; 
 
 typedef struct {
@@ -54,11 +56,14 @@ typedef struct {
     char* name;
     int line;
     int column;
+    int name_line;
+    int name_column;
 } t_parameter;
 
 typedef struct {
     char* name;
     int line;
+    int column;
     char* type;                             // Si es declaracion o definicion
     GenericNode* parameters;                
     char* return_type;
@@ -66,20 +71,9 @@ typedef struct {
 
 typedef struct {
     int line;
-    char* structure;
-} t_structure_unrecognised;
-
-typedef struct {
-    int line;
     int column;
-    char* token;
-} t_token_unrecognised;
-
-typedef struct {
     char* type;
-    int line;
-    int column;
-} t_sent;
+} t_sent_or_unrecognised_token; // Unificado en un struct
 
 typedef struct {
     int line;
@@ -107,6 +101,16 @@ typedef struct {
     char* name;
 } t_arguments;
 
+typedef struct {
+    TYPES type;
+    union {
+        int int_val;
+        double double_val;
+        char* string_val;
+        char* id_val; // para identificadores
+    } value;
+} t_variable_value;
+
 #define INICIO_CONTEO_LINEA 1
 #define INICIO_CONTEO_COLUMNA 1
 
@@ -118,11 +122,11 @@ extern GenericNode* sentencias;
 extern GenericNode* semantic_errors;
 extern GenericNode* symbol_table;
 extern t_symbol_table* data_symbol;
-extern t_token_unrecognised* data_intoken;
+extern t_sent_or_unrecognised_token* data_intoken;
 extern t_variable* data_variable;
 extern t_function* data_function;
 extern t_parameter data_parameter;
-extern t_sent* data_sent;
+extern t_sent_or_unrecognised_token* data_sent;
 extern t_error* new_error;
 extern t_semantic_error* data_sem_error;
 extern t_arguments* invocated_arguments;
@@ -142,10 +146,9 @@ void inicializarUbicacion(void);
 void reinicializarUbicacion(void);
 void init_structures();
 
-// ToDo: Hay una manera de mejorar los free
-// con un struct que tenga un union y un enum, pero lo dejamos para la entrega final, muy dificil de pensar ahora 
-void free_list(GenericNode** head);
+void free_list(GenericNode** list, void (*free_data)(void*));
 void free_all_lists(void);
+void free_function(void* data);
 void free_invocated_arguments();
 
 int _asprintf(char **strp, const char *fmt, ...);
@@ -178,10 +181,15 @@ int compare_char_and_ID_function(void* data, void* wanted);
 int compare_char_and_ID_variable(void* data, void* wanted);
 int compare_ID_parameter(void* data, void* wanted);
 int compare_void_function(void* data, void* wanted);
-void compare_arguments(t_symbol_table* function);
+int compare_ID_functions(void* data, void* wanted) ;
 
-void print_lists();
-void print_semantic_errors(GenericNode* list);
+void print_list(GenericNode* list, void (*print_node)(void*));
+void print_variable(void* data);
+void print_function(void* data);
+void print_syntax_error(void* data);
+void print_lexical_error(void* data);
+void print_semantic_error(void* data);
+void print_lists(void);
 
 t_symbol_table* get_element(SYMBOL_TYPE symbol_type, void* wanted, compare_element cmp);
 int fetch_element(SYMBOL_TYPE sym, void* wanted, compare_element cmp);
@@ -189,9 +197,16 @@ int fetch_parameter(const char* wanted);
 int fetch_type_parameter(t_function* function, char* wanted);
 
 void handle_redeclaration(int redeclaration_line, int redeclaration_column, const char* identifier); 
+void handle_function_redefinition(int line, int column, char* identifier);
 void check_function_redeclaration(t_symbol_table* function, int redeclaration_line, int redeclaration_column, const char* identifier); 
 void check_variable_redeclaration(t_symbol_table* variable, int line, int column, const char* id); 
-void check_type_conflict(t_symbol_table* variable, int line, int column, const char* id); 
+void check_type_conflict(t_symbol_table* variable, int line, int column, const char* id);
+
+void check_assignation_types(t_variable_value declarator, t_variable_value initializer, int line, int column);
+int check_type_match(const char* a, const char* b);
+int is_const(const char* tipo);
+const char* get_base_type(const char* type);
+t_parameter* get_param(const char* wanted);
 
 void reset_token_buffer();
 
@@ -199,11 +214,15 @@ void yerror(YYLTYPE ubicacion);
 
 void* get_parameter(GenericNode* list, int index);
 int get_quantity_parameters(GenericNode* list);
-void add_parameter(TYPES validation_type);
 void return_conflict_types(t_symbol_table* existing_symbol, int line, int column); 
-void manage_conflict_tpyes(int line, int column);
+void manage_conflict_types(int line, int column);
 void manage_conflict_arguments(char* identifier); 
 
-struct t_variable* getId(char* identificador) ;
+void check_multiplication (t_variable_value left_side, t_variable_value right_side, int line, int column) ;
+char* find_id_type(char* id, int line, int column) ;
+bool check_multiplication_aux_enums(TYPES type);
+bool check_multiplication_aux_ids(char* type);
+char* concat_types(char* return_type);
+char* concat_strings(const char* string1, const char* string2);
 
 #endif 

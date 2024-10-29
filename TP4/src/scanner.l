@@ -9,7 +9,7 @@
 
 int inicializar = 1;
 GenericNode* intokens = NULL;
-t_token_unrecognised* data_intoken;
+t_sent_or_unrecognised_token* data_intoken;
 
 
 %}
@@ -23,6 +23,8 @@ ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
 
 %pointer
 %option noyywrap
+%option noinput
+%option nounput
 %x tokenNoReconocido
 
 %%
@@ -65,17 +67,24 @@ ESCAPE_SIMPLE [abfnrtv\\\'\"\?]
     return NUM; 
 }
 
-int|float|double|char|void|short|long|unsigned|signed {
-    yylval.string_type = strdup(yytext);  // Asigna el valor del token reconocido
-    yylloc.last_column += yyleng;
-    return TIPO_DATO;
-}
+int         { yylloc.last_column += yyleng; return INT_TYPE; }
+float       { yylloc.last_column += yyleng; return FLOAT; }
+double      { yylloc.last_column += yyleng; return DOUBLE; }
+char        { yylloc.last_column += yyleng; return CHAR; }
+void        { yylloc.last_column += yyleng; return VOID; }
+short       { yylloc.last_column += yyleng; return SHORT; }
+long        { yylloc.last_column += yyleng; return LONG; }
+unsigned    { yylloc.last_column += yyleng; return UNSIGNED; }
+signed      { yylloc.last_column += yyleng; return SIGNED; }
 
-"unsigned int"|"unsigned long"|"signed int"|"short int"|"signed short int"|"unsigned short int"|"long int"|"signed long int"|"const float" {
-    yylval.string_type = strdup(yytext); 
-    yylloc.last_column += yyleng;
-    return TIPO_DATO;
-}
+volatile    { yylloc.last_column += yyleng; return VOLATILE; }
+const       { yylloc.last_column += yyleng; return CONST; }
+
+typedef     { yylloc.last_column += yyleng; return TYPEDEF; }
+static      { yylloc.last_column += yyleng; return STATIC; }
+extern      { yylloc.last_column += yyleng; return EXTERN; }
+auto        { yylloc.last_column += yyleng; return AUTO; }
+register    { yylloc.last_column += yyleng; return REGISTER; }
 
 return  {
     yylloc.last_column += yyleng;
@@ -153,16 +162,6 @@ continue {
     yylloc.last_column += yyleng;
     yylval.string_type = strdup(yytext);
     return CONTINUE;
-}
-
-volatile|const {
-    yylloc.last_column += yyleng;
-    return TIPO_CALIFICADOR;
-}
-
-typedef|static|extern|auto|register {
-    yylloc.last_column += yyleng;
-    return TIPO_ALMACENAMIENTO;
 }
 
 union {
